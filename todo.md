@@ -202,6 +202,9 @@
 
 ## New Features — Round 32
 - [x] Move AI Study Session Planner and Full Mock Day Simulator to top of Overview tab (above LevelCards)
+- [x] Quick Actions sticky row at top of Overview (Plan Today's Session / Start Full Mock Day scroll buttons)
+- [x] Last Session summary chip on StudySessionPlanner and FullMockDaySimulator
+- [x] Collapse IC6/IC7 comparison cards by default
 
 ## New Features — Round 31
 - [x] Answer Recording Mode — Voice-to-STAR recorder already implemented in VoiceToStar.tsx (MediaRecorder, S3 upload, Whisper transcription, STAR structuring, AI scoring)

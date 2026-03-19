@@ -181,6 +181,13 @@ function MiniRound({ round, question, durationSec, onComplete }: MiniRoundProps)
 const ROUNDS: Round[] = ["coding", "sysdesign", "xfn"];
 const ROUND_DURATION = 45 * 60; // 45 minutes each
 
+const FULL_MOCK_HISTORY_KEY = "full_mock_day_history_v1";
+
+function loadFullMockHistory(): Array<{ date: string; overallScore: number; icLevelVerdict: string; hiringRecommendation: string }> {
+  try { return JSON.parse(localStorage.getItem(FULL_MOCK_HISTORY_KEY) ?? "[]"); }
+  catch { return []; }
+}
+
 export function FullMockDaySimulator() {
   const [phase, setPhase] = useState<Phase>("idle");
   const [roundIndex, setRoundIndex] = useState(0);
@@ -189,6 +196,7 @@ export function FullMockDaySimulator() {
   const [roundResults, setRoundResults] = useState<RoundResult[]>([]);
   const [scorecard, setScorecard] = useState<FullScorecard | null>(null);
   const [expanded, setExpanded] = useState(false);
+  const lastMock = (() => { const h = loadFullMockHistory(); return h.length ? h[h.length - 1] : null; })();
 
   const codingScoreMutation = trpc.ai.codingMockScorecard.useMutation();
   const sysDesignScoreMutation = trpc.ai.sysDesignMockScorecard.useMutation();
@@ -283,6 +291,17 @@ export function FullMockDaySimulator() {
           xfnIcLevel: xfnR.icLevel,
         });
         setScorecard(sc);
+        // Persist to history
+        try {
+          const history = loadFullMockHistory();
+          history.push({
+            date: new Date().toISOString().split("T")[0],
+            overallScore: sc.overallScore,
+            icLevelVerdict: sc.icLevelVerdict,
+            hiringRecommendation: sc.hiringRecommendation,
+          });
+          localStorage.setItem(FULL_MOCK_HISTORY_KEY, JSON.stringify(history.slice(-20)));
+        } catch { /* ignore storage errors */ }
       } catch {
         toast.error("Could not generate final scorecard. Showing round scores only.");
       }
@@ -313,7 +332,12 @@ export function FullMockDaySimulator() {
             <div className="text-xs text-muted-foreground">Coding → System Design → XFN Behavioral · ~2.5 hours · AI final scorecard</div>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap justify-end">
+          {lastMock && phase === "idle" && (
+            <span className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-600/50 text-slate-300 font-medium whitespace-nowrap">
+              Last mock: {lastMock.date.slice(5).replace("-", "/")} · {lastMock.overallScore.toFixed(1)}/5 {lastMock.icLevelVerdict}
+            </span>
+          )}
           {phase === "done" && scorecard && (
             <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-600 ${recColor(scorecard.hiringRecommendation)}`}>
               {scorecard.hiringRecommendation}

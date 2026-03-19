@@ -3,7 +3,7 @@
 // weak-spot dashboard, interview countdown, STAR story bank, recruiter card
 // with peer comparison, progress export, interview day checklist
 import { useState } from "react";
-import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check, Send } from "lucide-react";
+import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check, Send, Trophy } from "lucide-react";
 import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
 import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak, useReadinessTrend, useCTCIStreak, useReadinessGoal, useHintAnalytics, useCTCIDifficultyEstimates } from "@/hooks/useLocalStorage";
 import { CTCI_QUESTIONS } from "@/lib/ctciData";
@@ -21,74 +21,88 @@ function getDaysUntil(dateStr: string): number {
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-// ── IC6/IC7 Level Cards ────────────────────────────────────────────────────
+//// ── IC6/IC7 Level Cards ────────────────────────────────────────────
 function LevelCards() {
+  const [open, setOpen] = useState(false);
   return (
     <div className="space-y-4">
-      <div className="section-title">IC6 vs IC7 — What Meta Expects</div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* IC6 */}
-        <div className="prep-card p-5 border-blue-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="badge badge-blue text-sm px-3 py-1">IC6 — Staff Engineer</span>
-          </div>
-          <div className="space-y-3 text-sm">
-            {[
-              ["Scope & Impact", "Leads major initiatives at team/org level. Defines technical direction for a domain."],
-              ["Technical Leadership", "Designs systems used by 25–30+ engineers. Owns architecture decisions end-to-end."],
-              ["Business & XFN", "Project-level cross-functional collaboration. Connects technical work to business outcomes."],
-              ["Communication", "Clear and precise within team and org. Writes design docs that drive alignment."],
-            ].map(([title, desc]) => (
-              <div key={title}>
-                <div className="text-xs font-semibold text-blue-400 mb-0.5">{title}</div>
-                <div className="text-xs text-muted-foreground">{desc}</div>
+      <button
+        onClick={() => setOpen(o => !o)}
+        className="w-full flex items-center justify-between group"
+      >
+        <div className="section-title mb-0 pb-0 border-0 group-hover:text-foreground transition-colors">IC6 vs IC7 — What Meta Expects</div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <span>{open ? "Collapse" : "Expand reference"}</span>
+          {open ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        </div>
+      </button>
+      {open && (
+        <div className="space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* IC6 */}
+            <div className="prep-card p-5 border-blue-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="badge badge-blue text-sm px-3 py-1">IC6 — Staff Engineer</span>
               </div>
-            ))}
-          </div>
-        </div>
-        {/* IC7 */}
-        <div className="prep-card p-5 border-purple-500/20">
-          <div className="flex items-center gap-2 mb-3">
-            <span className="badge badge-purple text-sm px-3 py-1">IC7 — Senior Staff Engineer</span>
-          </div>
-          <div className="space-y-3 text-sm">
-            {[
-              ["Scope & Impact", "Leads portfolios of initiatives across multiple teams. Shapes org-level technical strategy."],
-              ["Technical Leadership", "Influences 30–50+ engineers. Sets the technical bar for the entire org."],
-              ["Business & XFN", "Long-term strategic partnerships with product, design, and business leadership."],
-              ["Communication", "Communicates across disciplines and all levels. Drives industry-level conversations."],
-            ].map(([title, desc]) => (
-              <div key={title}>
-                <div className="text-xs font-semibold text-purple-400 mb-0.5">{title}</div>
-                <div className="text-xs text-muted-foreground">{desc}</div>
+              <div className="space-y-3 text-sm">
+                {[
+                  ["Scope & Impact", "Leads major initiatives at team/org level. Defines technical direction for a domain."],
+                  ["Technical Leadership", "Designs systems used by 25–30+ engineers. Owns architecture decisions end-to-end."],
+                  ["Business & XFN", "Project-level cross-functional collaboration. Connects technical work to business outcomes."],
+                  ["Communication", "Clear and precise within team and org. Writes design docs that drive alignment."],
+                ].map(([title, desc]) => (
+                  <div key={title}>
+                    <div className="text-xs font-semibold text-blue-400 mb-0.5">{title}</div>
+                    <div className="text-xs text-muted-foreground">{desc}</div>
+                  </div>
+                ))}
               </div>
-            ))}
+            </div>
+            {/* IC7 */}
+            <div className="prep-card p-5 border-purple-500/20">
+              <div className="flex items-center gap-2 mb-3">
+                <span className="badge badge-purple text-sm px-3 py-1">IC7 — Senior Staff Engineer</span>
+              </div>
+              <div className="space-y-3 text-sm">
+                {[
+                  ["Scope & Impact", "Leads portfolios of initiatives across multiple teams. Shapes org-level technical strategy."],
+                  ["Technical Leadership", "Influences 30–50+ engineers. Sets the technical bar for the entire org."],
+                  ["Business & XFN", "Long-term strategic partnerships with product, design, and business leadership."],
+                  ["Communication", "Communicates across disciplines and all levels. Drives industry-level conversations."],
+                ].map(([title, desc]) => (
+                  <div key={title}>
+                    <div className="text-xs font-semibold text-purple-400 mb-0.5">{title}</div>
+                    <div className="text-xs text-muted-foreground">{desc}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+          {/* Comparison table */}
+          <div className="prep-card overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-border bg-secondary/50">
+                    <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Dimension</th>
+                    <th className="text-left p-3 text-xs font-semibold text-blue-400">IC6</th>
+                    <th className="text-left p-3 text-xs font-semibold text-purple-400">IC7</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border">
+                  {IC_COMPARISON.map((row, i) => (
+                    <tr key={i} className={i % 2 === 0 ? "bg-secondary/20" : ""}>
+                      <td className="p-3 text-xs font-semibold text-foreground">{row.dimension}</td>
+                      <td className="p-3 text-xs text-muted-foreground">{row.ic6}</td>
+                      <td className="p-3 text-xs text-muted-foreground">{row.ic7}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
-      {/* Comparison table */}
-      <div className="prep-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-border bg-secondary/50">
-                <th className="text-left p-3 text-xs font-semibold text-muted-foreground">Dimension</th>
-                <th className="text-left p-3 text-xs font-semibold text-blue-400">IC6</th>
-                <th className="text-left p-3 text-xs font-semibold text-purple-400">IC7</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {IC_COMPARISON.map((row, i) => (
-                <tr key={i} className={i % 2 === 0 ? "bg-secondary/20" : ""}>
-                  <td className="p-3 text-xs font-semibold text-foreground">{row.dimension}</td>
-                  <td className="p-3 text-xs text-muted-foreground">{row.ic6}</td>
-                  <td className="p-3 text-xs text-muted-foreground">{row.ic7}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+      )}
     </div>
   );
 }
@@ -1132,7 +1146,13 @@ function MostHintedBadge() {
   );
 }
 
-// ── Study Session Planner ─────────────────────────────────────────────────
+/// ── Study Session Planner ─────────────────────────────────────────────────
+const STUDY_PLAN_HISTORY_KEY = "study_plan_history_v1";
+function loadStudyPlanHistory(): Array<{ date: string; durationMins: string; icTarget: string; headline: string }> {
+  try { return JSON.parse(localStorage.getItem(STUDY_PLAN_HISTORY_KEY) ?? "[]"); }
+  catch { return []; }
+}
+
 function StudySessionPlanner() {
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
@@ -1146,9 +1166,16 @@ function StudySessionPlanner() {
     tip: string;
     warningIfAny: string | null;
   } | null>(null);
-
+  const lastPlan = (() => { const h = loadStudyPlanHistory(); return h.length ? h[h.length - 1] : null; })();
   const planMutation = trpc.ctci.studyPlan.useMutation({
-    onSuccess: (data) => setPlan(data),
+    onSuccess: (data) => {
+      setPlan(data);
+      try {
+        const history = loadStudyPlanHistory();
+        history.push({ date: new Date().toISOString().split("T")[0], durationMins: duration, icTarget, headline: data.headline });
+        localStorage.setItem(STUDY_PLAN_HISTORY_KEY, JSON.stringify(history.slice(-20)));
+      } catch { /* ignore */ }
+    },
     onError: () => toast.error("Could not generate plan. Try again."),
   });
 
@@ -1200,7 +1227,14 @@ function StudySessionPlanner() {
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
         <div>
           <div className="section-title mb-0 pb-0 border-0">🗓️ AI Study Session Planner</div>
-          <div className="text-xs text-muted-foreground mt-0.5">Get a personalised, time-boxed plan based on your current gaps</div>
+          <div className="flex items-center gap-2 flex-wrap mt-0.5">
+            <div className="text-xs text-muted-foreground">Get a personalised, time-boxed plan based on your current gaps</div>
+            {lastPlan && !plan && !planMutation.isPending && (
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-emerald-900/40 border border-emerald-500/30 text-emerald-300 font-medium whitespace-nowrap">
+                Last plan: {lastPlan.date.slice(5).replace("-", "/")} · {lastPlan.durationMins}m · {lastPlan.icTarget}
+              </span>
+            )}
+          </div>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
           <div className="flex gap-1">
@@ -1435,16 +1469,48 @@ function CTCIDivergenceReport() {
   );
 }
 
+function QuickActionsRow() {
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+  return (
+    <div className="sticky top-0 z-20 -mx-4 px-4 py-2.5 bg-background/90 backdrop-blur-sm border-b border-border flex items-center gap-3">
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">Quick Actions</span>
+      <div className="flex gap-2 flex-1">
+        <button
+          onClick={() => scrollTo("study-session-planner")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/30 text-emerald-300 text-xs font-semibold transition-all"
+        >
+          <Brain size={12} />
+          Plan Today’s Session
+        </button>
+        <button
+          onClick={() => scrollTo("full-mock-day")}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600/20 hover:bg-purple-600/30 border border-purple-500/30 text-purple-300 text-xs font-semibold transition-all"
+        >
+          <Trophy size={12} />
+          Start Full Mock Day
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function OverviewTab() {
   const [interviewDate] = useInterviewDate();
   const daysLeft = interviewDate ? getDaysUntil(interviewDate) : null;
-
   return (
     <div className="space-y-6">
+      <QuickActionsRow />
       <OnboardingChecklist />
       {daysLeft !== null && <UrgencyModeBanner daysLeft={daysLeft} />}
-      <StudySessionPlanner />
-      <FullMockDaySimulator />
+      <div id="study-session-planner">
+        <StudySessionPlanner />
+      </div>
+      <div id="full-mock-day">
+        <FullMockDaySimulator />
+      </div>
       <LevelCards />
       <ReadinessDashboard />
       <HeatmapCalendar />
