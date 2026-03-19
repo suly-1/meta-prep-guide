@@ -38,6 +38,11 @@
 ## Disclaimer Gate
 - [x] Full-screen disclaimer gate component (React web app)
 - [x] Full-screen disclaimer gate injected into standalone HTML file
+## New Features — Round 3
+- [x] Pattern Dependency Graph (d3-force, Coding tab, mastered nodes glow green)
+- [x] 60-day Heatmap Calendar (Overview tab, daily activity grid)
+- [x] Anonymous Leaderboard (server-side DB, opt-in, hero section)
+
 - [ ] Monaco in-browser code editor with test cases for 20 patterns
 - [ ] Time-Boxed Pattern Sprint Mode (5 patterns, 2 min each)
 - [ ] Pattern Dependency Graph (d3-force interactive graph)
@@ -58,5 +63,5 @@
 - [ ] Offline PWA (service worker + manifest.json for offline use)
 
 ## Pending — Social & Gamification Features
-- [ ] Anonymous Leaderboard (opt-in, server-side, top streaks/patterns/mocks)
+- [x] Anonymous Leaderboard (opt-in, server-side, top streaks/patterns/mocks)
 - [ ] Achievement Badges (First Blood, On Fire, Half-Way There, Mock Veteran, IC7 Ready)

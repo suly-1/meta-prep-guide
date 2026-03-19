@@ -7,6 +7,7 @@ import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarC
 import { PATTERNS } from "@/lib/data";
 import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory } from "@/hooks/useLocalStorage";
 import { toast } from "sonner";
+import PatternDependencyGraph from "@/components/PatternDependencyGraph";
 
 const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 const DIFF_COLOR: Record<string, string> = { Easy: "badge-green", Medium: "badge-amber", Hard: "badge-red" };
@@ -481,6 +482,9 @@ export default function CodingTab() {
 
       {/* AI-Enabled Round Deep Dive */}
       <AIEnabledRoundSection />
+
+      {/* Pattern Dependency Graph */}
+      <PatternDependencyGraph />
 
       {/* CTCI 500 Question Tracker */}
       <CTCITracker />

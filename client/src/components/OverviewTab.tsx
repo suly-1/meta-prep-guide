@@ -7,6 +7,7 @@ import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronD
 import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
 import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak } from "@/hooks/useLocalStorage";
 import { toast } from "sonner";
+import HeatmapCalendar from "@/components/HeatmapCalendar";
 
 function getDaysUntil(dateStr: string): number {
   const target = new Date(dateStr);
@@ -532,6 +533,7 @@ export default function OverviewTab() {
     <div className="space-y-6">
       <LevelCards />
       <ReadinessDashboard />
+      <HeatmapCalendar />
       <InterviewCountdown />
       <PrepTimeline />
       <StarStoryBank />

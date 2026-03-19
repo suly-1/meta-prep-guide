@@ -2,6 +2,7 @@
 import { useStreak, usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate } from "@/hooks/useLocalStorage";
 import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 import { Flame, Target, Brain, Calendar, TrendingUp } from "lucide-react";
+import Leaderboard from "@/components/Leaderboard";
 
 interface HeroSectionProps {
   onTabChange: (tab: string) => void;
@@ -174,6 +175,10 @@ export default function HeroSection({ onTabChange }: HeroSectionProps) {
             </div>
           </button>
         </div>
+      </div>
+      {/* Leaderboard */}
+      <div className="mt-4">
+        <Leaderboard />
       </div>
     </div>
   );
