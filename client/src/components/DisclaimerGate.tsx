@@ -1,11 +1,11 @@
 // DisclaimerGate — full-screen blocker that must be explicitly acknowledged
 // before any guide content is visible. Persists to localStorage.
-// Key: "meta_prep_disclaimer_v1"
+// Key: "meta_prep_disclaimer_v2"
 
 import { useState } from "react";
 import { ShieldAlert, CheckSquare, Square } from "lucide-react";
 
-const STORAGE_KEY = "meta_prep_disclaimer_v1";
+const STORAGE_KEY = "meta_prep_disclaimer_v2";
 
 export function useDisclaimerAcknowledged(): [boolean, () => void] {
   const stored =

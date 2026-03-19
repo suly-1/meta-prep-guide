@@ -288,3 +288,7 @@
 - [x] CTCI progress DB sync (solved state + self-difficulty estimates, new ctci_progress table)
 - [x] Mock session history DB sync (Coding, System Design, XFN — new mock_sessions table)
 - [x] Badge breakdown popover (Coding: weak patterns list; Behavioral: weak BQ stories list)
+
+## New Features — Round 42
+- [x] Full-screen disclaimer modal (blocks access, checkbox acknowledgment, localStorage persistence)
+- [x] Bump disclaimer key to v2 so all existing users see it fresh on next visit
