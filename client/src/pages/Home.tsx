@@ -12,7 +12,7 @@ import OverviewTab from "@/components/OverviewTab";
 import SystemDesignTab from "@/components/SystemDesignTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
-import { AlertTriangle, X, Maximize2, Minimize2 } from "lucide-react";
+import { AlertTriangle, X, Maximize2, Minimize2, Keyboard } from "lucide-react";
 import DisclaimerGate, { useDisclaimerAcknowledged } from "@/components/DisclaimerGate";
 
 // Simple confetti burst
@@ -43,6 +43,7 @@ export default function Home() {
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
   const [focusMode, setFocusMode] = useState(false);
+  const [showKeyHelp, setShowKeyHelp] = useState(false);
 
   // Apply dark mode class
   useEffect(() => {
@@ -69,7 +70,8 @@ export default function Home() {
     if (e.key === "4") setActiveTab("design");
     if (e.key === "5") setActiveTab("collab");
     if (e.key === "f" || e.key === "F") setFocusMode(m => !m);
-    if (e.key === "Escape") setFocusMode(false);
+    if (e.key === "?") setShowKeyHelp(m => !m);
+    if (e.key === "Escape") { setFocusMode(false); setShowKeyHelp(false); }
   }, []);
 
   useEffect(() => {
@@ -163,6 +165,70 @@ export default function Home() {
 
       {/* Notification banner */}
       <NotificationBanner />
+
+      {/* Keyboard Navigation Overlay */}
+      {showKeyHelp && (
+        <div
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-sm"
+          onClick={() => setShowKeyHelp(false)}
+        >
+          <div
+            className="bg-background border border-border rounded-2xl shadow-2xl p-6 max-w-lg w-full mx-4"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Keyboard size={16} className="text-blue-400" />
+                <span className="font-bold text-foreground">Keyboard Shortcuts</span>
+              </div>
+              <button onClick={() => setShowKeyHelp(false)} className="text-muted-foreground hover:text-foreground">
+                <X size={16} />
+              </button>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {[
+                { section: "Navigation", shortcuts: [
+                  { key: "1", desc: "Overview tab" },
+                  { key: "2", desc: "Coding tab" },
+                  { key: "3", desc: "Behavioral tab" },
+                  { key: "4", desc: "System Design tab" },
+                  { key: "5", desc: "Collab tab" },
+                ]},
+                { section: "Modes & UI", shortcuts: [
+                  { key: "F", desc: "Toggle Focus Mode" },
+                  { key: "?", desc: "Show / hide this overlay" },
+                  { key: "Esc", desc: "Exit Focus Mode / close overlay" },
+                ]},
+                { section: "Pattern Cards", shortcuts: [
+                  { key: "J / K", desc: "Move down / up through patterns" },
+                  { key: "Enter", desc: "Expand / collapse pattern" },
+                  { key: "R", desc: "Reveal key idea" },
+                  { key: "1–5", desc: "Rate current pattern" },
+                ]},
+                { section: "Drill & Sprint", shortcuts: [
+                  { key: "Tab", desc: "Indent in code editor" },
+                  { key: "Esc", desc: "Close inline code editor" },
+                ]},
+              ].map(group => (
+                <div key={group.section}>
+                  <div className="text-xs font-bold text-muted-foreground uppercase tracking-wide mb-2">{group.section}</div>
+                  <div className="space-y-1.5">
+                    {group.shortcuts.map(s => (
+                      <div key={s.key} className="flex items-center gap-2">
+                        <kbd className="px-2 py-0.5 rounded bg-secondary border border-border font-mono text-xs text-foreground shrink-0 min-w-[2.5rem] text-center">{s.key}</kbd>
+                        <span className="text-xs text-muted-foreground">{s.desc}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="mt-4 pt-3 border-t border-border text-xs text-muted-foreground text-center">
+              Press <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">?</kbd> or <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">Esc</kbd> to close
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

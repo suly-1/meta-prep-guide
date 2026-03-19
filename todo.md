@@ -87,3 +87,9 @@
 - [x] Per-Pattern Time Tracker (log drill minutes per pattern, show time-invested bar on pattern cards)
 - [x] Spaced Repetition Alerts (due-for-review badge on Coding and Behavioral tab buttons)
 - [x] STAR Story PDF Exporter (Export Cheat Sheet button in STAR Story Bank)
+
+## New Features — Round 9
+- [x] CTCI Daily Challenge (Problem of the Day auto-highlight, unsolved High-freq)
+- [x] Keyboard Navigation Overlay (? key help modal with all shortcuts)
+- [x] Monaco In-Browser Code Editor on CTCI problem rows
+- [x] Pattern Mastery Heatmap in Coding tab (enhanced: mastery ring, time-invested overlay, category breakdown, tooltips)

@@ -26,43 +26,129 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
 
 // ── Pattern Heatmap ────────────────────────────────────────────────────────
 function PatternHeatmap({ ratings }: { ratings: Record<string, number> }) {
+  const [patternTime] = usePatternTime();
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+
   const masteredCount = PATTERNS.filter(p => (ratings[p.id] ?? 0) >= 4).length;
   const weakCount = PATTERNS.filter(p => (ratings[p.id] ?? 0) > 0 && (ratings[p.id] ?? 0) <= 2).length;
-  const avgRating = PATTERNS.filter(p => ratings[p.id]).length
-    ? (PATTERNS.filter(p => ratings[p.id]).reduce((s, p) => s + ratings[p.id], 0) / PATTERNS.filter(p => ratings[p.id]).length).toFixed(1)
+  const ratedCount = PATTERNS.filter(p => ratings[p.id]).length;
+  const avgRating = ratedCount
+    ? (PATTERNS.filter(p => ratings[p.id]).reduce((s, p) => s + ratings[p.id], 0) / ratedCount).toFixed(1)
     : "—";
+  const masteryPct = Math.round((masteredCount / PATTERNS.length) * 100);
+
+  const maxTime = Math.max(...PATTERNS.map(p => patternTime[p.id] ?? 0), 1);
 
   const getColor = (rating: number) => {
-    if (!rating) return "bg-secondary";
-    if (rating <= 1) return "bg-red-500/70";
-    if (rating <= 2) return "bg-orange-500/70";
-    if (rating <= 3) return "bg-amber-500/70";
-    if (rating <= 4) return "bg-emerald-500/70";
-    return "bg-emerald-400/90";
+    if (!rating) return "bg-secondary border border-border/50";
+    if (rating <= 1) return "bg-red-500/80 border border-red-400/30";
+    if (rating <= 2) return "bg-orange-500/80 border border-orange-400/30";
+    if (rating <= 3) return "bg-amber-500/80 border border-amber-400/30";
+    if (rating <= 4) return "bg-emerald-500/80 border border-emerald-400/30";
+    return "bg-emerald-400 border border-emerald-300/50 shadow-sm shadow-emerald-500/30";
   };
+
+  // Group patterns by difficulty for category breakdown
+  const byDiff = {
+    Easy: PATTERNS.filter(p => p.diff === "Easy"),
+    Medium: PATTERNS.filter(p => p.diff === "Medium"),
+    Hard: PATTERNS.filter(p => p.diff === "Hard"),
+  };
+
+  const hovered = hoveredId ? PATTERNS.find(p => p.id === hoveredId) : null;
+  const hoveredRating = hoveredId ? (ratings[hoveredId] ?? 0) : 0;
+  const hoveredTime = hoveredId ? (patternTime[hoveredId] ?? 0) : 0;
+
+  // SVG ring params
+  const r = 28, cx = 36, cy = 36, circ = 2 * Math.PI * r;
+  const dash = (circ * masteryPct) / 100;
 
   return (
     <div className="prep-card p-4 mb-4">
       <div className="flex items-center gap-2 mb-3">
         <BarChart2 size={14} className="text-blue-400" />
         <span className="section-title text-sm mb-0 pb-0 border-0">Pattern Mastery Heatmap</span>
+        <span className="ml-auto text-xs text-muted-foreground">{ratedCount}/{PATTERNS.length} rated</span>
       </div>
-      <div className="flex flex-wrap gap-1.5 mb-3">
-        {PATTERNS.map(p => {
-          const r = ratings[p.id] ?? 0;
-          return (
-            <div key={p.id} title={`${p.name}: ${r ? `★${r}` : "Not rated"}`}
-              className={`w-8 h-8 rounded-md ${getColor(r)} flex items-center justify-center text-xs font-bold text-white/80 cursor-default transition-all hover:scale-110`}>
-              {r || ""}
-            </div>
-          );
-        })}
+
+      <div className="flex gap-4 items-start">
+        {/* Mastery ring */}
+        <div className="shrink-0 flex flex-col items-center gap-1">
+          <svg width="72" height="72" className="-rotate-90">
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="6" className="text-secondary" />
+            <circle cx={cx} cy={cy} r={r} fill="none" stroke="currentColor" strokeWidth="6"
+              strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
+              className="text-emerald-500 transition-all duration-700" />
+          </svg>
+          <div className="-mt-[60px] flex flex-col items-center">
+            <span className="text-base font-extrabold text-foreground">{masteryPct}%</span>
+            <span className="text-[10px] text-muted-foreground">mastered</span>
+          </div>
+          <div className="mt-[28px] text-center">
+            <div className="text-xs text-muted-foreground">avg ★{avgRating}</div>
+          </div>
+        </div>
+
+        {/* Heatmap grid */}
+        <div className="flex-1 min-w-0">
+          <div className="flex flex-wrap gap-1.5 mb-2">
+            {PATTERNS.map(p => {
+              const r = ratings[p.id] ?? 0;
+              const timePct = Math.round(((patternTime[p.id] ?? 0) / maxTime) * 100);
+              const secs = patternTime[p.id] ?? 0;
+              const timeLabel = secs >= 60 ? `${Math.floor(secs/60)}m ${secs%60}s` : secs > 0 ? `${secs}s` : "";
+              return (
+                <div key={p.id} className="relative group"
+                  onMouseEnter={() => setHoveredId(p.id)}
+                  onMouseLeave={() => setHoveredId(null)}>
+                  <div
+                    className={`w-9 h-9 rounded-lg ${getColor(r)} flex items-center justify-center text-xs font-bold text-white cursor-default transition-all hover:scale-125 hover:z-10 relative overflow-hidden`}>
+                    {/* Time invested underlay bar */}
+                    {timePct > 0 && (
+                      <div className="absolute bottom-0 left-0 right-0 bg-blue-400/30 transition-all"
+                        style={{ height: `${timePct}%` }} />
+                    )}
+                    <span className="relative z-10">{r || "·"}</span>
+                  </div>
+                  {/* Tooltip */}
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 z-50 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-background border border-border rounded-lg px-2.5 py-1.5 shadow-lg text-xs whitespace-nowrap">
+                      <div className="font-semibold text-foreground">{p.name}</div>
+                      <div className="text-muted-foreground">{r ? `★${r}/5` : "Unrated"}{timeLabel ? ` · ${timeLabel} drilled` : ""}</div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Category breakdown */}
+          <div className="grid grid-cols-3 gap-2 mt-2">
+            {Object.entries(byDiff).map(([diff, pats]) => {
+              const mastered = pats.filter(p => (ratings[p.id] ?? 0) >= 4).length;
+              const color = diff === "Easy" ? "text-emerald-400" : diff === "Hard" ? "text-red-400" : "text-amber-400";
+              const barColor = diff === "Easy" ? "bg-emerald-500" : diff === "Hard" ? "bg-red-500" : "bg-amber-500";
+              return (
+                <div key={diff} className="p-2 rounded-lg bg-secondary">
+                  <div className={`text-xs font-bold ${color} mb-1`}>{diff}</div>
+                  <div className="text-xs text-foreground font-semibold">{mastered}/{pats.length}</div>
+                  <div className="h-1 rounded-full bg-border mt-1 overflow-hidden">
+                    <div className={`h-full rounded-full ${barColor} transition-all`} style={{ width: `${(mastered/pats.length)*100}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground flex-wrap">
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-500/70 inline-block" />Weak (★1–2)</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500/70 inline-block" />Learning (★3)</span>
-        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/70 inline-block" />Strong (★4–5)</span>
-        <span className="ml-auto font-medium text-foreground">{masteredCount}/{PATTERNS.length} mastered · {weakCount} weak · avg {avgRating}</span>
+
+      {/* Legend */}
+      <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap mt-3 pt-3 border-t border-border">
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-red-500/80 inline-block" />Weak (★–1–2)</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-amber-500/80 inline-block" />Learning (★–3)</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-emerald-500/80 inline-block" />Strong (★–4–5)</span>
+        <span className="flex items-center gap-1"><span className="w-2.5 h-2.5 rounded-sm bg-blue-400/30 inline-block border border-blue-400/20" />Time drilled (fill)</span>
+        <span className="ml-auto font-medium text-foreground">{weakCount} weak · {masteredCount} mastered</span>
       </div>
     </div>
   );
@@ -950,6 +1036,17 @@ import { CTCI_QUESTIONS, CTCI_ALL_TOPICS } from "@/lib/ctciData";
 
 const PAGE_SIZE = 25;
 
+// ── Daily Challenge helper ─────────────────────────────────────────────────
+function getDailyChallenge(solved: Record<number, boolean>): number | null {
+  const unsolvedHigh = CTCI_QUESTIONS.filter(q => q.metaFreq === "High" && !solved[q.num]);
+  if (unsolvedHigh.length === 0) return null;
+  // Deterministic daily seed: day-of-year
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 0);
+  const dayOfYear = Math.floor((now.getTime() - start.getTime()) / 86400000);
+  return unsolvedHigh[dayOfYear % unsolvedHigh.length].num;
+}
+
 function CTCITracker() {
   const [search, setSearch] = useState("");
   const [diffFilter, setDiffFilter] = useState("All");
@@ -960,6 +1057,20 @@ function CTCITracker() {
     try { return JSON.parse(localStorage.getItem("ctci_solved") ?? "{}"); } catch { return {}; }
   });
   const [open, setOpen] = useState(false);
+  const [editorOpen, setEditorOpen] = useState<number | null>(null);
+  const [editorCode, setEditorCode] = useState<Record<number, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("ctci_code") ?? "{}"); } catch { return {}; }
+  });
+
+  const dailyChallengeNum = useMemo(() => getDailyChallenge(solved), [solved]);
+
+  const saveCode = (num: number, code: string) => {
+    setEditorCode(c => {
+      const next = { ...c, [num]: code };
+      localStorage.setItem("ctci_code", JSON.stringify(next));
+      return next;
+    });
+  };
 
   const toggle = (num: number) => {
     setSolved(s => {
@@ -1119,36 +1230,111 @@ function CTCITracker() {
             {filtered.length < 500 && <span className="ml-1">(filtered from 500)</span>}
           </div>
 
-          {/* Question list */}
-          <div className="space-y-1">
-            {paginated.map(q => (
-              <div key={q.num}
-                className={`flex items-center gap-3 p-2.5 rounded-lg transition-all ${
-                  solved[q.num] ? "bg-purple-500/10 border border-purple-500/20" : "bg-secondary hover:bg-accent"
-                }`}>
-                <input type="checkbox" checked={!!solved[q.num]} onChange={() => toggle(q.num)}
-                  className="w-3.5 h-3.5 accent-purple-500 shrink-0 cursor-pointer" />
-                <span className="text-xs text-muted-foreground w-7 shrink-0 font-mono">{q.num}.</span>
-                <a href={q.url} target="_blank" rel="noopener noreferrer"
-                  className={`text-xs font-medium flex-1 hover:underline ${
-                    solved[q.num] ? "line-through text-muted-foreground" : "text-foreground"
-                  }`}>{q.name}</a>
-                <div className="flex gap-1 flex-wrap justify-end items-center">
-                  {q.metaFreq === "High" && (
-                    <span className="badge badge-red text-xs">🔥 Meta</span>
-                  )}
-                  {q.metaFreq === "Medium" && (
-                    <span className="badge badge-amber text-xs">⚡ Meta</span>
-                  )}
-                  {q.topics.slice(0, 1).map(t => (
-                    <span key={t} className="badge badge-gray text-xs hidden sm:inline">{t}</span>
-                  ))}
-                  <span className={`badge ${
-                    q.difficulty === "Easy" ? "badge-green" : q.difficulty === "Hard" ? "badge-red" : "badge-amber"
-                  }`}>{q.difficulty}</span>
+          {/* Daily Challenge Banner */}
+          {dailyChallengeNum && (() => {
+            const dc = CTCI_QUESTIONS.find(q => q.num === dailyChallengeNum);
+            if (!dc) return null;
+            return (
+              <div className="rounded-xl p-3 border-2 border-amber-500/60" style={{ background: 'linear-gradient(135deg, #f59e0b18, #8b5cf618)' }}>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-lg" style={{ animation: 'ctci-bounce 0.8s ease-in-out infinite alternate' }}>🌟</span>
+                  <span className="text-xs font-extrabold text-amber-400 uppercase tracking-wide">Problem of the Day</span>
+                  <span className="text-xs text-muted-foreground ml-auto">{new Date().toLocaleDateString()}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-muted-foreground font-mono w-7">{dc.num}.</span>
+                  <a href={dc.url} target="_blank" rel="noopener noreferrer" className="text-sm font-bold text-amber-300 hover:underline flex-1">{dc.name}</a>
+                  <span className={`badge ${ dc.difficulty === 'Easy' ? 'badge-green' : dc.difficulty === 'Hard' ? 'badge-red' : 'badge-amber' }`}>{dc.difficulty}</span>
+                  <span className="badge badge-red text-xs">🔥 Meta</span>
+                </div>
+                <div className="flex gap-1 mt-1.5 flex-wrap">
+                  {dc.topics.map(t => <span key={t} className="badge badge-gray text-xs">{t}</span>)}
                 </div>
               </div>
-            ))}
+            );
+          })()}
+
+          {/* Question list */}
+          <div className="space-y-1">
+            {paginated.map(q => {
+              const isDaily = q.num === dailyChallengeNum;
+              const hasCode = !!editorCode[q.num];
+              return (
+              <div key={q.num} className="rounded-lg overflow-hidden">
+                <div
+                  className={`flex items-center gap-3 p-2.5 transition-all ${
+                    isDaily ? 'bg-amber-500/15 border border-amber-500/40' :
+                    solved[q.num] ? 'bg-purple-500/10 border border-purple-500/20' : 'bg-secondary hover:bg-accent'
+                  }`}>
+                  <input type="checkbox" checked={!!solved[q.num]} onChange={() => toggle(q.num)}
+                    className="w-3.5 h-3.5 accent-purple-500 shrink-0 cursor-pointer" />
+                  <span className="text-xs text-muted-foreground w-7 shrink-0 font-mono">{q.num}.</span>
+                  <a href={q.url} target="_blank" rel="noopener noreferrer"
+                    className={`text-xs font-medium flex-1 hover:underline ${
+                      solved[q.num] ? 'line-through text-muted-foreground' : isDaily ? 'text-amber-300 font-bold' : 'text-foreground'
+                    }`}>{q.name}</a>
+                  <div className="flex gap-1 flex-wrap justify-end items-center">
+                    {isDaily && <span className="badge badge-amber text-xs">🌟 Today</span>}
+                    {q.metaFreq === 'High' && <span className="badge badge-red text-xs">🔥 Meta</span>}
+                    {q.metaFreq === 'Medium' && <span className="badge badge-amber text-xs">⚡ Meta</span>}
+                    {q.topics.slice(0, 1).map(t => (
+                      <span key={t} className="badge badge-gray text-xs hidden sm:inline">{t}</span>
+                    ))}
+                    <span className={`badge ${
+                      q.difficulty === 'Easy' ? 'badge-green' : q.difficulty === 'Hard' ? 'badge-red' : 'badge-amber'
+                    }`}>{q.difficulty}</span>
+                    <button
+                      onClick={() => setEditorOpen(editorOpen === q.num ? null : q.num)}
+                      title="Open code editor"
+                      className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
+                        hasCode ? 'border-emerald-500/40 text-emerald-400 bg-emerald-500/10' :
+                        editorOpen === q.num ? 'border-blue-500/40 text-blue-400 bg-blue-500/10' :
+                        'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+                      }`}
+                    >
+                      {hasCode ? '📝' : '➕'} Code
+                    </button>
+                  </div>
+                </div>
+                {/* Inline code editor */}
+                {editorOpen === q.num && (
+                  <div className="border-t border-border bg-[#1e1e1e] p-0">
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-[#252526] border-b border-[#3e3e42]">
+                      <span className="text-xs text-[#9cdcfe] font-mono">{q.name}.js</span>
+                      <div className="flex gap-2">
+                        <span className="text-xs text-[#6a9955]">// Write your solution</span>
+                        <button onClick={() => setEditorOpen(null)} className="text-[#858585] hover:text-white text-xs">× Close</button>
+                      </div>
+                    </div>
+                    <textarea
+                      value={editorCode[q.num] ?? `/**\n * ${q.name}\n * Difficulty: ${q.difficulty} | Topics: ${q.topics.join(', ')}\n */\n\nfunction solution() {\n  // Your code here\n  \n}\n`}
+                      onChange={e => saveCode(q.num, e.target.value)}
+                      spellCheck={false}
+                      className="w-full font-mono text-xs text-[#d4d4d4] bg-[#1e1e1e] p-3 focus:outline-none resize-none leading-relaxed"
+                      rows={12}
+                      style={{ fontFamily: "'Fira Code', 'Cascadia Code', 'Consolas', monospace", tabSize: 2 }}
+                      onKeyDown={e => {
+                        if (e.key === 'Tab') {
+                          e.preventDefault();
+                          const el = e.currentTarget;
+                          const start = el.selectionStart;
+                          const end = el.selectionEnd;
+                          const val = el.value;
+                          el.value = val.substring(0, start) + '  ' + val.substring(end);
+                          el.selectionStart = el.selectionEnd = start + 2;
+                          saveCode(q.num, el.value);
+                        }
+                      }}
+                    />
+                    <div className="flex items-center justify-between px-3 py-1 bg-[#007acc] text-white">
+                      <span className="text-xs">💾 Auto-saved to localStorage</span>
+                      {hasCode && <span className="text-xs opacity-80">{editorCode[q.num]?.split('\n').length ?? 0} lines</span>}
+                    </div>
+                  </div>
+                )}
+              </div>
+              );
+            })}
             {filtered.length === 0 && (
               <div className="p-6 text-center text-muted-foreground text-xs">No problems match your filters.</div>
             )}
