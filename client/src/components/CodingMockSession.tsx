@@ -297,6 +297,7 @@ export function CodingMockSession() {
   const [scorecard, setScorecard] = useState<ScorecardResult | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC6");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyCount = loadHistory().length;
 
@@ -365,6 +366,7 @@ export function CodingMockSession() {
         complexity: answers[3] || "",
         edgeCases: answers[4] || "",
         followUp: answers[4] || "",
+        icMode,
       });
       setScorecard(result);
       const entry: HistoryEntry = {
@@ -419,14 +421,45 @@ export function CodingMockSession() {
                 </div>
               ))}
             </div>
+            {/* IC6 / IC7 difficulty toggle */}
+            <div className="space-y-1.5">
+              <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">Difficulty Level</div>
+              <div className="grid grid-cols-2 gap-2">
+                {(["IC6", "IC7"] as const).map(level => (
+                  <button
+                    key={level}
+                    onClick={() => setIcMode(level)}
+                    className={`py-2 rounded-lg text-xs font-bold border transition-all ${
+                      icMode === level
+                        ? level === "IC7"
+                          ? "bg-violet-500/20 border-violet-500/40 text-violet-400"
+                          : "bg-blue-500/20 border-blue-500/40 text-blue-400"
+                        : "bg-secondary border-border text-muted-foreground hover:border-muted-foreground"
+                    }`}
+                  >
+                    {level === "IC6" ? "IC6 — Staff" : "IC7 — Sr. Staff"}
+                    {icMode === level && <span className="ml-1.5 text-[9px] opacity-70">{level === "IC7" ? "(stricter)" : "(standard)"}</span>}
+                  </button>
+                ))}
+              </div>
+              <div className="text-[10px] text-muted-foreground">
+                {icMode === "IC7"
+                  ? "IC7: optimal complexity required, ≥4 edge cases, unprompted follow-ups."
+                  : "IC6: clean correct solution, 2–3 edge cases, clear communication."}
+              </div>
+            </div>
             <div className="text-xs text-muted-foreground leading-relaxed">
               Pick a pattern, choose a problem, and work through 5 timed phases: Problem Understanding → Approach → Pseudocode → Complexity → Edge Cases. Finish to get an AI scorecard with IC-level signal.
             </div>
             <button
               onClick={() => setView("picker")}
-              className="w-full py-2.5 rounded-xl bg-blue-500/20 border border-blue-500/30 text-blue-400 text-sm font-bold hover:bg-blue-500/30 transition-all"
+              className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${
+                icMode === "IC7"
+                  ? "bg-violet-500/20 border border-violet-500/30 text-violet-400 hover:bg-violet-500/30"
+                  : "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
+              }`}
             >
-              🎯 Start Mock Session
+              🎯 Start {icMode} Mock Session
             </button>
           </>
         )}

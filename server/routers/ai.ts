@@ -179,9 +179,13 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
         complexity: z.string().max(500),
         edgeCases: z.string().max(1000),
         followUp: z.string().max(1000),
+        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
       })
     )
     .mutation(async ({ input }) => {
+      const icRubric = input.icMode === "IC7"
+        ? `IC7 (Senior Staff) rubric: Expect optimal time/space complexity — not just a correct solution. Penalise brute-force approaches even if correct. Require proactive enumeration of ≥4 edge cases without prompting. Follow-up optimisations must be proposed unprompted. Code structure should be production-quality. Evaluate whether the candidate would have passed a real Meta IC7 bar.`
+        : `IC6 (Staff) rubric: Expect a clean, correct solution with proper complexity analysis. 2-3 edge cases identified is sufficient. Minor inefficiencies are acceptable if the candidate explains trade-offs. Clear communication of approach is required. A working solution with O(n log n) where O(n) exists is borderline — note it but do not fail the candidate.`;
       const transcript = [
         `Pattern: ${input.patternName}`,
         `Problem: ${input.problemTitle} (${input.difficulty})`,
@@ -196,11 +200,13 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta Staff Engineer (E7) conducting a coding interview for an IC6/IC7 candidate.
+            content: `You are a senior Meta Staff Engineer (E7) conducting a coding interview for a ${input.icMode} candidate.
 The problem is a "${input.patternName}" pattern problem: "${input.problemTitle}" (${input.difficulty}).
 Evaluate the candidate's approach, pseudocode, complexity analysis, edge case handling, and follow-up optimization.
-Be rigorous: IC6 should show clean code, correct complexity, and 2-3 edge cases; IC7 should show optimal solutions, proactive edge case enumeration, and follow-up optimizations.
-Return a structured JSON scorecard.`,
+
+${icRubric}
+
+Return a structured JSON scorecard. The icLevel field should reflect what IC level the performance actually signals (IC5, IC6, or IC7), not necessarily the target level.`,
           },
           {
             role: "user",

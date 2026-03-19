@@ -164,12 +164,26 @@ export function UrgencyModeBanner({ daysLeft }: { daysLeft: number }) {
 
 // ── Onboarding Checklist for New Users ────────────────────────────────────────
 const ONBOARDING_STEPS = [
-  { id: "set_date", label: "Set your interview date in the countdown widget", icon: "📅" },
-  { id: "rate_patterns", label: "Rate at least 3 coding patterns (1–5 stars)", icon: "⭐" },
-  { id: "add_story", label: "Add your first STAR story in the Story Bank", icon: "📖" },
-  { id: "flash_drill", label: "Complete a 5-card System Design flash card drill", icon: "🃏" },
-  { id: "run_mock", label: "Start your first mock session (Coding, System Design, or XFN)", icon: "🎯" },
+  { id: "set_date", label: "Set your interview date in the countdown widget", icon: "📅", tab: "overview", section: "interview-countdown", chipLabel: "Go to Countdown" },
+  { id: "rate_patterns", label: "Rate at least 3 coding patterns (1–5 stars)", icon: "⭐", tab: "coding", section: "patterns-list", chipLabel: "Open Patterns" },
+  { id: "add_story", label: "Add your first STAR story in the Story Bank", icon: "📖", tab: "behavioral", section: "behavioral-voice-star", chipLabel: "Open Story Bank" },
+  { id: "flash_drill", label: "Complete a 5-card System Design flash card drill", icon: "🃏", tab: "design", section: "sysdesign-mock-session", chipLabel: "Open Flash Cards" },
+  { id: "run_mock", label: "Start your first mock session (Coding, System Design, or XFN)", icon: "🎯", tab: "coding", section: "coding-mock-session", chipLabel: "Start Mock" },
 ];
+
+function navigateToSection(tab: string, section: string) {
+  const url = new URL(window.location.href);
+  url.searchParams.set("tab", tab);
+  url.searchParams.set("section", section);
+  window.history.pushState({}, "", url.toString());
+  // Dispatch a popstate-like event so Home.tsx picks up the URL change
+  window.dispatchEvent(new PopStateEvent("popstate"));
+  // After a short delay, scroll to the section
+  setTimeout(() => {
+    const el = document.getElementById(section);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, 300);
+}
 
 export function OnboardingChecklist() {
   const [progress, setProgress] = useOnboardingProgress();
@@ -201,18 +215,30 @@ export function OnboardingChecklist() {
       </div>
       <div className="space-y-2">
         {ONBOARDING_STEPS.map(step => (
-          <button key={step.id} onClick={() => setProgress(p => ({ ...p, [step.id]: !p[step.id] }))}
-            className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-all text-left ${
-              progress[step.id]
-                ? "bg-emerald-500/5 border-emerald-500/20 opacity-60"
-                : "bg-secondary border-border hover:bg-accent"
-            }`}>
-            <span className="text-base shrink-0">{step.icon}</span>
-            {progress[step.id]
-              ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
-              : <Circle size={14} className="text-muted-foreground shrink-0" />}
-            <span className={`text-xs flex-1 ${progress[step.id] ? "line-through text-muted-foreground" : "text-foreground"}`}>{step.label}</span>
-          </button>
+          <div key={step.id} className={`flex items-center gap-2 p-3 rounded-lg border transition-all ${
+            progress[step.id]
+              ? "bg-emerald-500/5 border-emerald-500/20 opacity-60"
+              : "bg-secondary border-border"
+          }`}>
+            <button
+              onClick={() => setProgress(p => ({ ...p, [step.id]: !p[step.id] }))}
+              className="flex items-center gap-2 flex-1 text-left min-w-0"
+            >
+              <span className="text-base shrink-0">{step.icon}</span>
+              {progress[step.id]
+                ? <CheckCircle2 size={14} className="text-emerald-400 shrink-0" />
+                : <Circle size={14} className="text-muted-foreground shrink-0" />}
+              <span className={`text-xs flex-1 min-w-0 ${progress[step.id] ? "line-through text-muted-foreground" : "text-foreground"}`}>{step.label}</span>
+            </button>
+            {!progress[step.id] && (
+              <button
+                onClick={() => navigateToSection(step.tab, step.section)}
+                className="shrink-0 text-[10px] px-2 py-1 rounded-md bg-blue-500/15 border border-blue-500/30 text-blue-400 hover:bg-blue-500/25 transition-colors font-medium whitespace-nowrap"
+              >
+                {step.chipLabel} →
+              </button>
+            )}
+          </div>
         ))}
       </div>
       <div className="mt-3 h-1.5 rounded-full bg-secondary overflow-hidden">
