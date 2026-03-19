@@ -82,3 +82,8 @@
 
 ## New Features — Round 7
 - [x] Interview Day Countdown Widget in top nav (days remaining, links to checklist in Overview tab)
+
+## New Features — Round 8
+- [x] Per-Pattern Time Tracker (log drill minutes per pattern, show time-invested bar on pattern cards)
+- [x] Spaced Repetition Alerts (due-for-review badge on Coding and Behavioral tab buttons)
+- [x] STAR Story PDF Exporter (Export Cheat Sheet button in STAR Story Bank)

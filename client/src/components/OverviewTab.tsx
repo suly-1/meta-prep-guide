@@ -459,7 +459,8 @@ function PrepTimeline() {
     </div>
   );
 }
-// ── STAR Story Bank ────────────────────────────────────────────────────────
+
+// ── STAR Story Bank ───────────────────────────────────────────────────────────────────────────────────────
 function StarStoryBank() {
   const [notes, setNotes] = useStarNotes();
   const [expanded, setExpanded] = useState<string | null>(null);
@@ -472,11 +473,50 @@ function StarStoryBank() {
     toast.success("STAR template copied!");
   };
 
+  const exportCheatSheet = () => {
+    const lines: string[] = [
+      "# STAR Story Cheat Sheet",
+      `Generated: ${new Date().toLocaleString()}`,
+      "",
+      "---",
+      "",
+    ];
+    STAR_STORIES.forEach((story, i) => {
+      lines.push(`## ${i + 1}. ${story.title}`);
+      lines.push(`**Tags:** ${story.tags.join(" · ")}`);
+      lines.push("");
+      lines.push(story.template);
+      const personalNotes = notes[story.id];
+      if (personalNotes && personalNotes.trim()) {
+        lines.push("");
+        lines.push(`**My Notes:** ${personalNotes.trim()}`);
+      }
+      lines.push("");
+      lines.push("---");
+      lines.push("");
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = "star_cheat_sheet.md";
+    a.click();
+    toast.success("STAR cheat sheet downloaded!");
+  };
+
   return (
     <div className="prep-card p-5">
-      <div className="section-title">
-        <Brain size={14} className="text-purple-400" />
-        STAR Story Bank
+      <div className="flex items-center justify-between mb-3">
+        <div className="section-title mb-0 pb-0 border-0 flex items-center gap-2">
+          <Brain size={14} className="text-purple-400" />
+          STAR Story Bank
+        </div>
+        <button
+          onClick={exportCheatSheet}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-500/15 hover:bg-purple-500/25 border border-purple-500/30 text-purple-400 text-xs font-semibold transition-all"
+          title="Download all stories as a Markdown cheat sheet"
+        >
+          <Download size={11} /> Export Cheat Sheet
+        </button>
       </div>
       <div className="space-y-2">
         {STAR_STORIES.map(story => (

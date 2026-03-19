@@ -1,6 +1,7 @@
 // Design: Bold Engineering Dashboard — dark charcoal, Space Grotesk, blue accent
 import { Sun, Moon, BookOpen, CalendarClock } from "lucide-react";
-import { useStreak, useInterviewDate } from "@/hooks/useLocalStorage";
+import { useStreak, useInterviewDate, useSpacedRepetition, useBehavioralRatings } from "@/hooks/useLocalStorage";
+import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 
 interface TopNavProps {
   activeTab: string;
@@ -8,13 +9,6 @@ interface TopNavProps {
   darkMode: boolean;
   onToggleDark: () => void;
 }
-
-const TABS = [
-  { id: "overview",   label: "Overview" },
-  { id: "coding",     label: "Coding" },
-  { id: "behavioral", label: "Behavioral" },
-  { id: "design",     label: "System Design" },
-];
 
 function getDaysUntil(dateStr: string): number {
   const target = new Date(dateStr);
@@ -32,7 +26,6 @@ function CountdownPill({ onTabChange }: { onTabChange: (tab: string) => void }) 
 
   const days = getDaysUntil(interviewDate);
 
-  // Colour ramp: red ≤7, amber ≤14, emerald > 14, grey if past
   const color =
     days < 0
       ? "text-muted-foreground border-border bg-secondary"
@@ -63,8 +56,32 @@ function CountdownPill({ onTabChange }: { onTabChange: (tab: string) => void }) 
   );
 }
 
+// ── SR due-count badge ─────────────────────────────────────────────────────
+function useSRDueCounts() {
+  const [srDue] = useSpacedRepetition();
+  const [bqRatings] = useBehavioralRatings();
+  const today = new Date().toISOString().split("T")[0];
+
+  // Coding patterns due
+  const codingDue = PATTERNS.filter(p => srDue[p.id] && srDue[p.id] <= today).length;
+
+  // Behavioral questions: treat any rated question whose last rating date (stored as srDue key)
+  // is past due as "due". We reuse the same srDue store keyed by question id.
+  const behavioralDue = BEHAVIORAL_QUESTIONS.filter(q => srDue[q.id] && srDue[q.id] <= today).length;
+
+  return { codingDue, behavioralDue };
+}
+
 export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark }: TopNavProps) {
   const streak = useStreak();
+  const { codingDue, behavioralDue } = useSRDueCounts();
+
+  const TABS = [
+    { id: "overview",   label: "Overview",      due: 0 },
+    { id: "coding",     label: "Coding",        due: codingDue },
+    { id: "behavioral", label: "Behavioral",    due: behavioralDue },
+    { id: "design",     label: "System Design", due: 0 },
+  ];
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-background/95 backdrop-blur-sm">
@@ -87,13 +104,18 @@ export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark 
               <button
                 key={tab.id}
                 onClick={() => onTabChange(tab.id)}
-                className={`px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                className={`relative px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
                   activeTab === tab.id
                     ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                     : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                 }`}
               >
                 {tab.label}
+                {tab.due > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-[10px] font-bold text-black flex items-center justify-center leading-none">
+                    {tab.due}
+                  </span>
+                )}
               </button>
             ))}
           </nav>
@@ -129,16 +151,21 @@ export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark 
             <button
               key={tab.id}
               onClick={() => onTabChange(tab.id)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
+              className={`relative px-3 py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
                   : "text-muted-foreground hover:text-foreground hover:bg-secondary"
               }`}
             >
               {tab.label}
+              {tab.due > 0 && (
+                <span className="absolute -top-1 -right-1 min-w-[14px] h-3.5 px-0.5 rounded-full bg-amber-500 text-[9px] font-bold text-black flex items-center justify-center leading-none">
+                  {tab.due}
+                </span>
+              )}
             </button>
           ))}
-          {/* Mobile countdown row */}
+          {/* Mobile countdown */}
           <CountdownPill onTabChange={onTabChange} />
         </div>
       </div>

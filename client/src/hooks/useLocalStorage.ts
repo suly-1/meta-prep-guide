@@ -144,3 +144,8 @@ export interface ReadinessSnapshot {
 export function useReadinessTrend() {
   return useLocalStorage<ReadinessSnapshot[]>("meta_readiness_trend_v1", []);
 }
+
+// ── Per-pattern time tracker (seconds spent per pattern id) ───────────────────────────────────────
+export function usePatternTime() {
+  return useLocalStorage<Record<string, number>>("meta_pattern_time_v1", {});
+}

@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight } from "lucide-react";
 import { PATTERNS } from "@/lib/data";
-import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory } from "@/hooks/useLocalStorage";
+import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory, usePatternTime } from "@/hooks/useLocalStorage";
 import { toast } from "sonner";
 import PatternDependencyGraph from "@/components/PatternDependencyGraph";
 
@@ -69,10 +69,11 @@ function PatternHeatmap({ ratings }: { ratings: Record<string, number> }) {
 }
 
 // ── Quick Drill ────────────────────────────────────────────────────────────
-function QuickDrill({ ratings, onRate, weakOnly }: {
+function QuickDrill({ ratings, onRate, weakOnly, onTimeLogged }: {
   ratings: Record<string, number>;
   onRate: (id: string, rating: number) => void;
   weakOnly: boolean;
+  onTimeLogged: (id: string, seconds: number) => void;
 }) {
   const pool = weakOnly
     ? PATTERNS.filter(p => (ratings[p.id] ?? 0) > 0 && (ratings[p.id] ?? 0) <= 2)
@@ -82,6 +83,7 @@ function QuickDrill({ ratings, onRate, weakOnly }: {
   const [timeLeft, setTimeLeft] = useState(30);
   const [running, setRunning] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startedAtRef = useRef<number | null>(null);
 
   const current = pool[idx % Math.max(pool.length, 1)];
 
@@ -92,6 +94,7 @@ function QuickDrill({ ratings, onRate, weakOnly }: {
   }, []);
 
   const startTimer = useCallback(() => {
+    startedAtRef.current = Date.now();
     setRunning(true);
     timerRef.current = setInterval(() => {
       setTimeLeft(t => {
@@ -109,6 +112,12 @@ function QuickDrill({ ratings, onRate, weakOnly }: {
   useEffect(() => () => { if (timerRef.current) clearInterval(timerRef.current); }, []);
 
   const next = () => {
+    // Log time spent on current pattern
+    if (startedAtRef.current !== null) {
+      const elapsed = Math.round((Date.now() - startedAtRef.current) / 1000);
+      if (elapsed > 0) onTimeLogged(current.id, elapsed);
+      startedAtRef.current = null;
+    }
     setIdx(i => (i + 1) % Math.max(pool.length, 1));
     setRevealed(false);
     resetTimer();
@@ -476,6 +485,11 @@ export default function CodingTab() {
   const [notes, setNotes] = usePatternNotes();
   const [srDue, setSrDue] = useSpacedRepetition();
   const [sessions, setSessions] = useCodingHistory();
+  const [patternTime, setPatternTime] = usePatternTime();
+
+  const handleTimeLogged = (id: string, seconds: number) => {
+    setPatternTime(t => ({ ...t, [id]: (t[id] ?? 0) + seconds }));
+  };
   const [search, setSearch] = useState("");
   const [filterDiff, setFilterDiff] = useState("All");
   const [filterFreq, setFilterFreq] = useState(0);
@@ -607,7 +621,7 @@ export default function CodingTab() {
       )}
 
       {/* Quick Drill */}
-      {showDrillMode && <QuickDrill ratings={ratings} onRate={handleRate} weakOnly={weakOnly} />}
+      {showDrillMode && <QuickDrill ratings={ratings} onRate={handleRate} weakOnly={weakOnly} onTimeLogged={handleTimeLogged} />}
 
       {/* Mock Timer */}
       <MockTimer onSessionEnd={handleSessionEnd} />
@@ -668,6 +682,10 @@ export default function CodingTab() {
             const r = ratings[p.id] ?? 0;
             const isExpanded = expandedNote === p.id;
             const isDue = srDue[p.id] && srDue[p.id] <= today;
+            const secs = patternTime[p.id] ?? 0;
+            const mins = Math.floor(secs / 60);
+            const maxSecs = Math.max(...PATTERNS.map(x => patternTime[x.id] ?? 0), 1);
+            const timePct = Math.min(100, Math.round((secs / maxSecs) * 100));
             return (
               <div key={p.id} className={`p-4 transition-all ${r >= 4 ? "bg-emerald-500/3" : r > 0 && r <= 2 ? "bg-red-500/3" : ""}`}>
                 <div className="flex flex-wrap items-start gap-3">
@@ -681,9 +699,22 @@ export default function CodingTab() {
                       {r > 0 && r <= 2 && <span className="badge badge-red">Weak</span>}
                     </div>
                     <p className="text-xs text-muted-foreground mb-1.5">{p.keyIdea}</p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="flex flex-wrap gap-1 mb-2">
                       {p.examples.map(e => <span key={e} className="badge badge-blue text-xs">{e}</span>)}
                     </div>
+                    {/* Time-invested bar */}
+                    {secs > 0 && (
+                      <div className="flex items-center gap-2 mt-1">
+                        <Clock size={10} className="text-muted-foreground shrink-0" />
+                        <div className="flex-1 h-1 rounded-full bg-secondary overflow-hidden">
+                          <div
+                            className="h-full rounded-full bg-blue-500/60 transition-all"
+                            style={{ width: `${timePct}%` }}
+                          />
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">{mins > 0 ? `${mins}m` : `${secs}s`}</span>
+                      </div>
+                    )}
                   </div>
                   <div className="flex flex-col items-end gap-2 shrink-0">
                     <StarRating value={r} onChange={v => handleRate(p.id, v)} />
