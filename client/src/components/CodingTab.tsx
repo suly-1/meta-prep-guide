@@ -5,7 +5,7 @@
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight } from "lucide-react";
 import { PATTERNS, PATTERN_PREREQS } from "@/lib/data";
-import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory, usePatternTime, useCTCIStreak, useHintAnalytics } from "@/hooks/useLocalStorage";
+import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory, usePatternTime, useCTCIStreak, useHintAnalytics, useCTCIDifficultyEstimates, type SelfDifficulty } from "@/hooks/useLocalStorage";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import PatternDependencyGraph from "@/components/PatternDependencyGraph";
@@ -1171,6 +1171,8 @@ function CTCITracker() {
   const [hintOpen, setHintOpen] = useState<number | null>(null);
   const [hints, setHints] = useState<Record<number, string>>({});
   const [notesOpen, setNotesOpen] = useState<number | null>(null);
+  const [diffEstOpen, setDiffEstOpen] = useState<number | null>(null);
+  const [diffEstimates, setDiffEstimates] = useCTCIDifficultyEstimates();
   const [notes, setNotes] = useState<Record<number, string>>(() => {
     try { return JSON.parse(localStorage.getItem("ctci_notes") ?? "{}"); } catch { return {}; }
   });
@@ -1495,8 +1497,62 @@ function CTCITracker() {
                     >
                       📌 Notes
                     </button>
+                    {/* Difficulty Estimator button */}
+                    <button
+                      onClick={() => setDiffEstOpen(diffEstOpen === q.num ? null : q.num)}
+                      title="Rate how hard this felt"
+                      className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
+                        diffEstimates[q.num] ? 'border-pink-500/40 text-pink-400 bg-pink-500/10' :
+                        diffEstOpen === q.num ? 'border-pink-500/40 text-pink-400 bg-pink-500/10' :
+                        'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+                      }`}
+                    >
+                      🤔 Felt?
+                    </button>
                   </div>
                 </div>
+                {/* Difficulty Estimator panel */}
+                {diffEstOpen === q.num && (
+                  <div className="border-t border-pink-500/20 bg-pink-500/5 p-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs font-bold text-pink-400">🤔 How hard did it feel?</span>
+                      <span className="text-xs text-muted-foreground">Official: <span className={q.difficulty === 'Easy' ? 'text-emerald-400' : q.difficulty === 'Hard' ? 'text-red-400' : 'text-amber-400'}>{q.difficulty}</span></span>
+                    </div>
+                    <div className="flex gap-2 flex-wrap">
+                      {(['Easy', 'Medium', 'Hard', 'Very Hard'] as SelfDifficulty[]).map(level => {
+                        const selected = diffEstimates[q.num]?.selfRating === level;
+                        const diverges = selected && level !== q.difficulty && !(level === 'Very Hard' && q.difficulty === 'Hard');
+                        return (
+                          <button key={level}
+                            onClick={() => {
+                              setDiffEstimates(d => ({ ...d, [q.num]: { selfRating: level, timestamp: Date.now() } }));
+                              toast.success(level === q.difficulty ? `✅ Matches official: ${level}` : `📊 Self: ${level} vs Official: ${q.difficulty}${diverges ? ' — worth extra practice!' : ''}`);
+                            }}
+                            className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-all ${
+                              selected
+                                ? level === 'Easy' ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300'
+                                  : level === 'Medium' ? 'bg-amber-500/20 border-amber-400 text-amber-300'
+                                  : level === 'Hard' ? 'bg-red-500/20 border-red-400 text-red-300'
+                                  : 'bg-rose-500/20 border-rose-400 text-rose-300'
+                                : 'border-border text-muted-foreground hover:bg-accent'
+                            }`}>
+                            {level === 'Easy' ? '😌' : level === 'Medium' ? '😅' : level === 'Hard' ? '😰' : '💀'} {level}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {diffEstimates[q.num] && (() => {
+                      const self = diffEstimates[q.num].selfRating;
+                      const official = q.difficulty;
+                      const selfIdx = ['Easy','Medium','Hard','Very Hard'].indexOf(self);
+                      const offIdx = ['Easy','Medium','Hard'].indexOf(official);
+                      const gap = selfIdx - offIdx;
+                      if (gap === 0) return <p className="text-xs text-emerald-400 mt-2">✅ Your perception matches the official difficulty — great calibration!</p>;
+                      if (gap > 0) return <p className="text-xs text-orange-400 mt-2">⚠️ You found this harder than expected. Consider more practice on <strong>{q.topics.slice(0,2).join(' + ')}</strong>.</p>;
+                      return <p className="text-xs text-blue-400 mt-2">💪 You found this easier than expected — strong signal on <strong>{q.topics.slice(0,2).join(' + ')}</strong>!</p>;
+                    })()}
+                  </div>
+                )}
                 {/* Notes panel */}
                 {notesOpen === q.num && (
                   <div className="border-t border-amber-500/20 bg-amber-500/5 p-3">

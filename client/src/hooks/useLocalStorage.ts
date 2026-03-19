@@ -215,3 +215,13 @@ export interface HintCounts {
 export function useHintAnalytics() {
   return useLocalStorage<Record<string, HintCounts>>("meta_hint_analytics_v1", {});
 }
+
+// ── CTCI Difficulty Estimator (self-assessment per problem) ───────────────────
+export type SelfDifficulty = "Easy" | "Medium" | "Hard" | "Very Hard";
+export interface DifficultyEstimate {
+  selfRating: SelfDifficulty;
+  timestamp: number;
+}
+export function useCTCIDifficultyEstimates() {
+  return useLocalStorage<Record<string, DifficultyEstimate>>("meta_ctci_difficulty_v1", {});
+}

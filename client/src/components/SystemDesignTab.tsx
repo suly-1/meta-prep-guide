@@ -74,6 +74,338 @@ export default function SystemDesignTab() {
 
   return (
     <div className="space-y-5">
+
+      {/* ═══════════════════════════════════════════════════════════════
+           🚨 META SYSTEM DESIGN PREP 2026 — MUST READ GUIDE
+          ═══════════════════════════════════════════════════════════════ */}
+      <div className="relative overflow-hidden rounded-xl border-2 border-transparent"
+        style={{
+          background: "linear-gradient(135deg, #1a0533 0%, #0d1f3c 40%, #0a2a1a 100%)",
+          boxShadow: "0 0 40px rgba(168,85,247,0.25), 0 0 80px rgba(59,130,246,0.15)",
+        }}>
+        {/* Animated rainbow border */}
+        <div className="absolute inset-0 rounded-xl pointer-events-none"
+          style={{
+            background: "linear-gradient(90deg, #f59e0b, #ef4444, #8b5cf6, #3b82f6, #10b981, #f59e0b)",
+            backgroundSize: "300% 100%",
+            animation: "borderMarch 3s linear infinite",
+            padding: "2px",
+            WebkitMask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+            WebkitMaskComposite: "xor",
+            maskComposite: "exclude",
+          }} />
+
+        {/* Glowing header */}
+        <div className="relative p-5 border-b border-white/10">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2 mb-1">
+                <span className="text-2xl" style={{animation:"bounce 1s ease-in-out infinite"}}>🚨</span>
+                <span className="text-lg font-black tracking-tight"
+                  style={{
+                    background: "linear-gradient(90deg, #fbbf24, #f87171, #a78bfa, #60a5fa, #34d399)",
+                    backgroundSize: "200% auto",
+                    WebkitBackgroundClip: "text",
+                    WebkitTextFillColor: "transparent",
+                    animation: "gradientShift 3s linear infinite",
+                  }}>META SYSTEM DESIGN PREP 2026</span>
+                <span className="text-2xl" style={{animation:"bounce 1s ease-in-out infinite 0.2s"}}>🚨</span>
+              </div>
+              <div className="text-xs text-slate-300 font-medium">🎯 IC6/IC7 Targeted · ML + Backend + Full Stack · All 3 Tracks · Updated 2026</div>
+            </div>
+            <a
+              href="https://8080-igkd8u4g5i0kc97kxohwo-63977cfb.us1.manus.computer/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-black"
+              style={{
+                background: "linear-gradient(90deg, #fbbf24, #f59e0b)",
+                boxShadow: "0 0 15px rgba(251,191,36,0.5)",
+                animation: "pulse 2s ease-in-out infinite",
+              }}>
+              🔗 Open Full Guide <ExternalLink size={11} />
+            </a>
+          </div>
+
+          {/* Challenge banner */}
+          <div className="mt-3 p-3 rounded-lg text-xs font-semibold text-center"
+            style={{
+              background: "linear-gradient(90deg, rgba(239,68,68,0.2), rgba(168,85,247,0.2), rgba(59,130,246,0.2))",
+              border: "1px solid rgba(255,255,255,0.1)",
+              animation: "pulse 3s ease-in-out infinite",
+            }}>
+            ⚡ Can you answer all 6 ML questions + 6 SWE questions cold? 💀 Most IC5s can't. IC6/IC7 candidates who pass have practised every single one. 🔥
+          </div>
+        </div>
+
+        {/* Track selector */}
+        <div className="p-5 space-y-4">
+
+          {/* Interview Loop */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🔄</span>
+                <span className="text-sm font-bold text-white">Meta's Full Interview Loop Structure</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">MUST KNOW</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                { n:"1", title:"Recruiter Screen", desc:"Background, motivation, cultural alignment. ~30 min.", color:"text-slate-300", bg:"bg-slate-500/10" },
+                { n:"2", title:"Technical Phone Screen", desc:"1 coding round (2 medium LeetCode problems) + optional behavioral. CoderPad. ~45–60 min.", color:"text-blue-300", bg:"bg-blue-500/10", gate:"Must pass to reach onsite" },
+                { n:"3", title:"Onsite Full Loop (4–6 Rounds)", desc:"1–2 Coding, 1–2 System/Product Design, 1 Behavioral, optionally 1 Project Retrospective (E6+). 45 min each.", color:"text-purple-300", bg:"bg-purple-500/10" },
+                { n:"4", title:"Hiring Committee Review", desc:"All packets reviewed collectively. Level determination (E5 vs E6) happens here.", color:"text-amber-300", bg:"bg-amber-500/10" },
+                { n:"5", title:"Team Match & Offer", desc:"Candidate selects a team and enters offer negotiation.", color:"text-emerald-300", bg:"bg-emerald-500/10" },
+              ].map(s => (
+                <div key={s.n} className={`flex gap-3 p-3 rounded-lg ${s.bg} border border-white/5`}>
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shrink-0 ${s.color} bg-white/10`}>{s.n}</span>
+                  <div>
+                    <div className={`text-xs font-bold ${s.color}`}>{s.title}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{s.desc}</div>
+                    {s.gate && <div className="mt-1 text-[10px] font-bold text-red-400 bg-red-500/10 px-2 py-0.5 rounded inline-block">🚧 Gate: {s.gate}</div>}
+                  </div>
+                </div>
+              ))}
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20 text-xs text-amber-300">
+                💡 <strong>Critical:</strong> The design round in the onsite carries more weight than the technical screen design round. It is the <strong>single most common reason E6+ candidates fail.</strong>
+              </div>
+            </div>
+          </details>
+
+          {/* 3 Tracks */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🛤️</span>
+                <span className="text-sm font-bold text-white">3 Interview Tracks — Which One Are You?</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">PICK YOURS</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-2 pr-3 text-slate-400 font-semibold">Track</th>
+                    <th className="text-left py-2 pr-3 text-slate-400 font-semibold">Levels</th>
+                    <th className="text-left py-2 pr-3 text-slate-400 font-semibold">Interview Type</th>
+                    <th className="text-left py-2 text-slate-400 font-semibold">Key Focus</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {[
+                    ["🤖 ML System Design", "IC6 (E6), IC7 (E7)", "ML System Design (45 min)", "Ranking, Recommendations, Ads, Feature Engineering, Model Deployment"],
+                    ["⚙️ Back End / System Generalist", "IC5–IC7", "Systems Design (45 min)", "Distributed systems, Scalability, Availability, Sharding, Caching"],
+                    ["🖥️ Full Stack / Product Generalist", "IC5–IC7", "Product Architecture (45 min)", "API design, Data models, Client-server, Protocols, Usability"],
+                  ].map(([track, levels, type, focus]) => (
+                    <tr key={track as string}>
+                      <td className="py-2 pr-3 font-semibold text-white">{track}</td>
+                      <td className="py-2 pr-3 text-slate-300">{levels}</td>
+                      <td className="py-2 pr-3 text-slate-300">{type}</td>
+                      <td className="py-2 text-slate-400">{focus}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          {/* 5 ML Signals */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📡</span>
+                <span className="text-sm font-bold text-white">5 Signals Meta Evaluates in ML System Design</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">OFFICIAL</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                { n:"01", emoji:"🗺️", title:"Problem Navigation", desc:"Visualize and organize the entire problem and solution space. Connect business context and needs to ML decisions." },
+                { n:"02", emoji:"🗄️", title:"Training Data", desc:"Identify methods to collect training data. Evaluate constraints and risks with the proposed method." },
+                { n:"03", emoji:"⚙️", title:"Feature Engineering", desc:"Come up with relevant ML features. Identify the most important features for the specific task." },
+                { n:"04", emoji:"🧠", title:"Modeling", desc:"Explain modeling choices. Justify model selection. Explain the trade-offs between different approaches." },
+                { n:"05", emoji:"📊", title:"Evaluation", desc:"Define offline and online metrics. Design A/B testing strategy. Identify feedback loops and data drift." },
+              ].map(s => (
+                <div key={s.n} className="flex gap-3 p-3 rounded-lg bg-emerald-500/5 border border-emerald-500/10">
+                  <span className="text-emerald-400 font-black text-xs w-6 shrink-0 mt-0.5">{s.n}</span>
+                  <div>
+                    <div className="text-xs font-bold text-emerald-300">{s.emoji} {s.title}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {/* 4 SWE Signals */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚙️</span>
+                <span className="text-sm font-bold text-white">4 Signals Meta Evaluates in SWE System Design</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">OFFICIAL</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                { n:"01", emoji:"🗺️", title:"Problem Navigation", desc:"Organize the problem space, constraints, and potential solutions. Ask questions to reduce ambiguity before designing." },
+                { n:"02", emoji:"🏗️", title:"Solution Design", desc:"Design a working solution that addresses the complete problem. Consider the big picture before diving into details." },
+                { n:"03", emoji:"⚡", title:"Technical Excellence", desc:"Dive into technical details. Identify dependencies and trade-offs. Mitigate risks proactively." },
+                { n:"04", emoji:"💬", title:"Technical Communication", desc:"Articulate your vision and technical ideas clearly. Understand and address feedback from the interviewer." },
+              ].map(s => (
+                <div key={s.n} className="flex gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10">
+                  <span className="text-blue-400 font-black text-xs w-6 shrink-0 mt-0.5">{s.n}</span>
+                  <div>
+                    <div className="text-xs font-bold text-blue-300">{s.emoji} {s.title}</div>
+                    <div className="text-xs text-slate-400 mt-0.5">{s.desc}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {/* IC6 vs IC7 Pass/Fail */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚖️</span>
+                <span className="text-sm font-bold text-white">IC6/IC7 — What Separates Pass from Fail 💀</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/30">CRITICAL</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 overflow-x-auto">
+              <table className="w-full text-xs border-collapse">
+                <thead>
+                  <tr className="border-b border-white/10">
+                    <th className="text-left py-2 pr-3 text-slate-400 font-semibold">Dimension</th>
+                    <th className="text-left py-2 pr-3 text-emerald-400 font-semibold">✅ Passing (E6/E7)</th>
+                    <th className="text-left py-2 text-red-400 font-semibold">❌ Failing / Down-levelled</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-white/5">
+                  {[
+                    ["Scope Definition", "Proactively narrows scope, identifies the right problem", "Jumps into design without clarifying requirements"],
+                    ["Scale Thinking", "Specific strategies (sharding, CDN, event-driven) at Meta's scale", "Generic 'add more servers' or 'use a database'"],
+                    ["Trade-off Articulation", "Identifies trade-offs (consistency vs. availability) and defends choices", "Presents only one solution without comparing alternatives"],
+                    ["Communication", "Thinks out loud, incorporates feedback, treats it as a conversation", "Goes silent, presents a monologue, ignores hints"],
+                    ["Leadership Signal (E6+)", "Discusses team build plan, milestones, and organizational impact", "Focuses only on technical architecture without team/org context"],
+                  ].map(([dim, pass, fail]) => (
+                    <tr key={dim as string}>
+                      <td className="py-2 pr-3 font-semibold text-white">{dim}</td>
+                      <td className="py-2 pr-3 text-emerald-300">{pass}</td>
+                      <td className="py-2 text-red-300">{fail}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+
+          {/* Example Questions — ML */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">🤖</span>
+                <span className="text-sm font-bold text-white">ML System Design — Example Questions 🔥</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-purple-500/20 text-purple-300 border border-purple-500/30">PRACTICE THESE</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                ["🏆", "Design a personalised news ranking system", "Ranking, user signals, real-time feature serving"],
+                ["🛍️", "Design a product recommendation system", "Collaborative filtering, embeddings, cold-start problem"],
+                ["📢", "Design an evaluation framework for ads ranking", "Offline/online metrics, A/B testing, feedback loops"],
+                ["🛡️", "Design a content moderation system", "Multi-label classification, human-in-the-loop, safety"],
+                ["👥", "Design a friend recommendation system", "Graph-based ML, link prediction, scalability"],
+                ["🚨", "Design a fraud detection system", "Anomaly detection, imbalanced data, real-time inference"],
+              ].map(([emoji, q, challenge]) => (
+                <div key={q as string} className="flex gap-3 p-3 rounded-lg bg-purple-500/5 border border-purple-500/10 hover:bg-purple-500/10 transition-colors">
+                  <span className="text-base shrink-0">{emoji}</span>
+                  <div>
+                    <div className="text-xs font-bold text-white">{q}</div>
+                    <div className="text-[10px] text-purple-300 mt-0.5">Core challenge: {challenge}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {/* Example Questions — SWE */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">⚙️</span>
+                <span className="text-sm font-bold text-white">SWE System Design — Example Questions 🔥</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/20 text-blue-300 border border-blue-500/30">PRACTICE THESE</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                ["🔗", "Design a URL shortener (like bit.ly)", "Hashing, redirects, analytics at scale"],
+                ["📰", "Design Facebook's News Feed", "Fan-out on write vs. read, ranking, real-time updates"],
+                ["🎬", "Design a worldwide video distribution system", "CDN, transcoding pipeline, storage at scale"],
+                ["📊", "Design an ad impressions aggregator", "Stream processing, approximate counting, data pipelines"],
+                ["⚡", "Design a distributed cache", "Consistent hashing, eviction policies, replication"],
+                ["💬", "Design a real-time messaging system (like WhatsApp)", "WebSockets, message ordering, delivery guarantees"],
+              ].map(([emoji, q, challenge]) => (
+                <div key={q as string} className="flex gap-3 p-3 rounded-lg bg-blue-500/5 border border-blue-500/10 hover:bg-blue-500/10 transition-colors">
+                  <span className="text-base shrink-0">{emoji}</span>
+                  <div>
+                    <div className="text-xs font-bold text-white">{q}</div>
+                    <div className="text-[10px] text-blue-300 mt-0.5">Core challenge: {challenge}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </details>
+
+          {/* Official Resources */}
+          <details className="group">
+            <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">📚</span>
+                <span className="text-sm font-bold text-white">Official Meta Resources + Top Prep Platforms</span>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">FREE PDFs</span>
+              </div>
+              <ChevronDown size={14} className="text-slate-400 group-open:rotate-180 transition-transform" />
+            </summary>
+            <div className="mt-2 space-y-2 pl-2">
+              {[
+                { emoji:"📄", title:"Official Meta ML Onsite Guide (PDF)", desc:"Covers Coding, ML System Design, Behavioral rounds with exact evaluation criteria", href:"https://d3no4ktch0fdq4.cloudfront.net/public/course/files/Meta_ML_onsite_interview_prep.pdf", tag:"FREE", tagColor:"text-emerald-400" },
+                { emoji:"📄", title:"Official Meta ML Initial Screen Guide (PDF)", desc:"Covers coding and ML design components of the phone screen round", href:"https://d3no4ktch0fdq4.cloudfront.net/public/course/files/Meta_ML_initial_interview_prep.pdf", tag:"FREE", tagColor:"text-emerald-400" },
+                { emoji:"📄", title:"Official Meta SWE Full Loop Guide (PDF)", desc:"System Design, Product Architecture, evaluation criteria for Full Stack / Back End", href:"https://d3no4ktch0fdq4.cloudfront.net/public/course/files/Meta_SWE_full_loop_guide.pdf", tag:"FREE", tagColor:"text-emerald-400" },
+                { emoji:"🎓", title:"HelloInterview — System Design in a Hurry", desc:"Built by FAANG hiring managers. Delivery framework, core concepts, question breakdowns. Updated 2026.", href:"https://www.hellointerview.com/learn/system-design/in-a-hurry/introduction", tag:"FREE", tagColor:"text-emerald-400" },
+                { emoji:"🚀", title:"Exponent — 79 Verified Meta Questions", desc:"79 verified Meta system design questions with answers + ML system design course. Updated March 2026.", href:"https://www.tryexponent.com/meta", tag:"PAID", tagColor:"text-amber-400" },
+                { emoji:"📦", title:"ByteByteGo — Alex Xu", desc:"Visual learners & Back End generalists. Step-by-step breakdowns with animations and diagrams.", href:"https://bytebytego.com", tag:"PAID", tagColor:"text-amber-400" },
+                { emoji:"📋", title:"GitHub: System Design Primer", desc:"Official Meta recommendation. Comprehensive open-source resource on scalability, availability, consistency.", href:"https://github.com/donnemartin/system-design-primer", tag:"FREE", tagColor:"text-emerald-400" },
+              ].map(r => (
+                <a key={r.title} href={r.href} target="_blank" rel="noopener noreferrer"
+                  className="flex gap-3 p-3 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 transition-colors group/link">
+                  <span className="text-base shrink-0">{r.emoji}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-bold text-white group-hover/link:text-amber-300 transition-colors">{r.title}</span>
+                      <span className={`text-[10px] font-bold ${r.tagColor}`}>{r.tag}</span>
+                    </div>
+                    <div className="text-[10px] text-slate-400 mt-0.5">{r.desc}</div>
+                  </div>
+                  <ExternalLink size={11} className="text-slate-500 shrink-0 mt-0.5" />
+                </a>
+              ))}
+            </div>
+          </details>
+
+        </div>
+      </div>
+
       {/* Framework */}
       <div className="prep-card p-5">
         <div className="section-title">System Design Framework (38-min Interview)</div>

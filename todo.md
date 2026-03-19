@@ -116,3 +116,8 @@
 - [x] Mock Interview History (localStorage persistence + Past Sessions accordion in simulator)
 - [x] Prerequisite Unlock Celebration (confetti burst + toast when pattern unlocked)
 - [x] Hint Usage Analytics (track hint counts per pattern, Most-hinted badge in Overview)
+
+## New Features — Round 15
+- [x] Integrate Meta System Design Interview Prep 2026 guide into System Design tab (highlighted, emoji-rich, fun + challenging)
+- [x] CTCI Problem Difficulty Estimator (self-assessment vs official, divergence analytics)
+- [x] AI Study Session Planner (30/60/90-min plans, LLM-powered, SR + hint + goal data)

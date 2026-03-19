@@ -233,6 +233,99 @@ I'm stuck. Give me a ${hintLevel} hint.`;
       return { hint: typeof hint === "string" ? hint : JSON.stringify(hint) };
     }),
 
+  studyPlan: publicProcedure
+    .input(
+      z.object({
+        durationMins: z.enum(["30", "60", "90"]),
+        icTarget: z.enum(["IC5", "IC6", "IC7"]).default("IC6"),
+        readinessPct: z.number().min(0).max(100),
+        srDuePatterns: z.array(z.string()),
+        srDueBehavioral: z.array(z.string()),
+        mostHintedPatterns: z.array(z.string()),
+        weakPatterns: z.array(z.string()),
+        ctciUnsolved: z.number().int().min(0),
+        daysToInterview: z.number().int().min(0).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const { durationMins, icTarget, readinessPct, srDuePatterns, srDueBehavioral, mostHintedPatterns, weakPatterns, ctciUnsolved, daysToInterview } = input;
+
+      const systemPrompt = `You are a Meta interview prep coach building a focused study session plan.
+Create a prioritised, time-boxed plan for a ${durationMins}-minute session targeting ${icTarget}.
+Be specific, actionable, and encouraging. Use emojis sparingly for readability.
+
+Respond ONLY with valid JSON:
+{
+  "headline": "<one motivating sentence for today's session>",
+  "blocks": [
+    { "emoji": "<single emoji>", "title": "<block title>", "durationMins": <number>, "tasks": ["<task 1>", "<task 2>"] }
+  ],
+  "tip": "<one tactical tip for today>",
+  "warningIfAny": "<optional warning if readiness is low or interview is close, else null>"
+}`;
+
+      const userMsg = `Session: ${durationMins} min | Target: ${icTarget} | Readiness: ${readinessPct}%
+Days to interview: ${daysToInterview ?? 'unknown'}
+SR due patterns: ${srDuePatterns.slice(0,5).join(', ') || 'none'}
+SR due behavioral: ${srDueBehavioral.slice(0,3).join(', ') || 'none'}
+Most-hinted patterns (need work): ${mostHintedPatterns.slice(0,3).join(', ') || 'none'}
+Weak patterns (rated ≤2): ${weakPatterns.slice(0,5).join(', ') || 'none'}
+Unsolved CTCI problems: ${ctciUnsolved}
+
+Build the optimal study plan.`;
+
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: userMsg },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "study_plan",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                headline: { type: "string" },
+                blocks: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      emoji: { type: "string" },
+                      title: { type: "string" },
+                      durationMins: { type: "integer" },
+                      tasks: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["emoji", "title", "durationMins", "tasks"],
+                    additionalProperties: false,
+                  },
+                },
+                tip: { type: "string" },
+                warningIfAny: { type: ["string", "null"] },
+              },
+              required: ["headline", "blocks", "tip", "warningIfAny"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const raw = response.choices?.[0]?.message?.content ?? "{}";
+      try {
+        const p = JSON.parse(typeof raw === "string" ? raw : JSON.stringify(raw));
+        return {
+          headline: p.headline ?? "Let's get to work!",
+          blocks: p.blocks ?? [],
+          tip: p.tip ?? "",
+          warningIfAny: p.warningIfAny ?? null,
+        };
+      } catch {
+        return { headline: "Session ready!", blocks: [], tip: "Focus on your weakest patterns first.", warningIfAny: null };
+      }
+    }),
+
   getHint: publicProcedure
     .input(
       z.object({

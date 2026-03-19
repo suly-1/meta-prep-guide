@@ -974,6 +974,172 @@ function MostHintedBadge() {
   );
 }
 
+// ── Study Session Planner ─────────────────────────────────────────────────
+function StudySessionPlanner() {
+  const [patternRatings] = usePatternRatings();
+  const [bqRatings] = useBehavioralRatings();
+  const [hintAnalytics] = useHintAnalytics();
+  const [interviewDate] = useInterviewDate();
+  const [duration, setDuration] = useState<"30" | "60" | "90">("60");
+  const [icTarget, setIcTarget] = useState<"IC5" | "IC6" | "IC7">("IC6");
+  const [plan, setPlan] = useState<{
+    headline: string;
+    blocks: { emoji: string; title: string; durationMins: number; tasks: string[] }[];
+    tip: string;
+    warningIfAny: string | null;
+  } | null>(null);
+
+  const planMutation = trpc.ctci.studyPlan.useMutation({
+    onSuccess: (data) => setPlan(data),
+    onError: () => toast.error("Could not generate plan. Try again."),
+  });
+
+  const generatePlan = () => {
+    const srDuePatterns = PATTERNS
+      .filter(p => {
+        const r = patternRatings[p.id] ?? 0;
+        return r > 0 && r < 5;
+      })
+      .slice(0, 10)
+      .map(p => p.name);
+    const srDueBehavioral = BEHAVIORAL_QUESTIONS
+      .filter(q => (bqRatings[q.id] ?? 0) < 4)
+      .slice(0, 5)
+      .map(q => q.q.slice(0, 60));
+    const mostHintedPatterns = Object.entries(hintAnalytics)
+      .map(([id, c]) => ({ id, total: (c.gentle ?? 0) + (c.medium ?? 0) + (c.full ?? 0) }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 3)
+      .map(e => PATTERNS.find(p => p.id === e.id)?.name ?? e.id);
+    const weakPatterns = PATTERNS
+      .filter(p => { const r = patternRatings[p.id] ?? 0; return r > 0 && r <= 2; })
+      .map(p => p.name)
+      .slice(0, 5);
+    const ctciUnsolved = (() => {
+      try { return 500 - Object.values(JSON.parse(localStorage.getItem("ctci_solved") ?? "{}")).filter(Boolean).length; } catch { return 500; }
+    })() as number;
+    const daysToInterview = interviewDate ? getDaysUntil(interviewDate) : undefined;
+    const overallPct = Math.round(
+      (PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4).length / PATTERNS.length * 0.6 +
+       BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 4).length / BEHAVIORAL_QUESTIONS.length * 0.4) * 100
+    );
+
+    planMutation.mutate({
+      durationMins: duration,
+      icTarget,
+      readinessPct: overallPct,
+      srDuePatterns,
+      srDueBehavioral,
+      mostHintedPatterns,
+      weakPatterns,
+      ctciUnsolved,
+      daysToInterview: daysToInterview !== undefined && daysToInterview > 0 ? daysToInterview : undefined,
+    });
+  };
+
+  return (
+    <div className="prep-card p-5">
+      <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
+        <div>
+          <div className="section-title mb-0 pb-0 border-0">🗓️ AI Study Session Planner</div>
+          <div className="text-xs text-muted-foreground mt-0.5">Get a personalised, time-boxed plan based on your current gaps</div>
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex gap-1">
+            {(["30", "60", "90"] as const).map(d => (
+              <button key={d}
+                onClick={() => setDuration(d)}
+                className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-all ${
+                  duration === d ? 'bg-blue-500/20 border-blue-400 text-blue-300' : 'border-border text-muted-foreground hover:bg-accent'
+                }`}>
+                {d}m
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1">
+            {(["IC5", "IC6", "IC7"] as const).map(ic => (
+              <button key={ic}
+                onClick={() => setIcTarget(ic)}
+                className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-all ${
+                  icTarget === ic ? 'bg-purple-500/20 border-purple-400 text-purple-300' : 'border-border text-muted-foreground hover:bg-accent'
+                }`}>
+                {ic}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={generatePlan}
+            disabled={planMutation.isPending}
+            className="flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white text-sm font-semibold transition-all"
+          >
+            <Brain size={13} />
+            {planMutation.isPending ? "Planning…" : "Plan Today's Session"}
+          </button>
+        </div>
+      </div>
+
+      {!plan && !planMutation.isPending && (
+        <div className="text-center py-8 text-muted-foreground">
+          <div className="text-3xl mb-2">🧠</div>
+          <div className="text-sm">Click "Plan Today's Session" to get a personalised study plan</div>
+          <div className="text-xs mt-1 opacity-70">Uses your SR due dates, hint history, weak patterns, and readiness goal</div>
+        </div>
+      )}
+
+      {planMutation.isPending && (
+        <div className="text-center py-8">
+          <div className="text-2xl mb-2 animate-pulse">⏳</div>
+          <div className="text-sm text-muted-foreground">Analysing your prep data…</div>
+        </div>
+      )}
+
+      {plan && (
+        <div className="space-y-4">
+          {plan.warningIfAny && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-red-500/10 border border-red-500/20">
+              <span className="text-sm">⚠️</span>
+              <span className="text-xs text-red-300">{plan.warningIfAny}</span>
+            </div>
+          )}
+          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+            <span className="text-sm font-semibold text-emerald-300">🎯 {plan.headline}</span>
+          </div>
+          <div className="space-y-3">
+            {plan.blocks.map((block, i) => (
+              <div key={i} className="p-3 rounded-lg bg-secondary border border-border">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-bold text-foreground">{block.emoji} {block.title}</span>
+                  <span className="text-xs text-muted-foreground bg-accent px-2 py-0.5 rounded-full">{block.durationMins} min</span>
+                </div>
+                <ul className="space-y-1">
+                  {block.tasks.map((task, j) => (
+                    <li key={j} className="text-xs text-muted-foreground flex items-start gap-1.5">
+                      <span className="text-emerald-500 mt-0.5 shrink-0">›</span>
+                      <span>{task}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+          {plan.tip && (
+            <div className="flex items-start gap-2 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+              <span className="text-sm">💡</span>
+              <span className="text-xs text-blue-300">{plan.tip}</span>
+            </div>
+          )}
+          <button
+            onClick={() => setPlan(null)}
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            ↺ Generate new plan
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function OverviewTab() {
   return (
     <div className="space-y-6">
@@ -986,6 +1152,7 @@ export default function OverviewTab() {
       <InterviewDayChecklist />
       <ResourcesSection />
       <ReadinessGoalSetter />
+      <StudySessionPlanner />
       <MostHintedBadge />
       <WeeklyDigest />
       <div className="flex justify-start">
