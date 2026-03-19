@@ -38,6 +38,7 @@
 ## Disclaimer Gate
 - [x] Full-screen disclaimer gate component (React web app)
 - [x] Full-screen disclaimer gate injected into standalone HTML file
+- [x] Update disclaimer text to new legal-grade version (both web app + standalone HTML)
 ## New Features — Round 3
 - [x] Pattern Dependency Graph (d3-force, Coding tab, mastered nodes glow green)
 - [x] 60-day Heatmap Calendar (Overview tab, daily activity grid)

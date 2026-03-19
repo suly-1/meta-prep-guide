@@ -32,7 +32,7 @@ export default function DisclaimerGate({ onConfirm }: Props) {
   return (
     /* Full-viewport overlay — sits above everything, z-index 9999 */
     <div
-      className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+      className="fixed inset-0 z-[9999] flex items-center justify-center p-4 overflow-y-auto"
       style={{
         background:
           "radial-gradient(ellipse at 50% 30%, oklch(0.18 0.04 264) 0%, oklch(0.08 0.015 264) 100%)",
@@ -48,7 +48,7 @@ export default function DisclaimerGate({ onConfirm }: Props) {
         }}
       />
 
-      <div className="relative w-full max-w-2xl rounded-2xl border border-amber-500/30 bg-[oklch(0.13_0.02_264)] shadow-2xl shadow-black/60 overflow-hidden">
+      <div className="relative w-full max-w-2xl rounded-2xl border border-amber-500/30 bg-[oklch(0.13_0.02_264)] shadow-2xl shadow-black/60 overflow-hidden my-8">
         {/* Amber top accent bar */}
         <div className="h-1 w-full bg-gradient-to-r from-amber-600 via-amber-400 to-amber-600" />
 
@@ -60,7 +60,7 @@ export default function DisclaimerGate({ onConfirm }: Props) {
             </div>
             <div>
               <h1 className="text-xl font-bold text-white tracking-tight">
-                Important Disclaimer
+                ⚠️ Disclaimer
               </h1>
               <p className="text-sm text-amber-300/80 mt-0.5">
                 Please read carefully before proceeding
@@ -71,29 +71,34 @@ export default function DisclaimerGate({ onConfirm }: Props) {
           {/* Disclaimer body */}
           <div className="space-y-4 text-sm text-zinc-300 leading-relaxed">
             <p>
-              This guide is an <strong className="text-white">independent study resource</strong> created
-              to help engineers prepare for software engineering interviews at senior levels (IC6/IC7).
-              It is <strong className="text-white">not affiliated with, endorsed by, sponsored by, or
-              connected to Meta Platforms, Inc.</strong> in any way.
-            </p>
-            <p>
-              All company names, product names, and trademarks mentioned are the property of their
-              respective owners. References to Meta, its interview process, or its engineering levels
-              are based on <strong className="text-white">publicly available information and community
-              reports</strong> only, and do not represent official guidance from Meta.
-            </p>
-            <p>
-              Interview formats, evaluation criteria, and level expectations{" "}
-              <strong className="text-white">change frequently</strong>. The information in this guide
-              may be outdated, incomplete, or inaccurate.{" "}
+              This is an <strong className="text-white">independent study resource</strong> for
+              software engineering interview preparation. It is{" "}
               <strong className="text-white">
-                Always verify current details directly with your recruiter or hiring manager.
-              </strong>
+                not affiliated with, endorsed by, or connected to Meta Platforms, Inc.
+              </strong>{" "}
+              in any way. All trademarks are property of their respective owners, used here for
+              identification only under nominative fair use.
             </p>
             <p>
-              This guide is provided <strong className="text-white">"as is"</strong> without warranty
-              of any kind. The author(s) accept no liability for decisions made based on its content.
-              Use it as one input among many — not as a definitive source of truth.
+              All content is based on{" "}
+              <strong className="text-white">publicly available information</strong> and may be
+              outdated, incomplete, or inaccurate. This is{" "}
+              <strong className="text-white">not professional or career advice.</strong> Always
+              verify details with your recruiter or hiring manager.
+            </p>
+            <p>
+              This guide is provided{" "}
+              <strong className="text-white">"AS IS"</strong> without warranty of any kind,
+              express or implied. The author(s) shall not be liable for any damages — direct,
+              indirect, incidental, or consequential — arising from your use of or reliance on
+              this guide.{" "}
+              <strong className="text-white">No outcome is guaranteed.</strong> By using this
+              guide, you assume all risk, agree you are solely responsible for any decisions made
+              based on its content, and agree to indemnify and hold harmless the author(s) from
+              any claims arising from your use.
+            </p>
+            <p className="text-zinc-500 text-xs">
+              If any provision of this disclaimer is unenforceable, the remainder shall remain in effect.
             </p>
           </div>
 
@@ -118,9 +123,8 @@ export default function DisclaimerGate({ onConfirm }: Props) {
                 checked ? "text-emerald-300" : "text-zinc-400 group-hover:text-zinc-200"
               }`}
             >
-              I have read and understood this disclaimer. I acknowledge that this guide is an
-              independent resource, not affiliated with Meta Platforms, Inc., and that I will
-              verify current interview details with my recruiter.
+              ☑️ I acknowledge this guide is independent, not affiliated with Meta, provided
+              without warranty, and that I assume all risk of use.
             </span>
           </button>
 
