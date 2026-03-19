@@ -180,6 +180,21 @@ function ReadinessTrendChart({ currentPct }: { currentPct: number }) {
 }
 
 // ── Readiness Dashboard ─────────────────────────────────────────────────────
+function loadSDHistory() {
+  try { return JSON.parse(localStorage.getItem("sd_mock_history_v1") ?? "[]") as Array<{ scorecard: { overallScore: number; icLevel: string }; date: string }>; }
+  catch { return []; }
+}
+function loadBehHistory() {
+  try { return JSON.parse(localStorage.getItem("beh_mock_history_v1") ?? "[]") as Array<{ scorecard: { overallScore: number; icLevel: string }; date: string }>; }
+  catch { return []; }
+}
+
+function icLevelToNum(level: string): number {
+  if (level === "IC7") return 3;
+  if (level === "IC6") return 2;
+  return 1;
+}
+
 function ReadinessDashboard() {
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
@@ -190,9 +205,41 @@ function ReadinessDashboard() {
   const avgMock = mockHistory.length
     ? mockHistory.reduce((s, m) => s + m.avgScore, 0) / mockHistory.length
     : 0;
-  const overallPct = Math.round(
-    ((masteredPatterns / PATTERNS.length) * 0.6 + (readyStories / BEHAVIORAL_QUESTIONS.length) * 0.4) * 100
-  );
+
+  // Load System Design and XFN Behavioral mock sessions from localStorage
+  const sdHistory = loadSDHistory();
+  const behHistory = loadBehHistory();
+  const sdAvg = sdHistory.length ? sdHistory.reduce((s, e) => s + e.scorecard.overallScore, 0) / sdHistory.length : 0;
+  const xfnAvg = behHistory.length ? behHistory.reduce((s, e) => s + e.scorecard.overallScore, 0) / behHistory.length : 0;
+  const latestSDLevel = sdHistory.length ? sdHistory[sdHistory.length - 1].scorecard.icLevel : null;
+  const latestXFNLevel = behHistory.length ? behHistory[behHistory.length - 1].scorecard.icLevel : null;
+
+  // Combined IC readiness score (weighted): coding 40%, behavioral 30%, sys design 20%, xfn 10%
+  const codingScore = (masteredPatterns / PATTERNS.length) * 5;
+  const behavioralScore = (readyStories / BEHAVIORAL_QUESTIONS.length) * 5;
+  const sdScore = sdAvg; // already 1-5
+  const xfnScore = xfnAvg; // already 1-5
+  const hasSDData = sdHistory.length > 0;
+  const hasXFNData = behHistory.length > 0;
+
+  let combinedScore: number;
+  if (!hasSDData && !hasXFNData) {
+    combinedScore = (codingScore * 0.6 + behavioralScore * 0.4);
+  } else if (!hasSDData) {
+    combinedScore = (codingScore * 0.5 + behavioralScore * 0.3 + xfnScore * 0.2);
+  } else if (!hasXFNData) {
+    combinedScore = (codingScore * 0.5 + behavioralScore * 0.25 + sdScore * 0.25);
+  } else {
+    combinedScore = (codingScore * 0.4 + behavioralScore * 0.3 + sdScore * 0.2 + xfnScore * 0.1);
+  }
+  const overallPct = Math.round((combinedScore / 5) * 100);
+
+  // IC level signal: majority vote from available mock sessions
+  const icSignals: number[] = [];
+  if (latestSDLevel) icSignals.push(icLevelToNum(latestSDLevel));
+  if (latestXFNLevel) icSignals.push(icLevelToNum(latestXFNLevel));
+  const avgICNum = icSignals.length ? icSignals.reduce((a, b) => a + b, 0) / icSignals.length : 0;
+  const icSignal = avgICNum >= 2.5 ? "IC7" : avgICNum >= 1.5 ? "IC6" : icSignals.length > 0 ? "IC5" : null;
 
   const weakPatterns = PATTERNS.filter(p => { const r = patternRatings[p.id] ?? 0; return r > 0 && r <= 2; }).slice(0, 3);
   const weakBQ = BEHAVIORAL_QUESTIONS.filter(q => { const r = bqRatings[q.id] ?? 0; return r > 0 && r <= 2; }).slice(0, 3);
@@ -202,29 +249,58 @@ function ReadinessDashboard() {
       {/* Overall readiness */}
       <div className={`prep-card p-5 ${overallPct >= 100 ? "border-emerald-500/40 bg-emerald-500/5" : ""}`}>
         <div className="flex items-center justify-between mb-3">
-          <div className="section-title mb-0 pb-0 border-0">Overall Readiness</div>
-          <span className={`text-2xl font-extrabold stat-num ${overallPct >= 80 ? "text-emerald-400" : overallPct >= 50 ? "text-amber-400" : "text-red-400"}`}>
-            {overallPct}%
-          </span>
+          <div>
+            <div className="section-title mb-0 pb-0 border-0">Combined IC Readiness</div>
+            <div className="text-xs text-muted-foreground mt-0.5">Coding 40% · Behavioral 30% · Sys Design 20% · XFN 10%</div>
+          </div>
+          <div className="text-right">
+            <span className={`text-2xl font-extrabold stat-num ${overallPct >= 80 ? "text-emerald-400" : overallPct >= 50 ? "text-amber-400" : "text-red-400"}`}>
+              {overallPct}%
+            </span>
+            {icSignal && (
+              <div className={`text-xs font-bold mt-0.5 ${icSignal === "IC7" ? "text-violet-400" : icSignal === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}>
+                Signal: {icSignal}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="progress-bar mb-2">
+        <div className="progress-bar mb-4">
           <div className={`progress-bar-fill ${overallPct >= 80 ? "bg-emerald-500" : overallPct >= 50 ? "bg-amber-500" : "bg-red-500"}`}
             style={{ width: `${overallPct}%` }} />
         </div>
-        <div className="grid grid-cols-3 gap-3 mt-4">
-          <div className="text-center">
-            <div className="stat-num text-lg text-blue-400">{masteredPatterns}/{PATTERNS.length}</div>
-            <div className="text-xs text-muted-foreground">Patterns mastered</div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="text-center p-2 rounded-lg bg-secondary">
+            <div className="stat-num text-base text-blue-400">{masteredPatterns}/{PATTERNS.length}</div>
+            <div className="text-[10px] text-muted-foreground">Patterns</div>
+            <div className="text-[10px] text-blue-400/70">40% weight</div>
           </div>
-          <div className="text-center">
-            <div className="stat-num text-lg text-purple-400">{readyStories}/{BEHAVIORAL_QUESTIONS.length}</div>
-            <div className="text-xs text-muted-foreground">Stories ready</div>
+          <div className="text-center p-2 rounded-lg bg-secondary">
+            <div className="stat-num text-base text-purple-400">{readyStories}/{BEHAVIORAL_QUESTIONS.length}</div>
+            <div className="text-[10px] text-muted-foreground">BQ Stories</div>
+            <div className="text-[10px] text-purple-400/70">30% weight</div>
           </div>
-          <div className="text-center">
-            <div className="stat-num text-lg text-emerald-400">{avgMock > 0 ? avgMock.toFixed(1) : "—"}</div>
-            <div className="text-xs text-muted-foreground">Mock avg</div>
+          <div className="text-center p-2 rounded-lg bg-secondary">
+            <div className={`stat-num text-base ${hasSDData ? "text-cyan-400" : "text-muted-foreground"}`}>
+              {hasSDData ? sdAvg.toFixed(1) : "—"}
+            </div>
+            <div className="text-[10px] text-muted-foreground">Sys Design</div>
+            <div className="text-[10px] text-cyan-400/70">20% weight</div>
+          </div>
+          <div className="text-center p-2 rounded-lg bg-secondary">
+            <div className={`stat-num text-base ${hasXFNData ? "text-teal-400" : "text-muted-foreground"}`}>
+              {hasXFNData ? xfnAvg.toFixed(1) : "—"}
+            </div>
+            <div className="text-[10px] text-muted-foreground">XFN Mock</div>
+            <div className="text-[10px] text-teal-400/70">10% weight</div>
           </div>
         </div>
+        {(!hasSDData || !hasXFNData) && (
+          <div className="mt-3 p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
+            <div className="text-xs text-blue-400">
+              💡 Complete {[!hasSDData && "a System Design mock", !hasXFNData && "an XFN Behavioral mock"].filter(Boolean).join(" and ")} to unlock the full IC readiness gauge.
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Weak-spot dashboard */}

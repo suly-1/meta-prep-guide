@@ -10,6 +10,7 @@ import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 import PatternDependencyGraph from "@/components/PatternDependencyGraph";
 import MockInterviewSimulator from "@/components/MockInterviewSimulator";
+import { CodingMockSession } from "@/components/CodingMockSession";
 
 const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 const DIFF_COLOR: Record<string, string> = { Easy: "badge-green", Medium: "badge-amber", Hard: "badge-red" };
@@ -1707,6 +1708,11 @@ Key insight:
           </div>
         </div>
       )}
+
+      {/* Coding Mock Session */}
+      <div className="mt-6">
+        <CodingMockSession />
+      </div>
       </div>
     </div>
   );

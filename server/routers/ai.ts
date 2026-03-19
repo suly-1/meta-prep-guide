@@ -167,6 +167,109 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
       return parsed;
     }),
 
+  // Coding Mock Scorecard: evaluate candidate's approach, pseudocode, complexity, and edge cases
+  codingMockScorecard: publicProcedure
+    .input(
+      z.object({
+        patternName: z.string().max(200),
+        problemTitle: z.string().max(200),
+        difficulty: z.string().max(10),
+        approach: z.string().max(3000),
+        pseudocode: z.string().max(3000),
+        complexity: z.string().max(500),
+        edgeCases: z.string().max(1000),
+        followUp: z.string().max(1000),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const transcript = [
+        `Pattern: ${input.patternName}`,
+        `Problem: ${input.problemTitle} (${input.difficulty})`,
+        `\n=== Approach & Intuition ===\n${input.approach || "(not provided)"}`,
+        `\n=== Pseudocode / Solution ===\n${input.pseudocode || "(not provided)"}`,
+        `\n=== Time & Space Complexity ===\n${input.complexity || "(not provided)"}`,
+        `\n=== Edge Cases ===\n${input.edgeCases || "(not provided)"}`,
+        `\n=== Follow-up Optimization ===\n${input.followUp || "(not provided)"}`,
+      ].join("\n");
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior Meta Staff Engineer (E7) conducting a coding interview for an IC6/IC7 candidate.
+The problem is a "${input.patternName}" pattern problem: "${input.problemTitle}" (${input.difficulty}).
+Evaluate the candidate's approach, pseudocode, complexity analysis, edge case handling, and follow-up optimization.
+Be rigorous: IC6 should show clean code, correct complexity, and 2-3 edge cases; IC7 should show optimal solutions, proactive edge case enumeration, and follow-up optimizations.
+Return a structured JSON scorecard.`,
+          },
+          {
+            role: "user",
+            content: `Here is the candidate's coding session:\n\n${transcript}\n\nProvide a structured scorecard JSON.`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "coding_scorecard",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                overallScore: { type: "number", description: "Overall score 1-5" },
+                correctnessScore: { type: "number", description: "Correctness and algorithm quality score 1-5" },
+                complexityScore: { type: "number", description: "Time/space complexity analysis score 1-5" },
+                codeQualityScore: { type: "number", description: "Code clarity, naming, structure score 1-5" },
+                communicationScore: { type: "number", description: "Thinking out loud, explaining approach score 1-5" },
+                icLevel: { type: "string", description: "IC5, IC6, or IC7 — the level this performance signals" },
+                strengths: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                improvements: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                optimalSolutionHint: { type: "string", description: "1-2 sentence hint toward the optimal solution if the candidate didn't reach it" },
+                followUpQuestions: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                  description: "2-3 follow-up questions the interviewer would ask",
+                },
+                summary: { type: "string", description: "2-3 sentence overall coaching note" },
+              },
+              required: ["overallScore", "correctnessScore", "complexityScore", "codeQualityScore", "communicationScore", "icLevel", "strengths", "improvements", "optimalSolutionHint", "followUpQuestions", "summary"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const content = typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent);
+
+      const parsed = JSON.parse(content) as {
+        overallScore: number;
+        correctnessScore: number;
+        complexityScore: number;
+        codeQualityScore: number;
+        communicationScore: number;
+        icLevel: string;
+        strengths: string[];
+        improvements: string[];
+        optimalSolutionHint: string;
+        followUpQuestions: string[];
+        summary: string;
+      };
+      return parsed;
+    }),
+
   // XFN Behavioral Mock Scorecard: evaluate 3 XFN answers for collaboration, alignment, conflict resolution
   xfnMockScorecard: publicProcedure
     .input(

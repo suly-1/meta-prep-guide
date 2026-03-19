@@ -72,16 +72,35 @@ function saveHistory(entries: HistoryEntry[]) {
 const scoreColor = (s: number) =>
   s >= 4 ? "text-emerald-400" : s >= 3 ? "text-blue-400" : s >= 2 ? "text-amber-400" : "text-red-400";
 
+const diffColor = (delta: number) =>
+  delta > 0.2 ? "text-emerald-400" : delta < -0.2 ? "text-red-400" : "text-muted-foreground";
+
 // ── History Panel ─────────────────────────────────────────────────────────────
 function HistoryPanel({ onClose }: { onClose: () => void }) {
   const [entries, setEntries] = useState<HistoryEntry[]>(() => loadHistory().reverse());
   const [expanded, setExpanded] = useState<string | null>(null);
+  const [compareA, setCompareA] = useState<string | null>(null);
+  const [compareB, setCompareB] = useState<string | null>(null);
+  const [compareMode, setCompareMode] = useState(false);
 
   const deleteEntry = (id: string) => {
     const updated = loadHistory().filter((e) => e.id !== id);
     saveHistory(updated);
     setEntries(updated.slice().reverse());
+    if (compareA === id) setCompareA(null);
+    if (compareB === id) setCompareB(null);
   };
+
+  const entryA = entries.find(e => e.id === compareA);
+  const entryB = entries.find(e => e.id === compareB);
+
+  const SD_DIMS = [
+    { key: "overallScore" as const, label: "Overall" },
+    { key: "requirementsScore" as const, label: "Requirements" },
+    { key: "architectureScore" as const, label: "Architecture" },
+    { key: "scalabilityScore" as const, label: "Scalability" },
+    { key: "communicationScore" as const, label: "Communication" },
+  ];
 
   if (entries.length === 0) {
     return (
@@ -110,12 +129,76 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
           <span className="text-sm font-bold text-foreground">Mock Session History</span>
           <span className="badge badge-blue">{entries.length} session{entries.length !== 1 ? "s" : ""}</span>
         </div>
-        <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground transition-colors">✕ Close</button>
+        <div className="flex items-center gap-2">
+          {entries.length >= 2 && (
+            <button
+              onClick={() => { setCompareMode(!compareMode); setCompareA(null); setCompareB(null); }}
+              className={`text-xs font-semibold px-2.5 py-1 rounded-lg border transition-all ${
+                compareMode
+                  ? "bg-blue-500/20 border-blue-500/30 text-blue-400"
+                  : "bg-secondary border-border text-muted-foreground hover:border-blue-500/30"
+              }`}
+            >
+              {compareMode ? "✕ Cancel Compare" : "⇄ Compare"}
+            </button>
+          )}
+          <button onClick={onClose} className="text-xs text-muted-foreground hover:text-foreground transition-colors">✕ Close</button>
+        </div>
       </div>
+
+      {/* Comparison diff panel */}
+      {compareMode && entryA && entryB && (
+        <div className="p-4 rounded-xl bg-blue-500/10 border border-blue-500/20 space-y-3">
+          <div className="text-xs font-bold text-blue-400">⇄ Session Comparison</div>
+          <div className="grid grid-cols-3 gap-2 text-center">
+            <div className="text-[10px] text-muted-foreground font-semibold">Session A</div>
+            <div className="text-[10px] text-muted-foreground font-semibold">Dimension</div>
+            <div className="text-[10px] text-muted-foreground font-semibold">Session B</div>
+          </div>
+          {SD_DIMS.map(({ key, label }) => {
+            const a = entryA.scorecard[key];
+            const b = entryB.scorecard[key];
+            const delta = b - a;
+            return (
+              <div key={key} className="grid grid-cols-3 gap-2 items-center">
+                <div className={`text-center text-sm font-bold ${scoreColor(a)}`}>{a.toFixed(1)}</div>
+                <div className="text-center">
+                  <div className="text-[10px] text-muted-foreground">{label}</div>
+                  <div className={`text-xs font-bold ${diffColor(delta)}`}>
+                    {delta > 0.05 ? `+${delta.toFixed(1)}` : delta < -0.05 ? delta.toFixed(1) : "=="}
+                  </div>
+                </div>
+                <div className={`text-center text-sm font-bold ${scoreColor(b)}`}>{b.toFixed(1)}</div>
+              </div>
+            );
+          })}
+          <div className="grid grid-cols-2 gap-3 mt-2">
+            <div className="text-center p-2 rounded-lg bg-secondary">
+              <div className="text-[10px] text-muted-foreground">Session A</div>
+              <div className="text-xs font-bold text-foreground truncate">{entryA.questionTitle.slice(0, 30)}…</div>
+              <div className="text-[10px] text-muted-foreground">{new Date(entryA.date).toLocaleDateString()} · {entryA.scorecard.icLevel}</div>
+            </div>
+            <div className="text-center p-2 rounded-lg bg-secondary">
+              <div className="text-[10px] text-muted-foreground">Session B</div>
+              <div className="text-xs font-bold text-foreground truncate">{entryB.questionTitle.slice(0, 30)}…</div>
+              <div className="text-[10px] text-muted-foreground">{new Date(entryB.date).toLocaleDateString()} · {entryB.scorecard.icLevel}</div>
+            </div>
+          </div>
+        </div>
+      )}
+      {compareMode && (!entryA || !entryB) && (
+        <div className="p-3 rounded-lg bg-secondary border border-border text-xs text-muted-foreground">
+          Select two sessions below to compare them (click the checkbox icon on each).
+        </div>
+      )}
 
       <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1">
         {entries.map((entry) => (
-          <div key={entry.id} className="rounded-lg border border-border bg-secondary overflow-hidden">
+          <div key={entry.id} className={`rounded-lg border bg-secondary overflow-hidden transition-all ${
+            compareMode && (compareA === entry.id || compareB === entry.id)
+              ? "border-blue-500/50"
+              : "border-border"
+          }`}>
             {/* Header row */}
             <div className="flex items-center gap-3 p-3">
               <div className="flex-1 min-w-0">
@@ -132,6 +215,23 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
               <div className="flex items-center gap-1 shrink-0">
+                {compareMode && (
+                  <button
+                    onClick={() => {
+                      if (compareA === entry.id) { setCompareA(null); return; }
+                      if (compareB === entry.id) { setCompareB(null); return; }
+                      if (!compareA) { setCompareA(entry.id); return; }
+                      if (!compareB) { setCompareB(entry.id); return; }
+                    }}
+                    className={`px-2 py-1 rounded text-[10px] font-bold border transition-all ${
+                      compareA === entry.id ? "bg-blue-500/20 border-blue-500/40 text-blue-400" :
+                      compareB === entry.id ? "bg-violet-500/20 border-violet-500/40 text-violet-400" :
+                      "bg-secondary border-border text-muted-foreground hover:border-blue-500/30"
+                    }`}
+                  >
+                    {compareA === entry.id ? "A" : compareB === entry.id ? "B" : "+"}
+                  </button>
+                )}
                 <button
                   onClick={() => setExpanded(expanded === entry.id ? null : entry.id)}
                   className="p-1.5 rounded text-muted-foreground hover:text-foreground transition-colors"
