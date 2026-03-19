@@ -13,6 +13,16 @@ export function CapacityCalculator() {
   const [avgPayloadKB, setAvgPayloadKB] = useState("10");
   const [requestsPerServer, setRequestsPerServer] = useState("1000");
 
+  const PRESETS = [
+    { name: "News Feed", dau: "500", writesPerUser: "3", readsPerUser: "100", recordSizeKB: "2", retentionYears: "5", avgPayloadKB: "15", requestsPerServer: "1000" },
+    { name: "Messenger", dau: "1000", writesPerUser: "20", readsPerUser: "80", recordSizeKB: "0.5", retentionYears: "3", avgPayloadKB: "2", requestsPerServer: "2000" },
+    { name: "Instagram", dau: "500", writesPerUser: "2", readsPerUser: "60", recordSizeKB: "500", retentionYears: "10", avgPayloadKB: "200", requestsPerServer: "500" },
+  ];
+  const applyPreset = (p: typeof PRESETS[0]) => {
+    setDau(p.dau); setWritesPerUser(p.writesPerUser); setReadsPerUser(p.readsPerUser);
+    setRecordSizeKB(p.recordSizeKB); setRetentionYears(p.retentionYears);
+    setAvgPayloadKB(p.avgPayloadKB); setRequestsPerServer(p.requestsPerServer);
+  };
   const dauN = parseFloat(dau) * 1e6 || 0;
   const writesPerUserN = parseFloat(writesPerUser) || 0;
   const readsPerUserN = parseFloat(readsPerUser) || 0;
@@ -53,6 +63,16 @@ export function CapacityCalculator() {
       </button>
       {open && (
         <div className="px-5 pb-5 border-t border-border pt-4 space-y-5">
+          {/* Presets */}
+          <div className="flex items-center gap-2 flex-wrap">
+            <span className="text-xs text-muted-foreground shrink-0">Presets:</span>
+            {PRESETS.map(p => (
+              <button key={p.name} onClick={() => applyPreset(p)}
+                className="px-2.5 py-1 rounded-md bg-secondary hover:bg-accent border border-border text-xs font-semibold text-foreground transition-all">
+                {p.name}
+              </button>
+            ))}
+          </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             {[
               { label: "DAU (millions)", val: dau, set: setDau, placeholder: "100" },

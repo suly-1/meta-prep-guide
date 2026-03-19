@@ -450,4 +450,34 @@ Be direct and honest — this is what a real debrief would look like.`,
       };
       return parsed;
     }),
+
+  // Explain a coding pattern at IC6 or IC7 level
+  explainPattern: publicProcedure
+    .input(
+      z.object({
+        patternId: z.string().max(60),
+        patternName: z.string().max(100),
+        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const levelNote = input.icMode === "IC7"
+        ? "Target IC7 (Senior Staff Engineer). Emphasise trade-offs, edge cases, and when NOT to use this pattern. Include complexity analysis and real-world Meta-scale examples."
+        : "Target IC6 (Staff Engineer). Cover the core intuition, canonical template, and 2-3 representative LeetCode problems.";
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior Meta engineer coaching a candidate on coding interview patterns. ${levelNote} Respond in concise Markdown (max 350 words).`,
+          },
+          {
+            role: "user",
+            content: `Explain the "${input.patternName}" pattern (id: ${input.patternId}) for a Meta ${input.icMode} interview. Include: 1) Core intuition in 1-2 sentences. 2) When to recognise it. 3) Canonical Python template snippet. 4) 2 representative LeetCode problems with difficulty. 5) Common pitfalls.`,
+          },
+        ],
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { explanation: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
+    }),
 });

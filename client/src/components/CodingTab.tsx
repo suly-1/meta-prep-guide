@@ -3,10 +3,11 @@
 // spaced repetition, heatmap, Anki export, weak-spots filter, pattern notes,
 // mock interview timer (25/35/45 min), session history, sprint mode
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight, Code2, Play, Tag } from "lucide-react";
+import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight, Code2, Play, Tag, HelpCircle, Brain } from "lucide-react";
 import { PATTERNS, PATTERN_PREREQS } from "@/lib/data";
 import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory, usePatternTime, useCTCIStreak, useHintAnalytics, useCTCIDifficultyEstimates, type SelfDifficulty } from "@/hooks/useLocalStorage";
 import { trpc } from "@/lib/trpc";
+import { Streamdown } from "streamdown";
 import { toast } from "sonner";
 import PatternDependencyGraph from "@/components/PatternDependencyGraph";
 import MockInterviewSimulator from "@/components/MockInterviewSimulator";
@@ -811,6 +812,15 @@ export default function CodingTab() {
   });
   const [hintAnalytics, setHintAnalytics] = useHintAnalytics();
   const [showCheatSheet, setShowCheatSheet] = useState<string | null>(null);
+  // Explain this pattern AI
+  const [explainOpen, setExplainOpen] = useState<string | null>(null);
+  const [explainContent, setExplainContent] = useState<Record<string, string>>({});
+  const explainMutation = trpc.ai.explainPattern.useMutation({
+    onSuccess: (data, vars) => {
+      setExplainContent(prev => ({ ...prev, [vars.patternId]: data.explanation }));
+    },
+    onError: () => toast.error("Could not generate explanation. Try again."),
+  });
   const [ctciTags, setCtciTags] = useState<Record<string, string[]>>(() => {
     try { return JSON.parse(localStorage.getItem("ctci_tags_v1") ?? "{}"); } catch { return {}; }
   });
@@ -942,6 +952,13 @@ export default function CodingTab() {
             Jump to Weak Patterns
           </button>
         </div>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true }))}
+          title='Keyboard shortcuts (?)'
+          className='ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0'
+        >
+          <HelpCircle size={13} />
+        </button>
       </div>
       {/* CTCI 500 Question Tracker — top of page */}
       <CTCITracker />
@@ -1162,6 +1179,18 @@ export default function CodingTab() {
                         <Play size={11} /> Video
                       </a>
                     )}
+                    {/* Explain this pattern (AI) */}
+                    <button
+                      onClick={() => {
+                        if (explainOpen === p.id) { setExplainOpen(null); return; }
+                        setExplainOpen(p.id);
+                        if (!explainContent[p.id]) {
+                          explainMutation.mutate({ patternId: p.id, patternName: p.name, icMode: "IC6" });
+                        }
+                      }}
+                      className="flex items-center gap-1 text-xs text-violet-400 hover:text-violet-300 transition-colors">
+                      <Brain size={11} /> {explainOpen === p.id ? "Hide AI" : "Explain"}
+                    </button>
                   </div>
                 </div>
                 {/* CTCI Tags */}
@@ -1201,6 +1230,37 @@ export default function CodingTab() {
                       }} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">Copy</button>
                     </div>
                     <pre className="p-3 text-xs text-foreground font-mono leading-relaxed overflow-x-auto whitespace-pre bg-[#0d1117]">{CHEAT_SHEETS[p.id]}</pre>
+                  </div>
+                )}
+                {/* Explain Pattern AI Panel */}
+                {explainOpen === p.id && (
+                  <div className="mt-3 rounded-lg overflow-hidden border border-violet-500/20">
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-violet-500/5 border-b border-violet-500/20">
+                      <span className="text-xs font-bold text-violet-400">🤖 AI Explanation — {p.name}</span>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => explainMutation.mutate({ patternId: p.id, patternName: p.name, icMode: "IC7" })}
+                          disabled={explainMutation.isPending}
+                          className="text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50">
+                          IC7 Mode
+                        </button>
+                        <button
+                          onClick={() => explainMutation.mutate({ patternId: p.id, patternName: p.name, icMode: "IC6" })}
+                          disabled={explainMutation.isPending}
+                          className="text-xs text-violet-400 hover:text-violet-300 transition-colors disabled:opacity-50">
+                          IC6 Mode
+                        </button>
+                      </div>
+                    </div>
+                    <div className="p-3 text-xs text-foreground bg-[#0d1117] min-h-[60px]">
+                      {explainMutation.isPending && explainMutation.variables?.patternId === p.id ? (
+                        <span className="text-violet-400 animate-pulse">Generating explanation…</span>
+                      ) : explainContent[p.id] ? (
+                        <Streamdown>{explainContent[p.id]}</Streamdown>
+                      ) : (
+                        <span className="text-muted-foreground">Click a mode button to generate an explanation.</span>
+                      )}
+                    </div>
                   </div>
                 )}
                 {isExpanded && (

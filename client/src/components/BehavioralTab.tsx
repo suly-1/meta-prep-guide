@@ -2,7 +2,7 @@
 // Features: search, practice mode (3-min timer), full mock session (4 questions),
 // IC6/IC7 comparison table, mock history log, meta values, STAR framework
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Brain, Play, RotateCcw, ChevronDown, ChevronUp, Trash2, Shuffle, Timer, X, SkipForward, Zap } from "lucide-react";
+import { Search, Brain, Play, RotateCcw, ChevronDown, ChevronUp, Trash2, Shuffle, Timer, X, SkipForward, Zap, HelpCircle } from "lucide-react";
 import VoiceToStar from "@/components/VoiceToStar";
 import { BEHAVIORAL_QUESTIONS, IC_COMPARISON, META_VALUES } from "@/lib/data";
 import { useBehavioralRatings, useMockHistory, useStoryStrengthHistory, useTechRetroProjects, type MockSession, type StoryRatingEntry, type TechRetroProject } from "@/hooks/useLocalStorage";
@@ -1432,6 +1432,39 @@ export default function BehavioralTab() {
   const [filterArea, setFilterArea] = useState("All");
   const [filterTier, setFilterTier] = useState("All");
   const [expandedQ, setExpandedQ] = useState<string | null>(null);
+  // STAR answer drafts per question
+  const [starDrafts, setStarDrafts] = useState<Record<string, string>>(() => {
+    try { return JSON.parse(localStorage.getItem("star_drafts_v1") ?? "{}"); } catch { return {}; }
+  });
+  const saveStarDraft = (id: string, text: string) => {
+    const updated = { ...starDrafts, [id]: text };
+    setStarDrafts(updated);
+    localStorage.setItem("star_drafts_v1", JSON.stringify(updated));
+  };
+  // STAR version history: id → [{timestamp, text}]
+  const [starVersions, setStarVersions] = useState<Record<string, Array<{timestamp: number; text: string}>>>(() => {
+    try { return JSON.parse(localStorage.getItem("star_versions_v1") ?? "{}"); } catch { return {}; }
+  });
+  const saveStarVersion = (id: string, text: string) => {
+    if (!text.trim()) return;
+    const prev = starVersions[id] ?? [];
+    const updated = { ...starVersions, [id]: [...prev, { timestamp: Date.now(), text }].slice(-5) };
+    setStarVersions(updated);
+    localStorage.setItem("star_versions_v1", JSON.stringify(updated));
+    toast.success("Version saved!");
+  };
+  const [showVersions, setShowVersions] = useState<string | null>(null);
+  // Surprise Me randomizer
+  const handleSurpriseMe = () => {
+    const unrated = BEHAVIORAL_QUESTIONS.filter(q => !ratings[q.id] || ratings[q.id] < 3);
+    const pool = unrated.length > 0 ? unrated : BEHAVIORAL_QUESTIONS;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    setExpandedQ(pick.id);
+    setTimeout(() => {
+      const el = document.getElementById(`bq-${pick.id}`);
+      if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }, 100);
+  };
   const [showMock, setShowMock] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
   const [showSurprise, setShowSurprise] = useState(false);
@@ -1486,7 +1519,21 @@ export default function BehavioralTab() {
             <Zap size={12} />
             Start XFN Mock
           </button>
+          <button
+            onClick={handleSurpriseMe}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all"
+          >
+            <Shuffle size={12} />
+            Surprise Me
+          </button>
         </div>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true }))}
+          title='Keyboard shortcuts (?)'
+          className='ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0'
+        >
+          <HelpCircle size={13} />
+        </button>
       </div>
       {/* XFN Story Builder */}
       <XFNStoryBuilder onPopulatePlanner={(scope, outcome) => setXfnPrePopulate({ scope, outcome })} />
@@ -1808,11 +1855,66 @@ export default function BehavioralTab() {
                 </div>
               </button>
               {isOpen && (
-                <div className="bq-body space-y-3">
+                <div className="bq-body space-y-3" id={`bq-${q.id}`}>
                   <div className="p-2.5 rounded-md bg-secondary/50 text-xs text-muted-foreground">{q.hint}</div>
                   <div className="flex items-center gap-3">
                     <span className="text-xs text-muted-foreground">Rate your story:</span>
                     <StarRating value={r} onChange={v => handleRate(q.id, v)} />
+                  </div>
+                  {/* STAR Answer Draft */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-semibold text-muted-foreground">STAR Draft</span>
+                      <div className="flex items-center gap-2">
+                        {(() => {
+                          const wc = (starDrafts[q.id] ?? "").trim().split(/\s+/).filter(Boolean).length;
+                          const color = wc < 80 ? "text-red-400" : wc < 200 ? "text-amber-400" : "text-emerald-400";
+                          return <span className={`text-[10px] font-mono ${color}`}>{wc} words</span>;
+                        })()}
+                        <button
+                          onClick={() => saveStarVersion(q.id, starDrafts[q.id] ?? "")}
+                          className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
+                          Save version
+                        </button>
+                        {(starVersions[q.id]?.length ?? 0) > 0 && (
+                          <button
+                            onClick={() => setShowVersions(showVersions === q.id ? null : q.id)}
+                            className="text-[10px] text-muted-foreground hover:text-foreground transition-colors">
+                            {showVersions === q.id ? "Hide" : `History (${starVersions[q.id].length})`}
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                    <textarea
+                      value={starDrafts[q.id] ?? ""}
+                      onChange={e => saveStarDraft(q.id, e.target.value)}
+                      placeholder="S: Situation — set the scene&#10;T: Task — what was your responsibility&#10;A: Action — what you specifically did&#10;R: Result — quantified outcome"
+                      rows={5}
+                      className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-blue-500/50 resize-none leading-relaxed"
+                    />
+                    {/* Version History Panel */}
+                    {showVersions === q.id && (starVersions[q.id]?.length ?? 0) > 0 && (
+                      <div className="rounded-lg border border-border overflow-hidden">
+                        <div className="px-3 py-1.5 bg-secondary/50 border-b border-border text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
+                          Saved Versions (last 5)
+                        </div>
+                        <div className="divide-y divide-border max-h-48 overflow-y-auto">
+                          {[...(starVersions[q.id] ?? [])].reverse().map((v, i) => (
+                            <div key={i} className="p-2.5 space-y-1.5">
+                              <div className="flex items-center justify-between">
+                                <span className="text-[10px] text-muted-foreground">{new Date(v.timestamp).toLocaleString()}</span>
+                                <button
+                                  onClick={() => { saveStarDraft(q.id, v.text); toast.success("Draft restored!"); }}
+                                  className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
+                                  Restore
+                                </button>
+                              </div>
+                              <p className="text-[10px] text-muted-foreground line-clamp-2 leading-relaxed">{v.text}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

@@ -200,6 +200,43 @@
 - [x] Global Search — ⌘K command palette searching across 200+ items (patterns, CTCI, behavioral questions, system design topics, flash cards)
 - [x] Onboarding Checklist — 5-step guided checklist for new users (set date, rate patterns, add story, flash drill, run mock); dismissible
 
+## New Features — Round 37
+### Navigation & Discoverability
+- [x] ⌥5 keyboard shortcut for Collab tab Quick Action
+- [x] ? icon button in every Quick Actions bar to open keyboard shortcut modal
+- [x] Deep-link URL routing (?tab=coding&section=mock) with section scroll support
+- [x] Interview countdown banner across all tabs (when ≤7 days away, amber banner)
+
+### Coding Tab
+- [x] Explain this pattern AI button (LLM, IC6/IC7 level-aware, expandable panel per card)
+- [x] Code snippet library — Cheat Sheet already covers Python templates; sprint timer already exists as SprintMode
+- [x] Weak pattern sprint timer — already exists as SprintMode in CodingTab
+
+### Behavioral Tab
+- [x] STAR story version history (up to 5 drafts per question, localStorage)
+- [x] Behavioral question randomizer with hidden focus (Surprise Me button in Quick Actions)
+- [x] XFN mock transcript export (Download .md button in done view)
+- [x] STAR answer word-count indicator (green/amber/red per text area)
+
+### System Design Tab
+- [x] Diagram template SVG preview thumbnails in the template cards (inline SVG, dark theme)
+- [x] Capacity calculator presets (News Feed, Messenger, Instagram one-click buttons)
+- [x] Weak areas callout in SD scorecard (lowest 1-2 dimensions in red with progress bars)
+
+### Progress & Gamification
+- [x] Achievement badge share card (toast with 📤 Share button at 25/50/75/90/100% milestones)
+- [x] Heatmap PNG export (Download PNG button in HeatmapCalendar header)
+
+### Already Exist (skipped)
+- [x] Tab badge counters — already in TopNav (SR due counts per tab)
+- [x] Breadcrumb trail in mock sessions — breadcrumb.tsx exists; step indicators in XFN/Full Mock sessions
+- [x] Spaced repetition scheduler — already in OverviewExtras and CodingTab
+- [x] SD mock history log — already in SystemDesignMockSession (HISTORY_KEY, HistoryPanel)
+- [x] SD question timer — already in SystemDesignMockSession (per-phase timer with pause/reset)
+- [x] Readiness trend sparkline — already in OverviewTab (14-day sparkline chart)
+- [x] Peer comparison for behavioral readiness — already in OverviewTab (recruiter card with peer benchmarks)
+- [x] Weekly email digest — deferred (requires backend email sending; not in scope)
+
 ## New Features — Round 36
 - [x] Update ? keyboard shortcut help modal with Alt+1–4 entries (new Quick Actions section with ⌥1–4 entries)
 - [x] Share button in streak milestone toasts (custom JSX toast with 📤 Share button, copies tweet to clipboard)

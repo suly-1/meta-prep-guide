@@ -616,6 +616,33 @@ export function SystemDesignMockSession() {
               </div>
             </div>
 
+            {/* Weak Areas Callout — highlight lowest 1-2 dimensions in red */}
+            {(() => {
+              const dims = [
+                { label: "Requirements", score: scorecard.requirementsScore },
+                { label: "Architecture", score: scorecard.architectureScore },
+                { label: "Scalability", score: scorecard.scalabilityScore },
+                { label: "Communication", score: scorecard.communicationScore },
+              ].sort((a, b) => a.score - b.score).slice(0, 2).filter(d => d.score < 4);
+              if (dims.length === 0) return null;
+              return (
+                <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30">
+                  <div className="text-xs font-bold text-red-400 mb-2">⚠️ Focus Areas — Lowest Scoring Dimensions</div>
+                  <div className="space-y-2">
+                    {dims.map(d => (
+                      <div key={d.label} className="flex items-center gap-2">
+                        <span className="text-xs font-semibold text-red-300 w-28 shrink-0">{d.label}</span>
+                        <div className="flex-1 h-1.5 rounded-full bg-secondary overflow-hidden">
+                          <div className="h-full rounded-full bg-red-500 transition-all duration-700" style={{ width: `${(d.score / 5) * 100}%` }} />
+                        </div>
+                        <span className="text-xs font-bold text-red-400 w-8 text-right">{d.score.toFixed(1)}</span>
+                      </div>
+                    ))}
+                    <p className="text-[10px] text-muted-foreground mt-1">Prioritise these dimensions in your next session. Review the framework phases for each.</p>
+                  </div>
+                </div>
+              );
+            })()}
             <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
               <div className="text-xs font-bold text-blue-400 mb-1">📝 AI Summary</div>
               <div className="text-xs text-foreground leading-relaxed">{scorecard.summary}</div>

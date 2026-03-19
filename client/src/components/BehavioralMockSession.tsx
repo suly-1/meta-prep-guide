@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { BEHAVIORAL_QUESTIONS } from "@/lib/data";
-import { Brain, Play, Pause, RotateCcw, History, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Brain, Play, Pause, RotateCcw, History, ChevronDown, ChevronUp, Trash2, Download } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -564,13 +564,54 @@ export function BehavioralMockSession() {
           </div>
         )}
 
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <button onClick={resetAll} className="px-4 py-2 rounded-lg bg-secondary hover:bg-accent border border-border text-sm font-semibold text-foreground transition-all">
             🔄 Start New Mock
           </button>
           <button onClick={() => setView("history")} className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-teal-500/20 hover:bg-teal-500/30 border border-teal-500/30 text-teal-400 text-sm font-semibold transition-all">
             <History size={13} /> View History
           </button>
+          {scorecard && (
+            <button
+              onClick={() => {
+                const lines: string[] = [
+                  `# XFN Behavioral Mock Transcript`,
+                  `**Date:** ${new Date().toLocaleString()}`,
+                  `**IC Mode:** ${icMode}`,
+                  `**Overall Score:** ${scorecard.overallScore.toFixed(1)}/5  |  **IC Level:** ${scorecard.icLevel}`,
+                  ``,
+                  `## Scores`,
+                  `| Dimension | Score |`,
+                  `|---|---|`,
+                  `| Collaboration | ${scorecard.collaborationScore.toFixed(1)}/5 |`,
+                  `| Conflict Resolution | ${scorecard.conflictScore.toFixed(1)}/5 |`,
+                  `| Alignment | ${scorecard.alignmentScore.toFixed(1)}/5 |`,
+                  `| Communication | ${scorecard.communicationScore.toFixed(1)}/5 |`,
+                  ``,
+                  `## AI Summary`,
+                  scorecard.summary,
+                  ``,
+                  `## Strengths`,
+                  ...scorecard.strengths.map(s => `- ${s}`),
+                  ``,
+                  `## Areas to Improve`,
+                  ...scorecard.improvements.map(s => `- ${s}`),
+                  ``,
+                  `## Follow-up Questions`,
+                  ...scorecard.followUpQuestions.map((q, i) => `${i + 1}. ${q}`),
+                ];
+                const blob = new Blob([lines.join("\n")], { type: "text/markdown" });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `xfn-mock-${new Date().toISOString().slice(0,10)}.md`;
+                a.click();
+                URL.revokeObjectURL(url);
+              }}
+              className="flex items-center gap-1.5 px-4 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 text-sm font-semibold transition-all">
+              <Download size={13} /> Export .md
+            </button>
+          )}
         </div>
       </div>
     );

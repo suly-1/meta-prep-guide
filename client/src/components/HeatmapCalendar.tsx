@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { Flame } from "lucide-react";
+import { useMemo, useRef } from "react";
+import { Flame, Download } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface DayActivity {
@@ -63,6 +63,7 @@ export function recordActivity(type: "drill" | "mock" | "story", count = 1) {
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export default function HeatmapCalendar() {
+  const heatmapRef = useRef<HTMLDivElement>(null);
   const days = useMemo(() => getLast60Days(), []);
   const log  = useMemo(() => readActivityLog(), []);
 
@@ -112,10 +113,45 @@ export default function HeatmapCalendar() {
     }
   });
 
+  const exportHeatmapAsPNG = () => {
+    const el = heatmapRef.current;
+    if (!el) return;
+    const svgNS = "http://www.w3.org/2000/svg";
+    const { width, height } = el.getBoundingClientRect();
+    const svgEl = document.createElementNS(svgNS, "svg");
+    svgEl.setAttribute("xmlns", svgNS);
+    svgEl.setAttribute("width", String(Math.ceil(width)));
+    svgEl.setAttribute("height", String(Math.ceil(height)));
+    const fo = document.createElementNS(svgNS, "foreignObject");
+    fo.setAttribute("width", "100%");
+    fo.setAttribute("height", "100%");
+    const clone = el.cloneNode(true) as HTMLElement;
+    clone.setAttribute("xmlns", "http://www.w3.org/1999/xhtml");
+    fo.appendChild(clone);
+    svgEl.appendChild(fo);
+    const svgStr = new XMLSerializer().serializeToString(svgEl);
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      const scale = 2;
+      canvas.width = Math.ceil(width) * scale;
+      canvas.height = Math.ceil(height) * scale;
+      const ctx = canvas.getContext("2d")!;
+      ctx.scale(scale, scale);
+      ctx.fillStyle = "#0f172a";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.drawImage(img, 0, 0);
+      const link = document.createElement("a");
+      link.download = "meta-prep-heatmap.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+    };
+    img.src = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svgStr);
+  };
   const dayLabels = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
   return (
-    <div className="prep-card p-5 space-y-4">
+    <div ref={heatmapRef} className="prep-card p-5 space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-2">
         <div className="flex items-center gap-2">
@@ -131,6 +167,13 @@ export default function HeatmapCalendar() {
           <span><span className="text-blue-400 font-semibold">{totalDrills}</span> drills</span>
           <span><span className="text-purple-400 font-semibold">{totalMocks}</span> mocks</span>
           <span><span className="text-amber-400 font-semibold">{totalStories}</span> stories</span>
+          <button
+            onClick={exportHeatmapAsPNG}
+            className="flex items-center gap-1 px-2 py-1 rounded-md bg-secondary hover:bg-accent border border-border text-xs text-muted-foreground transition-all"
+            title="Download heatmap as PNG"
+          >
+            <Download size={11} /> PNG
+          </button>
         </div>
       </div>
 

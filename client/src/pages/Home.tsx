@@ -2,7 +2,7 @@
 // Dark charcoal base, Space Grotesk headings, Inter body
 // Blue (Meta), Emerald (mastered), Amber (weak), Orange (streak)
 import { useState, useEffect, useCallback } from "react";
-import { usePatternRatings, useBehavioralRatings, useOnboardingDismissed, useDisclaimerDismissed, useCongratsShown } from "@/hooks/useLocalStorage";
+import { usePatternRatings, useBehavioralRatings, useOnboardingDismissed, useDisclaimerDismissed, useCongratsShown, useInterviewDate } from "@/hooks/useLocalStorage";
 import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 import TopNav from "@/components/TopNav";
 import HeroSection from "@/components/HeroSection";
@@ -13,7 +13,7 @@ import SystemDesignTab from "@/components/SystemDesignTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
 import GlobalSearch from "@/components/GlobalSearch";
-import { AlertTriangle, X, Maximize2, Minimize2, Keyboard } from "lucide-react";
+import { AlertTriangle, X, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
 import DisclaimerGate, { useDisclaimerAcknowledged } from "@/components/DisclaimerGate";
 
 // Simple confetti burst
@@ -36,11 +36,46 @@ function triggerConfetti() {
 
 export default function Home() {
   const [acknowledged, confirmDisclaimer] = useDisclaimerAcknowledged();
-  const [activeTab, setActiveTab] = useState("overview");
+  // Deep-link URL routing: ?tab=coding&section=mock
+  const VALID_TABS = ["overview", "coding", "behavioral", "design", "collab"];
+  const getTabFromUrl = () => {
+    const params = new URLSearchParams(window.location.search);
+    const t = params.get("tab");
+    return t && VALID_TABS.includes(t) ? t : "overview";
+  };
+  const [activeTab, setActiveTab] = useState(getTabFromUrl);
+  const setActiveTabWithUrl = (tab: string, section?: string) => {
+    setActiveTab(tab);
+    const params = new URLSearchParams(window.location.search);
+    params.set("tab", tab);
+    if (section) params.set("section", section);
+    else params.delete("section");
+    window.history.replaceState(null, "", "?" + params.toString());
+    if (section) {
+      setTimeout(() => {
+        const el = document.getElementById(section);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 120);
+    }
+  };
+  // On mount: scroll to section from URL if present
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get("section");
+    if (section) {
+      setTimeout(() => {
+        const el = document.getElementById(section);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 300);
+    }
+  }, []);
   const [darkMode, setDarkMode] = useState(true);
   const [onboardingDismissed, setOnboardingDismissed] = useOnboardingDismissed();
   const [disclaimerDismissed, setDisclaimerDismissed] = useDisclaimerDismissed();
   const [congratsShown, setCongratsShown] = useCongratsShown();
+  const [interviewDate] = useInterviewDate();
+  const daysUntilInterview = interviewDate ? Math.ceil((new Date(interviewDate).setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000) : null;
+  const [countdownDismissed, setCountdownDismissed] = useState(false);
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
   const [focusMode, setFocusMode] = useState(false);
@@ -65,11 +100,11 @@ export default function Home() {
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     const tag = (e.target as HTMLElement).tagName;
     if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return;
-    if (e.key === "1") setActiveTab("overview");
-    if (e.key === "2") setActiveTab("coding");
-    if (e.key === "3") setActiveTab("behavioral");
-    if (e.key === "4") setActiveTab("design");
-    if (e.key === "5") setActiveTab("collab");
+    if (e.key === "1") setActiveTabWithUrl("overview");
+    if (e.key === "2") setActiveTabWithUrl("coding");
+    if (e.key === "3") setActiveTabWithUrl("behavioral");
+    if (e.key === "4") setActiveTabWithUrl("design");
+    if (e.key === "5") setActiveTabWithUrl("collab");
     if (e.key === "f" || e.key === "F") setFocusMode(m => !m);
     if (e.key === "?") setShowKeyHelp(m => !m);
     if (e.key === "Escape") { setFocusMode(false); setShowKeyHelp(false); }
@@ -93,6 +128,14 @@ export default function Home() {
       e.preventDefault();
       const el = document.getElementById("sysdesign-diagram-templates");
       if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    if (e.altKey && e.key === "5") {
+      e.preventDefault();
+      setActiveTabWithUrl("collab");
+      setTimeout(() => {
+        const el = document.getElementById("collab-create-room");
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     }
   }, []);
 
@@ -141,18 +184,18 @@ export default function Home() {
         <>
           <TopNav
             activeTab={activeTab}
-            onTabChange={setActiveTab}
+            onTabChange={setActiveTabWithUrl}
             darkMode={darkMode}
             onToggleDark={() => setDarkMode(d => !d)}
           />
           <div className="container pb-1 flex justify-end">
-            <GlobalSearch onNavigate={setActiveTab} />
+            <GlobalSearch onNavigate={setActiveTabWithUrl} />
           </div>
         </>
       )}
 
       {/* Hero section — hidden in focus mode */}
-      {!focusMode && <HeroSection onTabChange={setActiveTab} />}
+      {!focusMode && <HeroSection onTabChange={setActiveTabWithUrl} />}
 
       {/* Focus Mode bar */}
       {focusMode && (
@@ -168,6 +211,22 @@ export default function Home() {
         </div>
       )}
 
+      {/* Global interview countdown banner — shows on non-Overview tabs when ≤7 days away */}
+      {daysUntilInterview !== null && daysUntilInterview <= 7 && daysUntilInterview >= 0 && !countdownDismissed && activeTab !== "overview" && (
+        <div className="bg-amber-500/10 border-b border-amber-500/30 px-4 py-2.5">
+          <div className="container flex items-center gap-3">
+            <AlertTriangle size={13} className="text-amber-400 shrink-0" />
+            <span className="text-xs text-amber-300 flex-1">
+              <span className="font-bold">Interview in {daysUntilInterview === 0 ? "today" : `${daysUntilInterview} day${daysUntilInterview !== 1 ? "s" : ""}`}!</span>
+              {" "}Focus on your weakest areas. Check the{" "}
+              <button onClick={() => setActiveTabWithUrl("overview")} className="underline hover:text-amber-200 transition-colors">Interview Day Checklist</button>.
+            </span>
+            <button onClick={() => setCountdownDismissed(true)} className="text-amber-400/60 hover:text-amber-300 transition-colors shrink-0">
+              <X size={13} />
+            </button>
+          </div>
+        </div>
+      )}
       {/* Main content */}
       <main className={`container ${focusMode ? "py-4" : "py-6"}`}>
         {activeTab === "overview" && <OverviewTab />}
@@ -231,6 +290,7 @@ export default function Home() {
                   { key: "⌥2", desc: "Start Coding Mock" },
                   { key: "⌥3", desc: "Record STAR Answer" },
                   { key: "⌥4", desc: "Open Diagram Template" },
+                  { key: "⌥5", desc: "Start Collab Session" },
                 ]},
                 { section: "Pattern Cards", shortcuts: [
                   { key: "J / K", desc: "Move down / up through patterns" },
@@ -306,6 +366,13 @@ function CollabLobby() {
             View Leaderboard
           </button>
         </div>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "?", bubbles: true }))}
+          title="Keyboard shortcuts (?)"
+          className="ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0"
+        >
+          <HelpCircle size={13} />
+        </button>
       </div>
       <div id="collab-create-room" className="max-w-md mx-auto space-y-4">
       <div className="prep-card p-6">

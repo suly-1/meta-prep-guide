@@ -304,6 +304,111 @@ function buildInstagramTemplate(): object {
 }
 
 // ── Template Definitions ──────────────────────────────────────────────────────
+// Inline SVG previews for each template (simplified architecture overview)
+const SVG_PREVIEWS: Record<string, string> = {
+  "news-feed": `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+    <rect width="320" height="160" fill="#0f172a"/>
+    <rect x="8" y="8" width="52" height="22" rx="3" fill="#4c1d95" stroke="#7c3aed" stroke-width="1"/>
+    <text x="34" y="23" text-anchor="middle" fill="#c4b5fd" font-size="8">Client</text>
+    <rect x="72" y="8" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="98" y="23" text-anchor="middle" fill="#93c5fd" font-size="8">API GW</text>
+    <rect x="136" y="8" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="162" y="23" text-anchor="middle" fill="#93c5fd" font-size="8">Feed Svc</text>
+    <rect x="200" y="8" width="52" height="22" rx="3" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="226" y="23" text-anchor="middle" fill="#86efac" font-size="8">Redis</text>
+    <rect x="264" y="8" width="48" height="22" rx="3" fill="#713f12" stroke="#f59e0b" stroke-width="1"/>
+    <text x="288" y="23" text-anchor="middle" fill="#fcd34d" font-size="8">Kafka</text>
+    <rect x="8" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="34" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Post Svc</text>
+    <rect x="72" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="98" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Fan-out</text>
+    <rect x="136" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="162" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Notif Svc</text>
+    <rect x="200" y="50" width="52" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="226" y="65" text-anchor="middle" fill="#a8a29e" font-size="8">MySQL</text>
+    <rect x="264" y="50" width="48" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="288" y="65" text-anchor="middle" fill="#a8a29e" font-size="8">Cassandra</text>
+    <rect x="8" y="92" width="80" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="48" y="107" text-anchor="middle" fill="#93c5fd" font-size="8">ML Ranking Svc</text>
+    <rect x="100" y="92" width="60" height="22" rx="3" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="130" y="107" text-anchor="middle" fill="#86efac" font-size="8">Feed Cache</text>
+    <rect x="172" y="92" width="60" height="22" rx="3" fill="#713f12" stroke="#f59e0b" stroke-width="1"/>
+    <text x="202" y="107" text-anchor="middle" fill="#fcd34d" font-size="8">Media CDN</text>
+    <rect x="244" y="92" width="68" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="278" y="107" text-anchor="middle" fill="#a8a29e" font-size="8">Object Store</text>
+    <line x1="60" y1="19" x2="72" y2="19" stroke="#475569" stroke-width="1" marker-end="url(#arr)"/>
+    <line x1="124" y1="19" x2="136" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="188" y1="19" x2="200" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="252" y1="19" x2="264" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="34" y1="30" x2="34" y2="50" stroke="#475569" stroke-width="1"/>
+    <line x1="98" y1="30" x2="98" y2="50" stroke="#475569" stroke-width="1"/>
+    <text x="8" y="148" fill="#475569" font-size="7">News Feed — Fan-out on Write · Redis Feed Cache · ML Ranking · Kafka Events</text>
+  </svg>`,
+  "messenger": `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+    <rect width="320" height="160" fill="#0f172a"/>
+    <rect x="8" y="8" width="52" height="22" rx="3" fill="#164e63" stroke="#06b6d4" stroke-width="1"/>
+    <text x="34" y="23" text-anchor="middle" fill="#67e8f9" font-size="8">Client A</text>
+    <rect x="136" y="8" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="162" y="23" text-anchor="middle" fill="#93c5fd" font-size="8">WS Server</text>
+    <rect x="264" y="8" width="48" height="22" rx="3" fill="#164e63" stroke="#06b6d4" stroke-width="1"/>
+    <text x="288" y="23" text-anchor="middle" fill="#67e8f9" font-size="8">Client B</text>
+    <rect x="72" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="98" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Msg Svc</text>
+    <rect x="136" y="50" width="52" height="22" rx="3" fill="#713f12" stroke="#f59e0b" stroke-width="1"/>
+    <text x="162" y="65" text-anchor="middle" fill="#fcd34d" font-size="8">Kafka</text>
+    <rect x="200" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="226" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Presence</text>
+    <rect x="8" y="92" width="60" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="38" y="107" text-anchor="middle" fill="#a8a29e" font-size="8">Cassandra</text>
+    <rect x="80" y="92" width="52" height="22" rx="3" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="106" y="107" text-anchor="middle" fill="#86efac" font-size="8">Redis</text>
+    <rect x="144" y="92" width="60" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="174" y="107" text-anchor="middle" fill="#93c5fd" font-size="8">Notif Svc</text>
+    <rect x="216" y="92" width="60" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="246" y="107" text-anchor="middle" fill="#a8a29e" font-size="8">Media S3</text>
+    <line x1="60" y1="19" x2="136" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="188" y1="19" x2="264" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="162" y1="30" x2="162" y2="50" stroke="#475569" stroke-width="1"/>
+    <text x="8" y="148" fill="#475569" font-size="7">Messenger — WebSocket · Kafka Fan-out · Cassandra Msgs · Redis Presence</text>
+  </svg>`,
+  "instagram": `<svg viewBox="0 0 320 160" xmlns="http://www.w3.org/2000/svg" font-family="monospace">
+    <rect width="320" height="160" fill="#0f172a"/>
+    <rect x="8" y="8" width="52" height="22" rx="3" fill="#500724" stroke="#ec4899" stroke-width="1"/>
+    <text x="34" y="23" text-anchor="middle" fill="#f9a8d4" font-size="8">Client</text>
+    <rect x="72" y="8" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="98" y="23" text-anchor="middle" fill="#93c5fd" font-size="8">API GW</text>
+    <rect x="136" y="8" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="162" y="23" text-anchor="middle" fill="#93c5fd" font-size="8">Upload Svc</text>
+    <rect x="200" y="8" width="52" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="226" y="23" text-anchor="middle" fill="#a8a29e" font-size="8">S3</text>
+    <rect x="264" y="8" width="48" height="22" rx="3" fill="#713f12" stroke="#f59e0b" stroke-width="1"/>
+    <text x="288" y="23" text-anchor="middle" fill="#fcd34d" font-size="8">CDN</text>
+    <rect x="8" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="34" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Feed Svc</text>
+    <rect x="72" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="98" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Stories Svc</text>
+    <rect x="136" y="50" width="52" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="162" y="65" text-anchor="middle" fill="#93c5fd" font-size="8">Search Svc</text>
+    <rect x="200" y="50" width="52" height="22" rx="3" fill="#14532d" stroke="#22c55e" stroke-width="1"/>
+    <text x="226" y="65" text-anchor="middle" fill="#86efac" font-size="8">Redis</text>
+    <rect x="264" y="50" width="48" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="288" y="65" text-anchor="middle" fill="#a8a29e" font-size="8">MySQL</text>
+    <rect x="8" y="92" width="80" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="48" y="107" text-anchor="middle" fill="#93c5fd" font-size="8">Media Processor</text>
+    <rect x="100" y="92" width="68" height="22" rx="3" fill="#1c1917" stroke="#78716c" stroke-width="1"/>
+    <text x="134" y="107" text-anchor="middle" fill="#a8a29e" font-size="8">Elasticsearch</text>
+    <rect x="180" y="92" width="60" height="22" rx="3" fill="#713f12" stroke="#f59e0b" stroke-width="1"/>
+    <text x="210" y="107" text-anchor="middle" fill="#fcd34d" font-size="8">Kafka</text>
+    <rect x="252" y="92" width="60" height="22" rx="3" fill="#1e3a5f" stroke="#3b82f6" stroke-width="1"/>
+    <text x="282" y="107" text-anchor="middle" fill="#93c5fd" font-size="8">Notif Svc</text>
+    <line x1="60" y1="19" x2="72" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="124" y1="19" x2="136" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="188" y1="19" x2="200" y2="19" stroke="#475569" stroke-width="1"/>
+    <line x1="252" y1="19" x2="264" y2="19" stroke="#475569" stroke-width="1"/>
+    <text x="8" y="148" fill="#475569" font-size="7">Instagram — S3 Upload · CDN · Elasticsearch · Stories TTL · Kafka Events</text>
+  </svg>`,
+};
+
 const TEMPLATES = [
   {
     id: "news-feed",
@@ -431,6 +536,12 @@ export function SystemDesignDiagramTemplates() {
               const c = colorMap[tmpl.color];
               return (
                 <div key={tmpl.id} className={`p-4 rounded-xl bg-secondary/40 border ${c.border} space-y-3`}>
+                  {/* SVG Preview Thumbnail */}
+                  <div
+                    className="w-full rounded-lg overflow-hidden border border-border/50 cursor-pointer"
+                    title="Architecture preview — click Download to get the full Excalidraw file"
+                    dangerouslySetInnerHTML={{ __html: SVG_PREVIEWS[tmpl.id] ?? "" }}
+                  />
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex items-start gap-3">
                       <div className="text-2xl shrink-0 mt-0.5">{tmpl.emoji}</div>

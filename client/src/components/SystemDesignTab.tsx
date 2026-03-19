@@ -1,7 +1,7 @@
 // Design: Bold Engineering Dashboard — System Design Tab
 import { useState } from "react";
 import { SYSTEM_DESIGN_QUESTIONS } from "@/lib/data";
-import { ChevronDown, ChevronUp, ExternalLink, Brain, Database, Server, Shield, BarChart3, Zap, GitBranch, Search } from "lucide-react";
+import { ChevronDown, ChevronUp, ExternalLink, Brain, Database, Server, Shield, BarChart3, Zap, GitBranch, Search, HelpCircle } from "lucide-react";
 import { useFlashCardSRDue } from "@/hooks/useLocalStorage";
 import { SystemDesignMockSession } from "@/components/SystemDesignMockSession";
 import { CapacityCalculator, DesignPatternLibrary, FlashCardCSVImport } from "@/components/SystemDesignExtras";
@@ -113,6 +113,13 @@ export default function SystemDesignTab() {
             <Database size={12} />
             Start Capacity Calc
           </button>
+        <button
+          onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: '?', bubbles: true }))}
+          title='Keyboard shortcuts (?)'
+          className='ml-auto p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0'
+        >
+          <HelpCircle size={13} />
+        </button>
         </div>
       </div>
 

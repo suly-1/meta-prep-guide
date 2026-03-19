@@ -3,7 +3,7 @@
 // weak-spot dashboard, interview countdown, STAR story bank, recruiter card
 // with peer comparison, progress export, interview day checklist
 import { useState, useEffect } from "react";
-import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check, Send, Trophy } from "lucide-react";
+import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check, Send, Trophy, HelpCircle } from "lucide-react";
 import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
 import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak, useReadinessTrend, useCTCIStreak, useReadinessGoal, useHintAnalytics, useCTCIDifficultyEstimates } from "@/hooks/useLocalStorage";
 import { CTCI_QUESTIONS } from "@/lib/ctciData";
@@ -260,6 +260,45 @@ function ReadinessDashboard() {
 
   const weakPatterns = PATTERNS.filter(p => { const r = patternRatings[p.id] ?? 0; return r > 0 && r <= 2; }).slice(0, 3);
   const weakBQ = BEHAVIORAL_QUESTIONS.filter(q => { const r = bqRatings[q.id] ?? 0; return r > 0 && r <= 2; }).slice(0, 3);
+
+
+  // Achievement badge share toasts
+  useEffect(() => {
+    const BADGE_MILESTONES: { pct: number; label: string; emoji: string; tweet: string }[] = [
+      { pct: 25, label: "Getting Started", emoji: "🚀", tweet: "🚀 I'm 25% ready for my Meta {level} interview! Starting my prep journey. #MetaInterview #SoftwareEngineering" },
+      { pct: 50, label: "Halfway There", emoji: "⚡", tweet: "⚡ I'm 50% ready for my Meta {level} interview! Halfway through my prep. #MetaInterview #SoftwareEngineering" },
+      { pct: 75, label: "Almost Ready", emoji: "🔥", tweet: "🔥 I'm 75% ready for my Meta {level} interview! Almost there. #MetaInterview #SoftwareEngineering" },
+      { pct: 90, label: "Interview Ready", emoji: "⭐", tweet: "⭐ I'm 90%+ ready for my Meta {level} interview! Feeling confident. #MetaInterview #SoftwareEngineering" },
+      { pct: 100, label: "IC7 Ready", emoji: "🏆", tweet: "🏆 I've hit 100% readiness on my Meta {level} prep! Time to crush the interview. #MetaInterview #SoftwareEngineering" },
+    ];
+    const BADGE_KEY = "meta-prep-badge-shown";
+    const shown: number[] = JSON.parse(localStorage.getItem(BADGE_KEY) ?? "[]");
+    BADGE_MILESTONES.forEach(m => {
+      if (overallPct >= m.pct && !shown.includes(m.pct)) {
+        const levelLabel = icSignal ?? "IC6/IC7";
+        const tweetText = m.tweet.replace("{level}", levelLabel);
+        toast(
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center gap-2">
+              <span className="text-xl">{m.emoji}</span>
+              <div>
+                <div className="font-bold text-foreground text-sm">Achievement: {m.label}</div>
+                <div className="text-xs text-muted-foreground">{overallPct}% IC Readiness reached!</div>
+              </div>
+            </div>
+            <button
+              onClick={() => { navigator.clipboard.writeText(tweetText); toast.success("Tweet copied!"); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 text-xs font-semibold transition-all w-fit"
+            >
+              📤 Share Achievement
+            </button>
+          </div>,
+          { duration: 8000 }
+        );
+        localStorage.setItem(BADGE_KEY, JSON.stringify([...shown, m.pct]));
+      }
+    });
+  }, [overallPct, icSignal]);
 
   return (
     <div className="space-y-4">
@@ -1597,13 +1636,19 @@ function QuickActionsRow() {
             <div>Current: {streak.currentStreak} day{streak.currentStreak !== 1 ? "s" : ""}</div>
             <div>Best: {streak.longestStreak} day{streak.longestStreak !== 1 ? "s" : ""}</div>
             {lastActiveFormatted && <div className="text-muted-foreground">Last active: {lastActiveFormatted}</div>}
-          </TooltipContent>
+           </TooltipContent>
         </Tooltip>
       )}
+      <button
+        onClick={() => window.dispatchEvent(new KeyboardEvent("keydown", { key: "?", bubbles: true }))}
+        title="Keyboard shortcuts (?)"
+        className="p-1.5 rounded-md text-muted-foreground hover:text-foreground hover:bg-secondary transition-all shrink-0"
+      >
+        <HelpCircle size={13} />
+      </button>
     </div>
   );
 }
-
 export default function OverviewTab() {
   const [interviewDate] = useInterviewDate();
   const daysLeft = interviewDate ? getDaysUntil(interviewDate) : null;
