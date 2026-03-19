@@ -362,4 +362,91 @@ Be rigorous but constructive.`,
       };
       return parsed;
     }),
+
+  // Full Mock Day Scorecard: aggregate scores from all 3 rounds into a combined IC-level verdict
+  fullMockDayScorecard: publicProcedure
+    .input(
+      z.object({
+        codingScore: z.number(),
+        codingIcLevel: z.string(),
+        codingPattern: z.string(),
+        sysDesignScore: z.number(),
+        sysDesignIcLevel: z.string(),
+        sysDesignQuestion: z.string(),
+        xfnScore: z.number(),
+        xfnIcLevel: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const summary = [
+        `Coding Round: ${input.codingPattern} — Overall ${input.codingScore.toFixed(1)}/5 (${input.codingIcLevel})`,
+        `System Design Round: ${input.sysDesignQuestion} — Overall ${input.sysDesignScore.toFixed(1)}/5 (${input.sysDesignIcLevel})`,
+        `XFN Behavioral Round: Overall ${input.xfnScore.toFixed(1)}/5 (${input.xfnIcLevel})`,
+      ].join('\n');
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: 'system',
+            content: `You are a Meta engineering hiring committee member reviewing a candidate's full interview day results.
+You have scores from 3 rounds: Coding, System Design, and XFN Behavioral.
+Provide an overall IC-level verdict, a hiring recommendation, and specific coaching for each round.
+Be direct and honest — this is what a real debrief would look like.`,
+          },
+          {
+            role: 'user',
+            content: `Here are the candidate's full interview day results:\n\n${summary}\n\nProvide a comprehensive final scorecard JSON.`,
+          },
+        ],
+        response_format: {
+          type: 'json_schema',
+          json_schema: {
+            name: 'full_mock_day_scorecard',
+            strict: true,
+            schema: {
+              type: 'object',
+              properties: {
+                overallScore: { type: 'number', description: 'Weighted overall score 1-5' },
+                icLevelVerdict: { type: 'string', description: 'IC5, IC6, or IC7 — the overall hiring level signal' },
+                hiringRecommendation: { type: 'string', description: 'Strong Hire, Hire, Borderline, or No Hire' },
+                codingCoaching: { type: 'string', description: '1-2 sentence coaching for the coding round' },
+                sysDesignCoaching: { type: 'string', description: '1-2 sentence coaching for the system design round' },
+                xfnCoaching: { type: 'string', description: '1-2 sentence coaching for the XFN behavioral round' },
+                topStrengths: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                topImprovements: {
+                  type: 'array',
+                  items: { type: 'string' },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                summary: { type: 'string', description: '3-4 sentence overall debrief note' },
+              },
+              required: ['overallScore', 'icLevelVerdict', 'hiringRecommendation', 'codingCoaching', 'sysDesignCoaching', 'xfnCoaching', 'topStrengths', 'topImprovements', 'summary'],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error('No response from AI');
+      const content = typeof rawContent === 'string' ? rawContent : JSON.stringify(rawContent);
+      const parsed = JSON.parse(content) as {
+        overallScore: number;
+        icLevelVerdict: string;
+        hiringRecommendation: string;
+        codingCoaching: string;
+        sysDesignCoaching: string;
+        xfnCoaching: string;
+        topStrengths: string[];
+        topImprovements: string[];
+        summary: string;
+      };
+      return parsed;
+    }),
 });

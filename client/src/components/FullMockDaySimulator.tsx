@@ -1,0 +1,474 @@
+/**
+ * Full Mock Day Simulator
+ * Chains: Coding (45 min) → System Design (45 min) → XFN Behavioral (45 min)
+ * Ends with a combined AI scorecard (hiring recommendation + IC level verdict)
+ */
+import { useState, useEffect, useRef, useCallback } from "react";
+import { trpc } from "@/lib/trpc";
+import { PATTERNS, BEHAVIORAL_QUESTIONS, SYSTEM_DESIGN_QUESTIONS } from "@/lib/data";
+import { toast } from "sonner";
+import { Play, Square, ChevronRight, ChevronDown, ChevronUp, Clock, Trophy, RotateCcw, Loader2 } from "lucide-react";
+import Editor from "@monaco-editor/react";
+
+// ─── Types ────────────────────────────────────────────────────────────────────
+type Round = "coding" | "sysdesign" | "xfn";
+type Phase = "idle" | "running" | "between" | "scoring" | "done";
+
+interface RoundResult {
+  round: Round;
+  overallScore: number;
+  icLevel: string;
+  label: string;
+}
+
+interface FullScorecard {
+  overallScore: number;
+  icLevelVerdict: string;
+  hiringRecommendation: string;
+  codingCoaching: string;
+  sysDesignCoaching: string;
+  xfnCoaching: string;
+  topStrengths: string[];
+  topImprovements: string[];
+  summary: string;
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+const XFN_QUESTIONS = BEHAVIORAL_QUESTIONS.filter(q => q.area === "XFN Partnership");
+const SD_QUESTIONS = SYSTEM_DESIGN_QUESTIONS;
+
+function pick<T>(arr: T[]): T {
+  return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function fmtTime(s: number) {
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+  return `${m}:${sec.toString().padStart(2, "0")}`;
+}
+
+// ─── Timer ring ───────────────────────────────────────────────────────────────
+function TimerRing({ seconds, total, color }: { seconds: number; total: number; color: string }) {
+  const pct = seconds / total;
+  const r = 44;
+  const circ = 2 * Math.PI * r;
+  const dash = circ * pct;
+  return (
+    <svg width={100} height={100} className="rotate-[-90deg]">
+      <circle cx={50} cy={50} r={r} fill="none" stroke="#1e293b" strokeWidth={8} />
+      <circle
+        cx={50} cy={50} r={r} fill="none"
+        stroke={color} strokeWidth={8}
+        strokeDasharray={`${dash} ${circ}`}
+        strokeLinecap="round"
+        style={{ transition: "stroke-dasharray 1s linear" }}
+      />
+      <text
+        x={50} y={54} textAnchor="middle"
+        className="rotate-90"
+        style={{ transform: "rotate(90deg) translate(0px, -100px)", fill: color, fontSize: 16, fontWeight: 700, fontFamily: "monospace" }}
+      >
+        {fmtTime(seconds)}
+      </text>
+    </svg>
+  );
+}
+
+// ─── Single round mini-session ────────────────────────────────────────────────
+interface MiniRoundProps {
+  round: Round;
+  question: string;
+  durationSec: number;
+  onComplete: (answer: string) => void;
+}
+
+function MiniRound({ round, question, durationSec, onComplete }: MiniRoundProps) {
+  const [timeLeft, setTimeLeft] = useState(durationSec);
+  const [answer, setAnswer] = useState("");
+  const [running, setRunning] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const start = useCallback(() => {
+    setRunning(true);
+    intervalRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) {
+          clearInterval(intervalRef.current!);
+          setRunning(false);
+          toast.info("⏰ Time's up for this round!");
+          return 0;
+        }
+        return t - 1;
+      });
+    }, 1000);
+  }, []);
+
+  useEffect(() => () => { if (intervalRef.current) clearInterval(intervalRef.current); }, []);
+
+  const ringColor = timeLeft > durationSec * 0.33 ? "#8b5cf6" : timeLeft > 60 ? "#f59e0b" : "#ef4444";
+
+  const labels: Record<Round, string> = {
+    coding: "💻 Coding Round",
+    sysdesign: "🏗️ System Design Round",
+    xfn: "🤝 XFN Behavioral Round",
+  };
+
+  const hints: Record<Round, string[]> = {
+    coding: ["Clarify constraints & examples", "State your approach before coding", "Analyze time & space complexity", "Handle edge cases"],
+    sysdesign: ["Gather requirements (functional + non-functional)", "Estimate capacity (QPS, storage)", "Draw HLD: components + data flow", "Deep dive on bottlenecks + trade-offs"],
+    xfn: ["Set the Situation clearly", "Describe the Task/conflict", "Walk through your Actions step by step", "Quantify the Result + lessons learned"],
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-4">
+        <div className="relative flex items-center justify-center">
+          <TimerRing seconds={timeLeft} total={durationSec} color={ringColor} />
+          <span className="absolute text-xs font-mono" style={{ color: ringColor }}>{fmtTime(timeLeft)}</span>
+        </div>
+        <div className="flex-1">
+          <div className="text-xs font-bold text-purple-400 mb-1">{labels[round]}</div>
+          <div className="text-sm font-semibold text-foreground leading-snug">{question}</div>
+        </div>
+        {!running && timeLeft === durationSec && (
+          <button onClick={start} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all">
+            <Play size={12} /> Start
+          </button>
+        )}
+      </div>
+
+      {/* Hints */}
+      <div className="grid grid-cols-2 gap-1.5">
+        {hints[round].map((h, i) => (
+          <div key={i} className="text-xs px-2.5 py-1.5 rounded-md bg-purple-500/10 border border-purple-500/20 text-purple-300">
+            {i + 1}. {h}
+          </div>
+        ))}
+      </div>
+
+      {/* Answer area */}
+      {round === "coding" ? (
+        <div className="rounded-lg overflow-hidden border border-border">
+          <Editor
+            height="220px"
+            defaultLanguage="python"
+            theme="vs-dark"
+            value={answer}
+            onChange={v => setAnswer(v ?? "")}
+            options={{ fontSize: 13, minimap: { enabled: false }, scrollBeyondLastLine: false, wordWrap: "on" }}
+          />
+        </div>
+      ) : (
+        <textarea
+          value={answer}
+          onChange={e => setAnswer(e.target.value)}
+          placeholder={round === "sysdesign" ? "Describe your architecture, components, data flow, trade-offs…" : "Walk through your STAR story…"}
+          className="w-full h-36 px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground resize-none focus:outline-none focus:ring-1 focus:ring-purple-500"
+        />
+      )}
+
+      <button
+        onClick={() => onComplete(answer)}
+        className="w-full py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-bold transition-all flex items-center justify-center gap-2"
+      >
+        <ChevronRight size={14} /> Submit & Continue
+      </button>
+    </div>
+  );
+}
+
+// ─── Main component ────────────────────────────────────────────────────────────
+const ROUNDS: Round[] = ["coding", "sysdesign", "xfn"];
+const ROUND_DURATION = 45 * 60; // 45 minutes each
+
+export function FullMockDaySimulator() {
+  const [phase, setPhase] = useState<Phase>("idle");
+  const [roundIndex, setRoundIndex] = useState(0);
+  const [answers, setAnswers] = useState<Record<Round, string>>({ coding: "", sysdesign: "", xfn: "" });
+  const [questions, setQuestions] = useState<Record<Round, string>>({ coding: "", sysdesign: "", xfn: "" });
+  const [roundResults, setRoundResults] = useState<RoundResult[]>([]);
+  const [scorecard, setScorecard] = useState<FullScorecard | null>(null);
+  const [expanded, setExpanded] = useState(false);
+
+  const codingScoreMutation = trpc.ai.codingMockScorecard.useMutation();
+  const sysDesignScoreMutation = trpc.ai.sysDesignMockScorecard.useMutation();
+  const xfnScoreMutation = trpc.ai.xfnMockScorecard.useMutation();
+  const fullScorecardMutation = trpc.ai.fullMockDayScorecard.useMutation();
+
+  const startDay = useCallback(() => {
+    const codingPattern = pick(PATTERNS);
+    const sdQ = pick(SD_QUESTIONS as unknown as { title: string; desc?: string }[]);
+    const xfnQ = XFN_QUESTIONS.length > 0 ? pick(XFN_QUESTIONS) : BEHAVIORAL_QUESTIONS[0];
+    setQuestions({
+      coding: `${codingPattern.name}: ${codingPattern.desc ?? "Solve a representative problem for this pattern."}`,
+      sysdesign: `${sdQ.title}: ${sdQ.desc ?? "Design this system end-to-end."}`,
+      xfn: xfnQ.q,
+    });
+    setAnswers({ coding: "", sysdesign: "", xfn: "" });
+    setRoundResults([]);
+    setScorecard(null);
+    setRoundIndex(0);
+    setPhase("running");
+  }, []);
+
+  const handleRoundComplete = useCallback(async (answer: string) => {
+    const round = ROUNDS[roundIndex];
+    setAnswers(prev => ({ ...prev, [round]: answer }));
+
+    // Score this round
+    let result: RoundResult;
+    try {
+      if (round === "coding") {
+        const pattern = PATTERNS.find(p => questions.coding.startsWith(p.name)) ?? PATTERNS[0];
+        const res = await codingScoreMutation.mutateAsync({
+          patternName: pattern.name,
+          problemTitle: pattern.examples?.[0] ?? pattern.name,
+          difficulty: pattern.diff,
+          approach: answer.slice(0, 600),
+          pseudocode: answer.slice(600, 1800),
+          complexity: answer.slice(1800, 2200),
+          edgeCases: answer.slice(2200, 2600),
+          followUp: answer.slice(2600),
+        });
+        result = { round, overallScore: res.overallScore, icLevel: res.icLevel, label: pattern.name };
+      } else if (round === "sysdesign") {
+        const sdQ = SD_QUESTIONS[0] as unknown as { title: string; level: string; tags: string[] };
+        const matchedQ = (SD_QUESTIONS as unknown as { title: string; level: string; tags: string[] }[]).find(q => questions.sysdesign.startsWith(q.title)) ?? sdQ;
+        const res = await sysDesignScoreMutation.mutateAsync({
+          questionTitle: matchedQ.title,
+          level: matchedQ.level ?? "IC6",
+          tags: matchedQ.tags ?? [],
+          phases: [
+            { phase: "Requirements", answer: answer.slice(0, 400) },
+            { phase: "Capacity Estimation", answer: answer.slice(400, 700) },
+            { phase: "HLD", answer: answer.slice(700, 1400) },
+            { phase: "Deep Dive", answer: answer.slice(1400, 2200) },
+            { phase: "Trade-offs", answer: answer.slice(2200) },
+          ],
+        });
+        result = { round, overallScore: res.overallScore, icLevel: res.icLevel, label: matchedQ.title };
+      } else {
+        const res = await xfnScoreMutation.mutateAsync({
+          rounds: [{ question: questions.xfn, answer }],
+        });
+        result = { round, overallScore: res.overallScore, icLevel: res.icLevel, label: "XFN Partnership" };
+      }
+    } catch {
+      // Fallback score if AI fails
+      result = { round, overallScore: 3, icLevel: "IC6", label: round };
+    }
+
+    const newResults = [...roundResults, result];
+    setRoundResults(newResults);
+
+    if (roundIndex < ROUNDS.length - 1) {
+      setRoundIndex(i => i + 1);
+      setPhase("between");
+      setTimeout(() => setPhase("running"), 200);
+    } else {
+      // All rounds done — generate combined scorecard
+      setPhase("scoring");
+      try {
+        const codingR = newResults.find(r => r.round === "coding")!;
+        const sdR = newResults.find(r => r.round === "sysdesign")!;
+        const xfnR = newResults.find(r => r.round === "xfn")!;
+        const sc = await fullScorecardMutation.mutateAsync({
+          codingScore: codingR.overallScore,
+          codingIcLevel: codingR.icLevel,
+          codingPattern: codingR.label,
+          sysDesignScore: sdR.overallScore,
+          sysDesignIcLevel: sdR.icLevel,
+          sysDesignQuestion: sdR.label,
+          xfnScore: xfnR.overallScore,
+          xfnIcLevel: xfnR.icLevel,
+        });
+        setScorecard(sc);
+      } catch {
+        toast.error("Could not generate final scorecard. Showing round scores only.");
+      }
+      setPhase("done");
+    }
+  }, [roundIndex, roundResults, questions, codingScoreMutation, sysDesignScoreMutation, xfnScoreMutation, fullScorecardMutation]);
+
+  const recColor = (rec: string) => {
+    if (rec.includes("Strong")) return "text-emerald-400";
+    if (rec.includes("Hire")) return "text-blue-400";
+    if (rec.includes("Borderline")) return "text-amber-400";
+    return "text-red-400";
+  };
+
+  const roundLabel: Record<Round, string> = { coding: "💻 Coding", sysdesign: "🏗️ System Design", xfn: "🤝 XFN Behavioral" };
+
+  return (
+    <div className="rounded-xl border border-purple-500/30 bg-gradient-to-br from-purple-950/40 via-slate-900/60 to-blue-950/40 overflow-hidden">
+      {/* Header */}
+      <button
+        onClick={() => setExpanded(e => !e)}
+        className="w-full flex items-center justify-between px-5 py-4 hover:bg-white/5 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <Trophy size={18} className="text-yellow-400" />
+          <div className="text-left">
+            <div className="text-sm font-bold text-foreground">Full Mock Day Simulator</div>
+            <div className="text-xs text-muted-foreground">Coding → System Design → XFN Behavioral · ~2.5 hours · AI final scorecard</div>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          {phase === "done" && scorecard && (
+            <span className={`text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 border border-slate-600 ${recColor(scorecard.hiringRecommendation)}`}>
+              {scorecard.hiringRecommendation}
+            </span>
+          )}
+          {expanded ? <ChevronUp size={16} className="text-muted-foreground" /> : <ChevronDown size={16} className="text-muted-foreground" />}
+        </div>
+      </button>
+
+      {expanded && (
+        <div className="px-5 pb-5 space-y-5 border-t border-purple-500/20">
+          {/* Idle state */}
+          {phase === "idle" && (
+            <div className="pt-4 space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                {(["coding", "sysdesign", "xfn"] as Round[]).map((r, i) => (
+                  <div key={r} className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-3 text-center">
+                    <div className="text-lg mb-1">{["💻", "🏗️", "🤝"][i]}</div>
+                    <div className="text-xs font-bold text-foreground">{["Coding", "System Design", "XFN Behavioral"][i]}</div>
+                    <div className="text-xs text-muted-foreground mt-0.5">45 min</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground text-center">
+                Simulates a full Meta interview day. Each round is independently scored, then the AI generates a combined hiring recommendation.
+              </p>
+              <button
+                onClick={startDay}
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 text-white font-bold text-sm transition-all flex items-center justify-center gap-2"
+              >
+                <Play size={14} /> Start Full Mock Day
+              </button>
+            </div>
+          )}
+
+          {/* Running state */}
+          {(phase === "running" || phase === "between") && (
+            <div className="pt-4 space-y-4">
+              {/* Round progress bar */}
+              <div className="flex items-center gap-2">
+                {ROUNDS.map((r, i) => (
+                  <div key={r} className="flex items-center gap-1.5">
+                    <div className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold border transition-all ${
+                      i < roundIndex ? "bg-emerald-500/20 border-emerald-500/40 text-emerald-400" :
+                      i === roundIndex ? "bg-purple-500/20 border-purple-500/40 text-purple-300" :
+                      "bg-slate-800/60 border-slate-700/50 text-muted-foreground"
+                    }`}>
+                      {i < roundIndex ? "✓" : i + 1} {roundLabel[r]}
+                    </div>
+                    {i < ROUNDS.length - 1 && <ChevronRight size={12} className="text-muted-foreground" />}
+                  </div>
+                ))}
+              </div>
+
+              <MiniRound
+                round={ROUNDS[roundIndex]}
+                question={questions[ROUNDS[roundIndex]]}
+                durationSec={ROUND_DURATION}
+                onComplete={handleRoundComplete}
+              />
+            </div>
+          )}
+
+          {/* Scoring state */}
+          {phase === "scoring" && (
+            <div className="pt-8 flex flex-col items-center gap-3">
+              <Loader2 size={32} className="animate-spin text-purple-400" />
+              <div className="text-sm font-semibold text-foreground">Generating your full interview day scorecard…</div>
+              <div className="text-xs text-muted-foreground">The AI is reviewing all 3 rounds</div>
+            </div>
+          )}
+
+          {/* Done state */}
+          {phase === "done" && (
+            <div className="pt-4 space-y-4">
+              {/* Round summary */}
+              <div className="grid grid-cols-3 gap-2">
+                {roundResults.map(r => (
+                  <div key={r.round} className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-3 text-center">
+                    <div className="text-lg mb-1">{r.round === "coding" ? "💻" : r.round === "sysdesign" ? "🏗️" : "🤝"}</div>
+                    <div className="text-xs text-muted-foreground mb-1 truncate">{r.label}</div>
+                    <div className="text-lg font-bold text-foreground">{r.overallScore.toFixed(1)}<span className="text-xs text-muted-foreground">/5</span></div>
+                    <div className="text-xs font-semibold text-purple-400">{r.icLevel}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Full scorecard */}
+              {scorecard && (
+                <div className="rounded-xl bg-slate-900/80 border border-purple-500/30 p-4 space-y-4">
+                  {/* Verdict */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="text-xs text-muted-foreground">Overall Score</div>
+                      <div className="text-2xl font-bold text-foreground">{scorecard.overallScore.toFixed(1)}<span className="text-sm text-muted-foreground">/5</span></div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xs text-muted-foreground">IC Level</div>
+                      <div className="text-xl font-bold text-purple-400">{scorecard.icLevelVerdict}</div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-muted-foreground">Recommendation</div>
+                      <div className={`text-base font-bold ${recColor(scorecard.hiringRecommendation)}`}>{scorecard.hiringRecommendation}</div>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <p className="text-xs text-muted-foreground leading-relaxed border-t border-slate-700/50 pt-3">{scorecard.summary}</p>
+
+                  {/* Per-round coaching */}
+                  <div className="space-y-2">
+                    {[
+                      { label: "💻 Coding", text: scorecard.codingCoaching },
+                      { label: "🏗️ System Design", text: scorecard.sysDesignCoaching },
+                      { label: "🤝 XFN Behavioral", text: scorecard.xfnCoaching },
+                    ].map(({ label, text }) => (
+                      <div key={label} className="rounded-lg bg-slate-800/60 border border-slate-700/50 p-2.5">
+                        <div className="text-xs font-bold text-foreground mb-0.5">{label}</div>
+                        <div className="text-xs text-muted-foreground">{text}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Strengths + Improvements */}
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <div className="text-xs font-bold text-emerald-400 mb-1.5">✅ Top Strengths</div>
+                      <ul className="space-y-1">
+                        {scorecard.topStrengths.map((s, i) => (
+                          <li key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-emerald-400 shrink-0">•</span>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                    <div>
+                      <div className="text-xs font-bold text-amber-400 mb-1.5">🎯 Top Improvements</div>
+                      <ul className="space-y-1">
+                        {scorecard.topImprovements.map((s, i) => (
+                          <li key={i} className="text-xs text-muted-foreground flex gap-1.5"><span className="text-amber-400 shrink-0">•</span>{s}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              <button
+                onClick={() => { setPhase("idle"); setRoundIndex(0); }}
+                className="w-full py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-sm font-semibold text-foreground transition-all flex items-center justify-center gap-2"
+              >
+                <RotateCcw size={13} /> Start New Mock Day
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}

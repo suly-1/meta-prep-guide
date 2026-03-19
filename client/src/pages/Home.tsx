@@ -12,6 +12,7 @@ import OverviewTab from "@/components/OverviewTab";
 import SystemDesignTab from "@/components/SystemDesignTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
+import GlobalSearch from "@/components/GlobalSearch";
 import { AlertTriangle, X, Maximize2, Minimize2, Keyboard } from "lucide-react";
 import DisclaimerGate, { useDisclaimerAcknowledged } from "@/components/DisclaimerGate";
 
@@ -116,12 +117,17 @@ export default function Home() {
 
       {/* Top navigation — hidden in focus mode */}
       {!focusMode && (
-        <TopNav
-          activeTab={activeTab}
-          onTabChange={setActiveTab}
-          darkMode={darkMode}
-          onToggleDark={() => setDarkMode(d => !d)}
-        />
+        <>
+          <TopNav
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            darkMode={darkMode}
+            onToggleDark={() => setDarkMode(d => !d)}
+          />
+          <div className="container pb-1 flex justify-end">
+            <GlobalSearch onNavigate={setActiveTab} />
+          </div>
+        </>
       )}
 
       {/* Hero section — hidden in focus mode */}

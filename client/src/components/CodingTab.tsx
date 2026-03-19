@@ -3,7 +3,7 @@
 // spaced repetition, heatmap, Anki export, weak-spots filter, pattern notes,
 // mock interview timer (25/35/45 min), session history, sprint mode
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight } from "lucide-react";
+import { Search, Download, Flame, Clock, ChevronDown, ChevronUp, Star, Zap, BarChart2, BookOpen, Filter, Timer, Trophy, X, SkipForward, ChevronRight, Code2, Play, Tag } from "lucide-react";
 import { PATTERNS, PATTERN_PREREQS } from "@/lib/data";
 import { usePatternRatings, usePatternNotes, useSpacedRepetition, useCodingHistory, usePatternTime, useCTCIStreak, useHintAnalytics, useCTCIDifficultyEstimates, type SelfDifficulty } from "@/hooks/useLocalStorage";
 import { trpc } from "@/lib/trpc";
@@ -15,6 +15,157 @@ import { CodingMockSession } from "@/components/CodingMockSession";
 const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 const DIFF_COLOR: Record<string, string> = { Easy: "badge-green", Medium: "badge-amber", Hard: "badge-red" };
 
+// Pattern cheat sheet templates (canonical Python skeleton)
+const CHEAT_SHEETS: Record<string, string> = {
+  "sliding-window": `def max_subarray_sum(nums, k):
+    window_sum = sum(nums[:k])
+    best = window_sum
+    for i in range(k, len(nums)):
+        window_sum += nums[i] - nums[i - k]
+        best = max(best, window_sum)
+    return best
+
+# Variable window:
+left = 0
+for right in range(len(nums)):
+    # expand
+    while condition_violated:
+        # shrink
+        left += 1`,
+  "two-pointers": `nums.sort()
+left, right = 0, len(nums) - 1
+while left < right:
+    s = nums[left] + nums[right]
+    if s == target: return [left, right]
+    elif s < target: left += 1
+    else: right -= 1`,
+  "fast-slow": `slow = fast = head
+while fast and fast.next:
+    slow = slow.next
+    fast = fast.next.next
+    if slow == fast:  # cycle detected
+        break`,
+  "binary-search": `lo, hi = 0, len(nums) - 1
+while lo <= hi:
+    mid = (lo + hi) // 2
+    if nums[mid] == target: return mid
+    elif nums[mid] < target: lo = mid + 1
+    else: hi = mid - 1
+return -1`,
+  "bfs": `from collections import deque
+q = deque([start])
+visited = {start}
+while q:
+    node = q.popleft()
+    for nei in graph[node]:
+        if nei not in visited:
+            visited.add(nei)
+            q.append(nei)`,
+  "dfs-backtrack": `def backtrack(path, choices):
+    if is_complete(path):
+        result.append(path[:])
+        return
+    for choice in choices:
+        path.append(choice)   # choose
+        backtrack(path, next_choices)
+        path.pop()            # unchoose`,
+  "dynamic-prog": `# Bottom-up DP
+dp = [0] * (n + 1)
+dp[0] = base_case
+for i in range(1, n + 1):
+    dp[i] = recurrence(dp, i)
+return dp[n]
+
+# Top-down memo
+from functools import lru_cache
+@lru_cache(maxsize=None)
+def dp(i): return recurrence(dp, i)`,
+  "greedy": `# Sort by key metric, then make greedy choice
+items.sort(key=lambda x: x.metric)
+result = []
+for item in items:
+    if can_include(item, result):
+        result.append(item)`,
+  "heap-priority": `import heapq
+heap = []
+heapq.heappush(heap, val)
+val = heapq.heappop(heap)   # min
+
+# Top-K largest:
+heapq.nlargest(k, nums)
+# or maintain min-heap of size k:
+for n in nums:
+    heapq.heappush(heap, n)
+    if len(heap) > k: heapq.heappop(heap)`,
+  "intervals": `intervals.sort(key=lambda x: x[0])
+merged = [intervals[0]]
+for start, end in intervals[1:]:
+    if start <= merged[-1][1]:
+        merged[-1][1] = max(merged[-1][1], end)
+    else:
+        merged.append([start, end])`,
+  "monotonic-stack": `stack = []  # indices
+for i, val in enumerate(nums):
+    while stack and nums[stack[-1]] < val:
+        idx = stack.pop()
+        # process: next greater of idx is i
+    stack.append(i)`,
+  "trie": `class TrieNode:
+    def __init__(self):
+        self.children = {}
+        self.is_end = False
+
+class Trie:
+    def __init__(self): self.root = TrieNode()
+    def insert(self, word):
+        node = self.root
+        for c in word:
+            node = node.children.setdefault(c, TrieNode())
+        node.is_end = True`,
+  "union-find": `parent = list(range(n))
+rank = [0] * n
+def find(x):
+    if parent[x] != x: parent[x] = find(parent[x])
+    return parent[x]
+def union(x, y):
+    px, py = find(x), find(y)
+    if px == py: return False
+    if rank[px] < rank[py]: px, py = py, px
+    parent[py] = px
+    if rank[px] == rank[py]: rank[px] += 1
+    return True`,
+  "graph-advanced": `# Kahn's BFS topological sort
+from collections import deque
+in_degree = [0] * n
+for u, v in edges: in_degree[v] += 1
+q = deque(i for i in range(n) if in_degree[i] == 0)
+order = []
+while q:
+    node = q.popleft()
+    order.append(node)
+    for nei in graph[node]:
+        in_degree[nei] -= 1
+        if in_degree[nei] == 0: q.append(nei)`,
+};
+
+// NeetCode video links per pattern
+const PATTERN_VIDEOS: Record<string, { label: string; url: string }> = {
+  "sliding-window":  { label: "NeetCode: Sliding Window", url: "https://www.youtube.com/watch?v=p-ss2JNynmw" },
+  "two-pointers":    { label: "NeetCode: Two Pointers", url: "https://www.youtube.com/watch?v=jzZsG8n2R9A" },
+  "fast-slow":       { label: "NeetCode: Fast & Slow Pointers", url: "https://www.youtube.com/watch?v=gBTe7lFR3vc" },
+  "binary-search":   { label: "NeetCode: Binary Search", url: "https://www.youtube.com/watch?v=s4DPM8ct1pI" },
+  "bfs":             { label: "NeetCode: BFS", url: "https://www.youtube.com/watch?v=oDqjPvD1nwI" },
+  "dfs-backtrack":   { label: "NeetCode: Backtracking", url: "https://www.youtube.com/watch?v=A80YzvNwqXA" },
+  "dynamic-prog":    { label: "NeetCode: Dynamic Programming", url: "https://www.youtube.com/watch?v=oBt53YbR9Kk" },
+  "greedy":          { label: "NeetCode: Greedy", url: "https://www.youtube.com/watch?v=HjeJhlcos4w" },
+  "heap-priority":   { label: "NeetCode: Heap / Priority Queue", url: "https://www.youtube.com/watch?v=HqPJF2L5h9U" },
+  "intervals":       { label: "NeetCode: Intervals", url: "https://www.youtube.com/watch?v=A8NUOmlwOlM" },
+  "monotonic-stack": { label: "NeetCode: Monotonic Stack", url: "https://www.youtube.com/watch?v=Dq_ObZwTY_Q" },
+  "trie":            { label: "NeetCode: Trie", url: "https://www.youtube.com/watch?v=oobqoCJlHA0" },
+  "union-find":      { label: "NeetCode: Union-Find", url: "https://www.youtube.com/watch?v=ayW5B2W9hkk" },
+  "graph-advanced":  { label: "NeetCode: Topological Sort", url: "https://www.youtube.com/watch?v=cIBFEhD77b4" },
+};
+
 function StarRating({ value, onChange }: { value: number; onChange: (v: number) => void }) {
   const [hover, setHover] = useState(0);
   return (
@@ -23,6 +174,71 @@ function StarRating({ value, onChange }: { value: number; onChange: (v: number) 
         <button key={s} className={`star-btn ${(hover || value) >= s ? "active" : ""}`}
           onMouseEnter={() => setHover(s)} onMouseLeave={() => setHover(0)} onClick={() => onChange(s)}>★</button>
       ))}
+    </div>
+  );
+}
+
+// ── Complexity Quick-Reference Card ──────────────────────────────────────
+const COMPLEXITY_TABLE = [
+  { ds: "Array / List",       access: "O(1)",    search: "O(n)",    insert: "O(n)",    delete: "O(n)" },
+  { ds: "HashMap / HashSet",  access: "O(1)",    search: "O(1)",    insert: "O(1)",    delete: "O(1)" },
+  { ds: "Sorted Array",       access: "O(1)",    search: "O(log n)",insert: "O(n)",    delete: "O(n)" },
+  { ds: "Linked List",        access: "O(n)",    search: "O(n)",    insert: "O(1)",    delete: "O(1)" },
+  { ds: "Binary Heap",        access: "O(n)",    search: "O(n)",    insert: "O(log n)",delete: "O(log n)" },
+  { ds: "BST (balanced)",     access: "O(log n)",search: "O(log n)",insert: "O(log n)",delete: "O(log n)" },
+  { ds: "Stack / Queue",      access: "O(n)",    search: "O(n)",    insert: "O(1)",    delete: "O(1)" },
+  { ds: "Trie",               access: "O(m)",    search: "O(m)",    insert: "O(m)",    delete: "O(m)" },
+  { ds: "Graph (adj list)",   access: "O(V+E)",  search: "O(V+E)",  insert: "O(1)",    delete: "O(E)" },
+];
+
+function ComplexityCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="prep-card overflow-hidden">
+      <button onClick={() => setOpen(o => !o)}
+        className="w-full p-4 flex items-center justify-between hover:bg-secondary/50 transition-colors">
+        <div className="section-title mb-0 pb-0 border-0">
+          <BarChart2 size={14} className="text-cyan-400" />
+          Big-O Complexity Quick Reference
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Data structure operations</span>
+          {open ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
+        </div>
+      </button>
+      {open && (
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-border bg-secondary/30">
+                {["Data Structure","Access","Search","Insert","Delete"].map(h => (
+                  <th key={h} className="px-3 py-2 text-left font-semibold text-muted-foreground">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-border">
+              {COMPLEXITY_TABLE.map(row => (
+                <tr key={row.ds} className="hover:bg-secondary/20 transition-colors">
+                  <td className="px-3 py-2 font-medium text-foreground">{row.ds}</td>
+                  {[row.access, row.search, row.insert, row.delete].map((v, i) => (
+                    <td key={i} className={`px-3 py-2 font-mono ${
+                      v === "O(1)" ? "text-emerald-400" :
+                      v.includes("log") ? "text-blue-400" :
+                      v === "O(n)" ? "text-amber-400" : "text-red-400"
+                    }`}>{v}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          <div className="px-4 py-2 border-t border-border flex gap-4 text-xs">
+            <span className="text-emerald-400">● O(1) constant</span>
+            <span className="text-blue-400">● O(log n) logarithmic</span>
+            <span className="text-amber-400">● O(n) linear</span>
+            <span className="text-red-400">● O(n²)+ polynomial</span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -594,6 +810,15 @@ export default function CodingTab() {
     onError: () => toast.error("Could not generate hint. Try again."),
   });
   const [hintAnalytics, setHintAnalytics] = useHintAnalytics();
+  const [showCheatSheet, setShowCheatSheet] = useState<string | null>(null);
+  const [ctciTags, setCtciTags] = useState<Record<string, string[]>>(() => {
+    try { return JSON.parse(localStorage.getItem("ctci_tags_v1") ?? "{}"); } catch { return {}; }
+  });
+  const saveCtciTags = (tags: Record<string, string[]>) => {
+    setCtciTags(tags);
+    localStorage.setItem("ctci_tags_v1", JSON.stringify(tags));
+  };
+  const [tagInput, setTagInput] = useState<Record<string, string>>({});
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -821,6 +1046,9 @@ export default function CodingTab() {
         </ol>
       </div>
 
+      {/* Complexity Quick-Reference Card */}
+      <ComplexityCard />
+
       {/* Pattern table */}
       <div className="prep-card overflow-hidden">
         <div className="p-4 border-b border-border flex items-center justify-between">
@@ -891,8 +1119,62 @@ export default function CodingTab() {
                       className="flex items-center gap-1 text-xs text-amber-400 hover:text-amber-300 transition-colors">
                       <Zap size={11} /> {stuckHints[p.id] ? "Hide hints" : "Stuck?"}
                     </button>
+                    {/* Cheat Sheet */}
+                    {CHEAT_SHEETS[p.id] && (
+                      <button
+                        onClick={() => setShowCheatSheet(showCheatSheet === p.id ? null : p.id)}
+                        className="flex items-center gap-1 text-xs text-emerald-400 hover:text-emerald-300 transition-colors">
+                        <Code2 size={11} /> {showCheatSheet === p.id ? "Hide" : "Cheat Sheet"}
+                      </button>
+                    )}
+                    {/* Video link */}
+                    {PATTERN_VIDEOS[p.id] && (
+                      <a href={PATTERN_VIDEOS[p.id].url} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 transition-colors">
+                        <Play size={11} /> Video
+                      </a>
+                    )}
                   </div>
                 </div>
+                {/* CTCI Tags */}
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  {(ctciTags[p.id] ?? []).map(tag => (
+                    <span key={tag} className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-violet-500/10 border border-violet-500/20 text-xs text-violet-400">
+                      {tag}
+                      <button onClick={() => saveCtciTags({ ...ctciTags, [p.id]: (ctciTags[p.id] ?? []).filter(t => t !== tag) })}
+                        className="hover:text-red-400 transition-colors">×</button>
+                    </span>
+                  ))}
+                  <form onSubmit={e => {
+                    e.preventDefault();
+                    const val = (tagInput[p.id] ?? "").trim();
+                    if (val && !(ctciTags[p.id] ?? []).includes(val)) {
+                      saveCtciTags({ ...ctciTags, [p.id]: [...(ctciTags[p.id] ?? []), val] });
+                    }
+                    setTagInput(t => ({ ...t, [p.id]: "" }));
+                  }} className="flex items-center gap-1">
+                    <input
+                      value={tagInput[p.id] ?? ""}
+                      onChange={e => setTagInput(t => ({ ...t, [p.id]: e.target.value }))}
+                      placeholder="+ tag"
+                      className="w-16 px-1.5 py-0.5 rounded bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-violet-500/50"
+                    />
+                    <button type="submit" className="text-xs text-violet-400 hover:text-violet-300"><Tag size={10} /></button>
+                  </form>
+                </div>
+                {/* Cheat Sheet Panel */}
+                {showCheatSheet === p.id && CHEAT_SHEETS[p.id] && (
+                  <div className="mt-3 rounded-lg overflow-hidden border border-emerald-500/20">
+                    <div className="flex items-center justify-between px-3 py-1.5 bg-emerald-500/5 border-b border-emerald-500/20">
+                      <span className="text-xs font-bold text-emerald-400">📋 {p.name} — Canonical Template (Python)</span>
+                      <button onClick={() => {
+                        navigator.clipboard.writeText(CHEAT_SHEETS[p.id]);
+                        toast.success("Copied to clipboard!");
+                      }} className="text-xs text-emerald-400 hover:text-emerald-300 transition-colors">Copy</button>
+                    </div>
+                    <pre className="p-3 text-xs text-foreground font-mono leading-relaxed overflow-x-auto whitespace-pre bg-[#0d1117]">{CHEAT_SHEETS[p.id]}</pre>
+                  </div>
+                )}
                 {isExpanded && (
                   <div className="mt-3">
                     <textarea

@@ -3,6 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { trpc } from "@/lib/trpc";
 import { PATTERNS } from "@/lib/data";
 import { ChevronDown, ChevronUp, History, Trash2, Timer, Play, Pause, RotateCcw, Shuffle } from "lucide-react";
+import Editor from "@monaco-editor/react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 type Pattern = typeof PATTERNS[number];
@@ -625,14 +626,40 @@ export function CodingMockSession() {
           </div>
         )}
 
-        {/* Answer textarea */}
-        <textarea
-          value={answers[step]}
-          onChange={e => setAnswers(a => { const n = [...a]; n[step] = e.target.value; return n; })}
-          placeholder={phase.prompt}
-          rows={8}
-          className="w-full px-3 py-2.5 rounded-lg bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50 resize-none font-mono leading-relaxed"
-        />
+        {/* Answer area — Monaco for pseudocode phase, textarea for others */}
+        {step === 2 ? (
+          <div className="rounded-lg overflow-hidden border border-blue-500/30">
+            <div className="flex items-center gap-2 px-3 py-1.5 bg-[#1e1e1e] border-b border-slate-700/50">
+              <span className="text-xs text-muted-foreground">Language:</span>
+              <span className="text-xs font-semibold text-blue-400">Python</span>
+              <span className="text-xs text-muted-foreground ml-auto">Monaco Editor</span>
+            </div>
+            <Editor
+              height="220px"
+              defaultLanguage="python"
+              theme="vs-dark"
+              value={answers[step]}
+              onChange={v => setAnswers(a => { const n = [...a]; n[step] = v ?? ""; return n; })}
+              options={{
+                fontSize: 13,
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                wordWrap: "on",
+                lineNumbers: "on",
+                folding: false,
+                automaticLayout: true,
+              }}
+            />
+          </div>
+        ) : (
+          <textarea
+            value={answers[step]}
+            onChange={e => setAnswers(a => { const n = [...a]; n[step] = e.target.value; return n; })}
+            placeholder={phase.prompt}
+            rows={8}
+            className="w-full px-3 py-2.5 rounded-lg bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50 resize-none font-mono leading-relaxed"
+          />
+        )}
 
         {/* Navigation */}
         <div className="flex gap-2">

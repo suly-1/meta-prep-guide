@@ -75,6 +75,11 @@ function PracticeMode({ ratings, onRate }: { ratings: Record<string, number>; on
         <Play size={14} className="text-purple-400" />
         <span className="text-sm font-semibold text-foreground">Practice Mode</span>
         <span className={`badge ${AREA_COLORS[q.area] ?? "badge-gray"}`}>{q.area}</span>
+        {'tier' in q && <span className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
+          (q as any).tier === 'IC7' ? 'text-violet-300 bg-violet-500/15 border-violet-500/30' :
+          (q as any).tier === 'IC6' ? 'text-blue-300 bg-blue-500/15 border-blue-500/30' :
+          'text-emerald-300 bg-emerald-500/15 border-emerald-500/30'
+        }`}>{(q as any).tier}</span>}
       </div>
       <div className="flex flex-col sm:flex-row gap-5">
         {/* Timer ring */}
@@ -1339,7 +1344,28 @@ Result: ..."
               rows={8}
               className="w-full px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-500/50 resize-none leading-relaxed"
             />
-            <div className="text-xs text-muted-foreground mt-1">{answer.length}/2000 chars</div>
+            {/* Word count + pacing guide */}
+            {(() => {
+              const words = answer.trim() ? answer.trim().split(/\s+/).length : 0;
+              const estSecs = Math.round(words / 2.5); // ~150 wpm speaking pace
+              const mins = Math.floor(estSecs / 60);
+              const secs = estSecs % 60;
+              const color = words < 100 ? "text-amber-400" : words <= 350 ? "text-emerald-400" : "text-red-400";
+              const label = words < 100 ? "Too short" : words <= 250 ? "Good length" : words <= 350 ? "Detailed" : "Too long";
+              return (
+                <div className="flex items-center justify-between mt-1.5">
+                  <div className="flex items-center gap-3 text-xs">
+                    <span className={`font-semibold ${color}`}>{words} words — {label}</span>
+                    <span className="text-muted-foreground">~{mins > 0 ? `${mins}m ` : ""}{secs}s to speak</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                    <span className="text-amber-400">&lt;100 short</span>
+                    <span className="text-emerald-400">100–250 ideal</span>
+                    <span className="text-red-400">&gt;350 too long</span>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
 
           {/* Score button */}
@@ -1404,6 +1430,7 @@ export default function BehavioralTab() {
   const [storyHistory, setStoryHistory] = useStoryStrengthHistory();
   const [search, setSearch] = useState("");
   const [filterArea, setFilterArea] = useState("All");
+  const [filterTier, setFilterTier] = useState("All");
   const [expandedQ, setExpandedQ] = useState<string | null>(null);
   const [showMock, setShowMock] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
@@ -1428,6 +1455,7 @@ export default function BehavioralTab() {
   const filtered = BEHAVIORAL_QUESTIONS.filter(q => {
     const s = search.toLowerCase();
     return (filterArea === "All" || q.area === filterArea) &&
+      (filterTier === "All" || (q as any).tier === filterTier) &&
       (!s || q.q.toLowerCase().includes(s) || q.hint.toLowerCase().includes(s));
   });
 
@@ -1719,6 +1747,13 @@ export default function BehavioralTab() {
           className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none">
           {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
         </select>
+        <select value={filterTier} onChange={e => setFilterTier(e.target.value)}
+          className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none">
+          <option value="All">All Levels</option>
+          <option value="IC5">IC5+</option>
+          <option value="IC6">IC6+</option>
+          <option value="IC7">IC7 Only</option>
+        </select>
       </div>
 
       {/* Questions list */}
@@ -1731,6 +1766,11 @@ export default function BehavioralTab() {
               <button className="bq-trigger" onClick={() => setExpandedQ(isOpen ? null : q.id)}>
                 <div className="flex items-center gap-2 flex-1 min-w-0">
                   <span className={`badge ${AREA_COLORS[q.area] ?? "badge-gray"} shrink-0`}>{q.area.split(" ")[0]}</span>
+                  <span className={`text-[9px] px-1 py-0.5 rounded font-bold border shrink-0 ${
+                    (q as any).tier === 'IC7' ? 'text-violet-400 bg-violet-500/10 border-violet-500/20' :
+                    (q as any).tier === 'IC6' ? 'text-blue-400 bg-blue-500/10 border-blue-500/20' :
+                    'text-emerald-400 bg-emerald-500/10 border-emerald-500/20'
+                  }`}>{(q as any).tier}</span>
                   <span className="truncate text-left">{q.q}</span>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

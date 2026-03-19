@@ -4,6 +4,7 @@ import { SYSTEM_DESIGN_QUESTIONS } from "@/lib/data";
 import { ChevronDown, ChevronUp, ExternalLink, Brain, Database, Server, Shield, BarChart3, Zap, GitBranch, Search } from "lucide-react";
 import { useFlashCardSRDue } from "@/hooks/useLocalStorage";
 import { SystemDesignMockSession } from "@/components/SystemDesignMockSession";
+import { CapacityCalculator, DesignPatternLibrary, FlashCardCSVImport } from "@/components/SystemDesignExtras";
 
 const FRAMEWORK_STEPS = [
   { step: "1. Requirements", time: "5 min", items: ["Functional: what the system must do", "Non-functional: scale, latency, availability, consistency", "Ask: DAU, QPS, data volume, read/write ratio", "Clarify: global vs regional, mobile vs web"] },
@@ -869,6 +870,15 @@ export default function SystemDesignTab() {
           ))}
         </div>
       </div>
+
+      {/* Capacity Estimation Calculator */}
+      <CapacityCalculator />
+
+      {/* Design Pattern Library */}
+      <DesignPatternLibrary />
+
+      {/* Flash Card CSV Import */}
+      <FlashCardCSVImport onImport={() => {}} />
 
       {/* System Design Mock Session */}
       <SystemDesignMockSession />

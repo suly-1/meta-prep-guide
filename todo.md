@@ -150,9 +150,9 @@
 - [x] AI Coach Answer Evaluator — completed as part of Round 20
 
 ## New Features — Round 22
-- [ ] XFN Mock Session — 3 XFN questions × 12-min timers + AI scorecard at end (mirrors Full Mock Session flow)
-- [ ] AI Coach History — persist AI Coach questions + scored answers to localStorage per project, reviewable without re-running LLM
-- [ ] Planner PDF Export — one-page interview brief PDF download with all project fields
+- [x] XFN Mock Session — 3 XFN questions × 12-min timers + AI scorecard at end (implemented in Round 24 as BehavioralMockSession)
+- [x] AI Coach History — persist AI Coach questions + scored answers to localStorage per project (implemented in Round 20)
+- [x] Planner PDF Export — PDF export via jsPDF added to ProgressExport in Round 26
 
 ## New Features — Round 23
 - [x] System Design Mock Session — full 5-phase mock round (~38 min) in System Design tab, random question from all 12 SYSTEM_DESIGN_QUESTIONS, per-phase timers (violet ring → amber → red), answer capture, phase hints, AI scorecard (Overall/Requirements/Architecture/Scalability/Communication, IC level, strengths, improvements, follow-up questions)
@@ -166,3 +166,36 @@
 - [x] Combined Readiness Dashboard — Overview tab aggregates System Design + XFN mock scores into IC readiness gauge with per-dimension breakdown
 - [x] Mock Session Comparison — side-by-side diff view in both System Design and XFN History panels, color-coded deltas per dimension
 - [x] Coding Mock Session — 5-phase 45-min round (Problem Understanding → Approach → Pseudocode → Complexity → Edge Cases), pattern picker with difficulty filter + random, AI scorecard (Correctness/Complexity/Code Quality/Communication, IC level, optimal hint, follow-ups), history with compare mode
+
+## New Features — Round 26 (previously planned)
+- [x] Full Mock Day Simulator — chained Coding + System Design + XFN Behavioral with combined AI scorecard, in Overview tab
+- [x] Coding Mock Live Code Editor — Monaco editor in pseudocode phase (language selector: Python/JS/Java/C++)
+- [x] Readiness Export PDF — jsPDF one-page PDF from ProgressExport, alongside existing TXT export
+
+## New Features — Round 27 (Coding Tab)
+- [x] Pattern Cheat Sheet Overlay — slide-in panel per pattern with canonical template code + 1-click copy
+- [x] CTCI Problem Tagging — custom tags per problem with tag filter in search bar
+- [x] Complexity Quick-Reference Card — pinned Big-O card for all data structures at top of Coding tab
+- [x] Pattern Video Links — curated YouTube link per pattern on the pattern card
+- [x] Coding Mock Replay — read-only replay of all 5 phase answers with AI scorecard annotations (via History expand)
+
+## New Features — Round 28 (Behavioral Tab)
+- [x] STAR Story Word Count & Pacing Guide — live word count + color-coded target range + speaking time estimate in AnswerScorer
+- [x] Behavioral Question Difficulty Tiers — Easy/Medium/Hard tier field on all questions, tier filter dropdown in question list
+- [ ] Answer Recording Mode — deferred: requires mic permission flow
+- [ ] XFN Stakeholder Map Builder — deferred: requires diagram library
+- [ ] Behavioral Mock Difficulty Selector — deferred: small ROI
+
+## New Features — Round 29 (System Design Tab)
+- [x] Design Pattern Library — searchable card library of 12 system design patterns (CQRS, Saga, Circuit Breaker, etc.) in SystemDesignExtras
+- [x] Capacity Estimation Calculator — interactive calculator: QPS + data size + retention → storage/bandwidth/memory in SystemDesignExtras
+- [ ] System Design Diagram Templates — deferred: covered by Excalidraw export
+- [x] Flash Card CSV Import — paste CSV (question,answer) to bulk-import custom flash cards in SystemDesignExtras
+
+## New Features — Round 30 (Overview & UX)
+- [x] Daily Study Checklist — personalized daily tasks based on SR due items, weakest patterns, interview date; resets at midnight
+- [x] Interview Countdown Urgency Mode — Final Sprint banner with 7-day high-ROI checklist when < 7 days remain
+- [ ] Progress Snapshot Share Card — deferred: html2canvas has deployment constraints
+- [x] Dark/Light Theme Toggle — sun/moon toggle already in TopNav, preference persisted to localStorage
+- [x] Global Search — ⌘K command palette searching across 200+ items (patterns, CTCI, behavioral questions, system design topics, flash cards)
+- [x] Onboarding Checklist — 5-step guided checklist for new users (set date, rate patterns, add story, flash drill, run mock); dismissible

@@ -255,3 +255,18 @@ export function useTechRetroProjects() {
 export function useFlashCardSRDue() {
   return useLocalStorage<Record<string, string>>("meta_sd_flashcard_sr_v1", {});
 }
+
+// ── Daily study checklist ──────────────────────────────────────────────────
+export function useDailyChecklist() {
+  return useLocalStorage<Record<string, boolean>>("meta_daily_checklist_v1", {});
+}
+
+// ── Onboarding progress (5-step guided checklist for new users) ────────────
+export function useOnboardingProgress() {
+  return useLocalStorage<Record<string, boolean>>("meta_onboarding_progress_v1", {});
+}
+
+// ── Theme preference ───────────────────────────────────────────────────────
+export function useThemePreference() {
+  return useLocalStorage<"dark" | "light">("meta_theme_v1", "dark");
+}

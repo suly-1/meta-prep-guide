@@ -9,6 +9,8 @@ import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDa
 import { CTCI_QUESTIONS } from "@/lib/ctciData";
 import { toast } from "sonner";
 import HeatmapCalendar from "@/components/HeatmapCalendar";
+import { FullMockDaySimulator } from "@/components/FullMockDaySimulator";
+import { DailyStudyChecklist, UrgencyModeBanner, OnboardingChecklist } from "@/components/OverviewExtras";
 import { trpc } from "@/lib/trpc";
 
 function getDaysUntil(dateStr: string): number {
@@ -637,6 +639,79 @@ function ProgressExport() {
   const [bqRatings] = useBehavioralRatings();
   const [mockHistory] = useMockHistory();
   const streak = useStreak();
+  const [exporting, setExporting] = useState(false);
+
+  const exportPDF = async () => {
+    setExporting(true);
+    try {
+      const { jsPDF } = await import("jspdf");
+      const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+      const masteredPatterns = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4);
+      const weakPatterns = PATTERNS.filter(p => { const r = patternRatings[p.id] ?? 0; return r > 0 && r <= 2; });
+      const readyStories = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 4);
+      const overallPct = Math.round(((masteredPatterns.length / PATTERNS.length) * 0.6 + (readyStories.length / BEHAVIORAL_QUESTIONS.length) * 0.4) * 100);
+
+      // Header
+      doc.setFillColor(15, 23, 42);
+      doc.rect(0, 0, 210, 40, "F");
+      doc.setTextColor(59, 130, 246);
+      doc.setFontSize(18);
+      doc.setFont("helvetica", "bold");
+      doc.text("Meta Interview Prep — Readiness Report", 14, 18);
+      doc.setTextColor(148, 163, 184);
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "normal");
+      doc.text(`Generated: ${new Date().toLocaleString()}`, 14, 28);
+      doc.text(`Overall Readiness: ${overallPct}%  |  Streak: ${streak.currentStreak} days (best: ${streak.longestStreak})`, 14, 35);
+
+      let y = 50;
+      const section = (title: string) => {
+        if (y > 260) { doc.addPage(); y = 20; }
+        doc.setFillColor(30, 41, 59);
+        doc.rect(10, y - 4, 190, 8, "F");
+        doc.setTextColor(59, 130, 246);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.text(title, 14, y + 1);
+        y += 10;
+      };
+      const line = (text: string, color: [number, number, number] = [203, 213, 225]) => {
+        if (y > 270) { doc.addPage(); y = 20; }
+        doc.setTextColor(...color);
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "normal");
+        doc.text(text, 16, y);
+        y += 6;
+      };
+
+      section(`Patterns Mastered (${masteredPatterns.length}/${PATTERNS.length})`);
+      if (masteredPatterns.length === 0) line("None mastered yet");
+      else masteredPatterns.forEach(p => line(`★${patternRatings[p.id]}  ${p.name}  [${p.diff}]`, [134, 239, 172]));
+
+      y += 4;
+      section(`Weak Patterns (${weakPatterns.length})`);
+      if (weakPatterns.length === 0) line("No weak patterns — great!");
+      else weakPatterns.forEach(p => line(`★${patternRatings[p.id]}  ${p.name}  [${p.diff}]`, [252, 165, 165]));
+
+      y += 4;
+      section(`Behavioral Stories Ready (${readyStories.length}/${BEHAVIORAL_QUESTIONS.length})`);
+      if (readyStories.length === 0) line("No stories rated 4+ yet");
+      else readyStories.forEach(q => line(`★${bqRatings[q.id]}  [${q.area}]  ${q.q.slice(0, 70)}…`, [167, 243, 208]));
+
+      y += 4;
+      section(`Mock Session History (${mockHistory.length} sessions)`);
+      if (mockHistory.length === 0) line("No mock sessions completed yet");
+      else mockHistory.slice(-10).forEach(m => line(`${new Date(m.date).toLocaleDateString()}  avg ★${m.avgScore.toFixed(1)}`, [203, 213, 225]));
+
+      doc.save("meta_prep_readiness_report.pdf");
+      toast.success("PDF report downloaded!");
+    } catch (e) {
+      toast.error("PDF export failed — try the .txt export instead");
+      console.error(e);
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const exportTxt = () => {
     const masteredPatterns = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4);
@@ -669,10 +744,16 @@ function ProgressExport() {
   };
 
   return (
-    <button onClick={exportTxt}
-      className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-secondary hover:bg-accent border border-border text-sm font-semibold text-muted-foreground hover:text-foreground transition-all">
-      <Download size={13} /> Export Progress Report (.txt)
-    </button>
+    <div className="flex gap-2 flex-wrap">
+      <button onClick={exportPDF} disabled={exporting}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-sm font-semibold text-blue-400 hover:text-blue-300 transition-all disabled:opacity-50">
+        <Download size={13} /> {exporting ? "Generating PDF…" : "Export Readiness Report (.pdf)"}
+      </button>
+      <button onClick={exportTxt}
+        className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-secondary hover:bg-accent border border-border text-sm font-semibold text-muted-foreground hover:text-foreground transition-all">
+        <Download size={13} /> Export Progress Report (.txt)
+      </button>
+    </div>
   );
 }
 
@@ -1355,11 +1436,17 @@ function CTCIDivergenceReport() {
 }
 
 export default function OverviewTab() {
+  const [interviewDate] = useInterviewDate();
+  const daysLeft = interviewDate ? getDaysUntil(interviewDate) : null;
+
   return (
     <div className="space-y-6">
+      <OnboardingChecklist />
+      {daysLeft !== null && <UrgencyModeBanner daysLeft={daysLeft} />}
       <LevelCards />
       <ReadinessDashboard />
       <HeatmapCalendar />
+      <DailyStudyChecklist />
       <InterviewCountdown />
       <PrepTimeline />
       <StarStoryBank />
@@ -1368,6 +1455,7 @@ export default function OverviewTab() {
       <ReadinessGoalSetter />
       <StudySessionPlanner />
       <CTCIDivergenceReport />
+      <FullMockDaySimulator />
       <MostHintedBadge />
       <WeeklyDigest />
       <div className="flex justify-start">
