@@ -148,3 +148,11 @@
 ## New Features — Round 21
 - [x] Move Technical Retrospective Project Planner (AI Studio Planner) to the top of the Behavioral tab
 - [x] AI Coach Answer Evaluator — completed as part of Round 20
+
+## New Features — Round 22
+- [ ] XFN Mock Session — 3 XFN questions × 12-min timers + AI scorecard at end (mirrors Full Mock Session flow)
+- [ ] AI Coach History — persist AI Coach questions + scored answers to localStorage per project, reviewable without re-running LLM
+- [ ] Planner PDF Export — one-page interview brief PDF download with all project fields
+
+## New Features — Round 23
+- [x] System Design Mock Session — full 5-phase mock round (~38 min) in System Design tab, random question from all 12 SYSTEM_DESIGN_QUESTIONS, per-phase timers (violet ring → amber → red), answer capture, phase hints, AI scorecard (Overall/Requirements/Architecture/Scalability/Communication, IC level, strengths, improvements, follow-up questions)
