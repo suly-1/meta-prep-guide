@@ -1,6 +1,6 @@
 // Design: Bold Engineering Dashboard — dark charcoal, Space Grotesk, blue accent
-import { Sun, Moon, BookOpen } from "lucide-react";
-import { useStreak } from "@/hooks/useLocalStorage";
+import { Sun, Moon, BookOpen, CalendarClock } from "lucide-react";
+import { useStreak, useInterviewDate } from "@/hooks/useLocalStorage";
 
 interface TopNavProps {
   activeTab: string;
@@ -15,6 +15,53 @@ const TABS = [
   { id: "behavioral", label: "Behavioral" },
   { id: "design",     label: "System Design" },
 ];
+
+function getDaysUntil(dateStr: string): number {
+  const target = new Date(dateStr);
+  const now = new Date();
+  now.setHours(0, 0, 0, 0);
+  target.setHours(0, 0, 0, 0);
+  return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+}
+
+// ── Countdown pill ─────────────────────────────────────────────────────────
+function CountdownPill({ onTabChange }: { onTabChange: (tab: string) => void }) {
+  const [interviewDate] = useInterviewDate();
+
+  if (!interviewDate) return null;
+
+  const days = getDaysUntil(interviewDate);
+
+  // Colour ramp: red ≤7, amber ≤14, emerald > 14, grey if past
+  const color =
+    days < 0
+      ? "text-muted-foreground border-border bg-secondary"
+      : days <= 7
+      ? "text-red-400 border-red-500/30 bg-red-500/10"
+      : days <= 14
+      ? "text-amber-400 border-amber-500/30 bg-amber-500/10"
+      : "text-emerald-400 border-emerald-500/30 bg-emerald-500/10";
+
+  const label =
+    days < 0
+      ? "Interview passed"
+      : days === 0
+      ? "Interview today!"
+      : days === 1
+      ? "1 day left"
+      : `${days} days left`;
+
+  return (
+    <button
+      onClick={() => onTabChange("overview")}
+      title="Go to Interview Day Checklist"
+      className={`hidden sm:flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-semibold transition-all hover:opacity-80 ${color}`}
+    >
+      <CalendarClock size={11} />
+      {label}
+    </button>
+  );
+}
 
 export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark }: TopNavProps) {
   const streak = useStreak();
@@ -51,8 +98,11 @@ export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark 
             ))}
           </nav>
 
-          {/* Right: streak + dark toggle */}
+          {/* Right: countdown + streak + dark toggle */}
           <div className="flex items-center gap-2 shrink-0">
+            {/* Interview day countdown */}
+            <CountdownPill onTabChange={onTabChange} />
+
             {/* Streak */}
             <div
               className={`streak-badge text-sm ${streak.currentStreak === 0 ? "broken" : ""}`}
@@ -88,6 +138,8 @@ export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark 
               {tab.label}
             </button>
           ))}
+          {/* Mobile countdown row */}
+          <CountdownPill onTabChange={onTabChange} />
         </div>
       </div>
     </header>

@@ -79,3 +79,6 @@
 - [x] Behavioral Question Randomizer ("Surprise Me" button, random unrated question, 3-min STAR timer)
 - [x] Readiness Trend Chart (14-day line chart in Overview tab, localStorage)
 - [x] Focus Mode (F-key toggle, hides nav/hero/footer, shows only active tab + large timer)
+
+## New Features — Round 7
+- [x] Interview Day Countdown Widget in top nav (days remaining, links to checklist in Overview tab)
