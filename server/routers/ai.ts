@@ -166,4 +166,97 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
       };
       return parsed;
     }),
+
+  // XFN Behavioral Mock Scorecard: evaluate 3 XFN answers for collaboration, alignment, conflict resolution
+  xfnMockScorecard: publicProcedure
+    .input(
+      z.object({
+        rounds: z.array(
+          z.object({
+            question: z.string().max(500),
+            answer: z.string().max(3000),
+          })
+        ).min(1).max(3),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const transcript = input.rounds
+        .map((r, i) => `=== Question ${i + 1} ===\n${r.question}\n\nCandidate Answer:\n${r.answer || "(no answer provided)"}`)
+        .join("\n\n");
+
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior Meta engineering manager conducting an XFN Partnership interview round for an IC6/IC7 candidate.
+Evaluate the candidate's answers to 3 XFN behavioral questions and return a structured JSON scorecard.
+Focus on: collaboration quality, conflict resolution, alignment strategies, stakeholder management, and IC-level signal.
+IC6 should show effective project-level XFN collaboration; IC7 should show long-term strategic partnerships, proactive alignment, and org-level influence.
+Be rigorous but constructive.`,
+          },
+          {
+            role: "user",
+            content: `Here is the candidate's full XFN mock session:\n\n${transcript}\n\nProvide a structured scorecard JSON.`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "xfn_scorecard",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                overallScore: { type: "number", description: "Overall score 1-5" },
+                collaborationScore: { type: "number", description: "Collaboration quality score 1-5" },
+                conflictScore: { type: "number", description: "Conflict resolution score 1-5" },
+                alignmentScore: { type: "number", description: "Alignment and stakeholder management score 1-5" },
+                communicationScore: { type: "number", description: "Communication clarity and influence score 1-5" },
+                icLevel: { type: "string", description: "IC5, IC6, or IC7 — the level this performance signals" },
+                strengths: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                improvements: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                },
+                followUpQuestions: {
+                  type: "array",
+                  items: { type: "string" },
+                  minItems: 2,
+                  maxItems: 3,
+                  description: "2-3 follow-up questions the interviewer would ask to probe deeper",
+                },
+                summary: { type: "string", description: "2-3 sentence overall coaching note" },
+              },
+              required: ["overallScore", "collaborationScore", "conflictScore", "alignmentScore", "communicationScore", "icLevel", "strengths", "improvements", "followUpQuestions", "summary"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const content = typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent);
+
+      const parsed = JSON.parse(content) as {
+        overallScore: number;
+        collaborationScore: number;
+        conflictScore: number;
+        alignmentScore: number;
+        communicationScore: number;
+        icLevel: string;
+        strengths: string[];
+        improvements: string[];
+        followUpQuestions: string[];
+        summary: string;
+      };
+      return parsed;
+    }),
 });

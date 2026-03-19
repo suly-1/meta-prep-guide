@@ -9,6 +9,7 @@ import { useBehavioralRatings, useMockHistory, useStoryStrengthHistory, useTechR
 import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { trpc } from "@/lib/trpc";
+import { BehavioralMockSession } from "@/components/BehavioralMockSession";
 
 const AREAS = ["All", "Conflict & Influence", "Ownership & Ambiguity", "Scale & Impact", "Failure & Learning", "XFN Partnership"];
 const AREA_COLORS: Record<string, string> = {
@@ -1438,6 +1439,9 @@ export default function BehavioralTab() {
 
       {/* Technical Retrospective Project Planner */}
       <TechRetroPlanner prePopulate={xfnPrePopulate} />
+
+      {/* XFN Behavioral Mock Session */}
+      <BehavioralMockSession />
 
       {/* ===== IC7 EXCLUSIVE: TECHNICAL RETROSPECTIVE + XFN PARTNERSHIP ===== */}
       <div className="relative overflow-hidden rounded-xl" style={{

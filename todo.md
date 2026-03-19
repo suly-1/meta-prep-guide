@@ -156,3 +156,8 @@
 
 ## New Features — Round 23
 - [x] System Design Mock Session — full 5-phase mock round (~38 min) in System Design tab, random question from all 12 SYSTEM_DESIGN_QUESTIONS, per-phase timers (violet ring → amber → red), answer capture, phase hints, AI scorecard (Overall/Requirements/Architecture/Scalability/Communication, IC level, strengths, improvements, follow-up questions)
+
+## New Features — Round 24
+- [x] Mock Session History — persist completed System Design mock sessions to localStorage, review past attempts with scores and answers, delete entries
+- [x] Custom Question Picker — choose specific question or filter by IC level (IC6+/IC7+) before starting mock, 🎲 Random button
+- [x] Behavioral Mock Session (XFN) — 3 XFN questions × 12-min timers, STAR phase tabs, teal timer ring, AI scorecard (Collaboration/Conflict/Alignment/Communication, IC level, strengths, improvements, follow-up questions), history with expand/delete
