@@ -44,6 +44,9 @@
 - [x] 60-day Heatmap Calendar (Overview tab, daily activity grid)
 - [x] Anonymous Leaderboard (server-side DB, opt-in, hero section)
 
+## New Features — Round 4
+- [x] ML System Design guide section in System Design tab (from systemdesignhandbook.com)
+
 - [ ] Monaco in-browser code editor with test cases for 20 patterns
 - [ ] Time-Boxed Pattern Sprint Mode (5 patterns, 2 min each)
 - [ ] Pattern Dependency Graph (d3-force interactive graph)
