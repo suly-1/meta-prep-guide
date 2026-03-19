@@ -130,7 +130,17 @@ export function useDisclaimerDismissed() {
   return useLocalStorage<boolean>("meta_disclaimer_v1", false);
 }
 
-// ── Confetti fired ────────────────────────────────────────────────────────
+// ── Confetti fired ────────────────────────────────────────────────────────────────────────────────
 export function useCongratsShown() {
   return useLocalStorage<boolean>("meta_congrats_v1", false);
+}
+
+// ── Readiness trend (14-day daily snapshots) ───────────────────────────────────────
+export interface ReadinessSnapshot {
+  date: string; // ISO date YYYY-MM-DD
+  pct: number;  // 0-100
+}
+
+export function useReadinessTrend() {
+  return useLocalStorage<ReadinessSnapshot[]>("meta_readiness_trend_v1", []);
 }

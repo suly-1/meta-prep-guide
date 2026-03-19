@@ -74,3 +74,8 @@
 ## Pending — Social & Gamification Features
 - [x] Anonymous Leaderboard (opt-in, server-side, top streaks/patterns/mocks)
 - [ ] Achievement Badges (First Blood, On Fire, Half-Way There, Mock Veteran, IC7 Ready)
+
+## New Features — Round 6
+- [x] Behavioral Question Randomizer ("Surprise Me" button, random unrated question, 3-min STAR timer)
+- [x] Readiness Trend Chart (14-day line chart in Overview tab, localStorage)
+- [x] Focus Mode (F-key toggle, hides nav/hero/footer, shows only active tab + large timer)

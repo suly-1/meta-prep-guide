@@ -2,7 +2,7 @@
 // Features: search, practice mode (3-min timer), full mock session (4 questions),
 // IC6/IC7 comparison table, mock history log, meta values, STAR framework
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Search, Brain, Play, RotateCcw, ChevronDown, ChevronUp, Trash2 } from "lucide-react";
+import { Search, Brain, Play, RotateCcw, ChevronDown, ChevronUp, Trash2, Shuffle, Timer, X, SkipForward } from "lucide-react";
 import VoiceToStar from "@/components/VoiceToStar";
 import { BEHAVIORAL_QUESTIONS, IC_COMPARISON, META_VALUES } from "@/lib/data";
 import { useBehavioralRatings, useMockHistory, type MockSession } from "@/hooks/useLocalStorage";
@@ -337,6 +337,162 @@ function MockHistoryLog({ history, onClear }: { history: MockSession[]; onClear:
   );
 }
 
+// ── Surprise Me (Randomizer + 3-min STAR timer) ─────────────────────────────────────────────────────
+const STAR_DURATION = 180; // 3 minutes
+
+function SurpriseMe({ ratings, onRate, onClose }: {
+  ratings: Record<string, number>;
+  onRate: (id: string, v: number) => void;
+  onClose: () => void;
+}) {
+  // Pick a random unrated question; fall back to any question
+  const pickQuestion = useCallback(() => {
+    const unrated = BEHAVIORAL_QUESTIONS.filter(q => !(ratings[q.id] ?? 0));
+    const pool = unrated.length > 0 ? unrated : BEHAVIORAL_QUESTIONS;
+    return pool[Math.floor(Math.random() * pool.length)];
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [q, setQ] = useState(pickQuestion);
+  const [timeLeft, setTimeLeft] = useState(STAR_DURATION);
+  const [running, setRunning] = useState(false);
+  const [revealed, setRevealed] = useState(false);
+  const [done, setDone] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopTimer = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current);
+  }, []);
+
+  const startTimer = useCallback(() => {
+    stopTimer();
+    setRunning(true);
+    timerRef.current = setInterval(() => {
+      setTimeLeft(t => {
+        if (t <= 1) { clearInterval(timerRef.current!); setRunning(false); setDone(true); return 0; }
+        return t - 1;
+      });
+    }, 1000);
+  }, [stopTimer]);
+
+  useEffect(() => () => stopTimer(), [stopTimer]);
+
+  const next = () => {
+    stopTimer();
+    setQ(pickQuestion());
+    setTimeLeft(STAR_DURATION);
+    setRunning(false);
+    setRevealed(false);
+    setDone(false);
+  };
+
+  const pct = ((STAR_DURATION - timeLeft) / STAR_DURATION) * 100;
+  const r = 38;
+  const circ = 2 * Math.PI * r;
+  const mm = String(Math.floor(timeLeft / 60)).padStart(2, "0");
+  const ss = String(timeLeft % 60).padStart(2, "0");
+  const urgent = timeLeft <= 30;
+  const warning = timeLeft <= 60;
+
+  return (
+    <div className="prep-card p-5">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <Shuffle size={14} className="text-pink-400" />
+          <span className="text-sm font-bold text-foreground">Surprise Me</span>
+          <span className={`badge ${AREA_COLORS[q.area] ?? "badge-gray"}`}>{q.area}</span>
+        </div>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground"><X size={14} /></button>
+      </div>
+
+      <div className="flex gap-5 items-start">
+        {/* Circular timer */}
+        <div className="relative w-20 h-20 shrink-0">
+          <svg viewBox="0 0 100 100" className="w-full h-full -rotate-90">
+            <circle cx="50" cy="50" r={r} fill="none" stroke="oklch(0.28 0.012 264)" strokeWidth="8" />
+            <circle cx="50" cy="50" r={r} fill="none"
+              stroke={urgent ? "oklch(0.65 0.22 25)" : warning ? "oklch(0.78 0.17 75)" : "oklch(0.58 0.2 295)"}
+              strokeWidth="8" strokeLinecap="round"
+              strokeDasharray={circ} strokeDashoffset={circ * (1 - pct / 100)}
+              style={{ transition: "stroke-dashoffset 1s linear, stroke 0.3s" }} />
+          </svg>
+          <div className="absolute inset-0 flex items-center justify-center">
+            <span className={`font-mono text-base font-bold ${urgent ? "text-red-400" : warning ? "text-amber-400" : "text-foreground"}`}>
+              {mm}:{ss}
+            </span>
+          </div>
+        </div>
+
+        {/* Question + controls */}
+        <div className="flex-1 space-y-3">
+          <p className="text-sm font-medium text-foreground leading-relaxed">{q.q}</p>
+
+          {/* STAR phase labels */}
+          <div className="flex gap-1.5 flex-wrap">
+            {["S — Situation", "T — Task", "A — Action", "R — Result"].map((label, i) => {
+              const colors = ["text-blue-400", "text-amber-400", "text-purple-400", "text-emerald-400"];
+              return (
+                <span key={label} className={`text-xs font-semibold ${colors[i]}`}>{label}</span>
+              );
+            })}
+          </div>
+
+          {/* Buttons */}
+          <div className="flex gap-2 flex-wrap">
+            {!running && !done && timeLeft === STAR_DURATION && (
+              <button onClick={startTimer}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-pink-500/20 hover:bg-pink-500/30 border border-pink-500/30 text-pink-400 text-xs font-semibold transition-all">
+                <Timer size={11} /> Start Timer
+              </button>
+            )}
+            {running && (
+              <button onClick={stopTimer}
+                className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent border border-border text-muted-foreground text-xs font-semibold transition-all">
+                Pause
+              </button>
+            )}
+            <button onClick={() => setRevealed(r => !r)}
+              className="px-3 py-1.5 rounded-lg bg-secondary hover:bg-accent border border-border text-muted-foreground text-xs font-semibold transition-all">
+              {revealed ? "Hide" : "Show"} Probes
+            </button>
+            <button onClick={next}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 border border-blue-500/30 text-blue-400 text-xs font-semibold transition-all">
+              <SkipForward size={11} /> Skip
+            </button>
+          </div>
+
+          {/* Hint */}
+          {revealed && (
+            <div className="p-3 rounded-lg bg-secondary text-xs text-muted-foreground">{q.hint}</div>
+          )}
+
+          {/* Rate + next */}
+          {(done || revealed) && (
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-muted-foreground">Rate your answer:</span>
+              <div className="flex gap-0.5">
+                {[1, 2, 3, 4, 5].map(s => (
+                  <button key={s}
+                    className={`star-btn ${(ratings[q.id] ?? 0) >= s ? "active" : ""}`}
+                    onClick={() => { onRate(q.id, s); next(); }}>
+                    ★
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {done && (
+            <div className="text-xs font-semibold text-amber-400">⏱ Time’s up! Rate your answer above to continue.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main BehavioralTab ─────────────────────────────────────────────────────
 export default function BehavioralTab() {
   const [ratings, setRatings] = useBehavioralRatings();
@@ -346,6 +502,7 @@ export default function BehavioralTab() {
   const [expandedQ, setExpandedQ] = useState<string | null>(null);
   const [showMock, setShowMock] = useState(false);
   const [showPractice, setShowPractice] = useState(false);
+  const [showSurprise, setShowSurprise] = useState(false);
 
   const handleRate = (id: string, v: number) => setRatings(r => ({ ...r, [id]: v }));
 
@@ -406,18 +563,25 @@ export default function BehavioralTab() {
         </div>
       </div>
 
-      {/* Practice / Mock buttons */}
+      {/* Practice / Mock / Surprise buttons */}
       <div className="flex gap-3 flex-wrap">
-        <button onClick={() => { setShowPractice(p => !p); setShowMock(false); }}
+        <button onClick={() => { setShowPractice(p => !p); setShowMock(false); setShowSurprise(false); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all ${showPractice ? "bg-purple-500/20 border-purple-500/40 text-purple-400" : "bg-secondary border-border text-muted-foreground hover:text-foreground"}`}>
           <Play size={13} /> Practice Mode
         </button>
-        <button onClick={() => { setShowMock(m => !m); setShowPractice(false); }}
+        <button onClick={() => { setShowMock(m => !m); setShowPractice(false); setShowSurprise(false); }}
           className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all ${showMock ? "bg-blue-500/20 border-blue-500/40 text-blue-400" : "bg-secondary border-border text-muted-foreground hover:text-foreground"}`}>
           <Brain size={13} /> Full Mock Session
         </button>
+        <button onClick={() => { setShowSurprise(s => !s); setShowPractice(false); setShowMock(false); }}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-lg border text-sm font-semibold transition-all ${
+            showSurprise ? "bg-pink-500/20 border-pink-500/40 text-pink-400" : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+          }`}>
+          <Shuffle size={13} /> Surprise Me
+        </button>
       </div>
 
+      {showSurprise && <SurpriseMe ratings={ratings} onRate={handleRate} onClose={() => setShowSurprise(false)} />}
       {showPractice && <PracticeMode ratings={ratings} onRate={handleRate} />}
       {showMock && <FullMockSession onComplete={handleMockComplete} />}
 

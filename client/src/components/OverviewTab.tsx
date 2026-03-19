@@ -5,7 +5,7 @@
 import { useState } from "react";
 import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
-import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak } from "@/hooks/useLocalStorage";
+import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak, useReadinessTrend } from "@/hooks/useLocalStorage";
 import { toast } from "sonner";
 import HeatmapCalendar from "@/components/HeatmapCalendar";
 
@@ -89,13 +89,100 @@ function LevelCards() {
   );
 }
 
-// ── Readiness Dashboard ────────────────────────────────────────────────────
+// ── Readiness Trend Chart (14-day sparkline) ─────────────────────────────────────────────────────
+function ReadinessTrendChart({ currentPct }: { currentPct: number }) {
+  const [trend, setTrend] = useReadinessTrend();
+
+  // Record today's snapshot once per day
+  const today = new Date().toISOString().split("T")[0];
+  // Use useEffect to avoid state updates during render
+  const [recorded, setRecorded] = useState(false);
+  if (!recorded && (trend.length === 0 || trend[trend.length - 1].date !== today)) {
+    setRecorded(true);
+    const pruned = [...trend.filter(s => s.date !== today), { date: today, pct: currentPct }]
+      .sort((a, b) => a.date.localeCompare(b.date))
+      .slice(-14);
+    setTrend(pruned);
+  }
+
+  if (trend.length < 2) {
+    return (
+      <div className="prep-card p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <TrendingUp size={13} className="text-emerald-400" />
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">14-Day Readiness Trend</span>
+        </div>
+        <div className="text-xs text-muted-foreground text-center py-4">Come back tomorrow to see your trend line.</div>
+      </div>
+    );
+  }
+
+  // Build last 14 days scaffold so missing days show as gaps
+  const days: Array<{ date: string; pct: number | null }> = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = d.toISOString().split("T")[0];
+    const snap = trend.find(s => s.date === key);
+    days.push({ date: key, pct: snap ? snap.pct : null });
+  }
+
+  const W = 280, H = 60, PAD = 4;
+  const points = days
+    .map((d, i) => d.pct !== null ? { x: PAD + (i / 13) * (W - PAD * 2), y: H - PAD - (d.pct / 100) * (H - PAD * 2) } : null)
+    .filter(Boolean) as { x: number; y: number }[];
+
+  const polyline = points.map(p => `${p.x},${p.y}`).join(" ");
+  const area = points.length > 1
+    ? `M${points[0].x},${H - PAD} L${polyline.split(" ").map(p => p).join(" L")} L${points[points.length-1].x},${H - PAD} Z`
+    : "";
+
+  const firstPct = trend[0].pct;
+  const lastPct = trend[trend.length - 1].pct;
+  const delta = lastPct - firstPct;
+  const deltaColor = delta > 0 ? "text-emerald-400" : delta < 0 ? "text-red-400" : "text-muted-foreground";
+  const deltaLabel = delta > 0 ? `+${delta}%` : delta < 0 ? `${delta}%` : "Flat";
+
+  return (
+    <div className="prep-card p-4">
+      <div className="flex items-center gap-2 mb-3">
+        <TrendingUp size={13} className="text-emerald-400" />
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">14-Day Readiness Trend</span>
+        <span className={`ml-auto text-xs font-bold ${deltaColor}`}>{deltaLabel} over {trend.length} days</span>
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full" style={{ height: 60 }}>
+        {/* Grid lines */}
+        {[0, 25, 50, 75, 100].map(pct => {
+          const y = H - PAD - (pct / 100) * (H - PAD * 2);
+          return <line key={pct} x1={PAD} y1={y} x2={W - PAD} y2={y} stroke="oklch(0.28 0.012 264)" strokeWidth="0.5" />;
+        })}
+        {/* Area fill */}
+        {area && <path d={area} fill="oklch(0.62 0.19 158 / 0.15)" />}
+        {/* Line */}
+        {points.length > 1 && <polyline points={polyline} fill="none" stroke="oklch(0.62 0.19 158)" strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />}
+        {/* Dots */}
+        {points.map((p, i) => (
+          <circle key={i} cx={p.x} cy={p.y} r="2" fill="oklch(0.62 0.19 158)" />
+        ))}
+        {/* Today dot highlight */}
+        {points.length > 0 && (
+          <circle cx={points[points.length-1].x} cy={points[points.length-1].y} r="3.5" fill="oklch(0.62 0.19 158)" stroke="oklch(0.15 0.01 264)" strokeWidth="1.5" />
+        )}
+      </svg>
+      <div className="flex justify-between text-xs text-muted-foreground mt-1">
+        <span>{days[0].date.slice(5)}</span>
+        <span>Today {lastPct}%</span>
+      </div>
+    </div>
+  );
+}
+
+// ── Readiness Dashboard ─────────────────────────────────────────────────────
 function ReadinessDashboard() {
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
   const [mockHistory] = useMockHistory();
   const streak = useStreak();
-
   const masteredPatterns = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4).length;
   const readyStories = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 4).length;
   const avgMock = mockHistory.length
@@ -172,6 +259,9 @@ function ReadinessDashboard() {
           </div>
         </div>
       )}
+
+      {/* 14-day trend chart */}
+      <ReadinessTrendChart currentPct={overallPct} />
 
       {/* Recruiter card with peer comparison */}
       <RecruiterCard masteredPatterns={masteredPatterns} readyStories={readyStories} avgMock={avgMock} streak={streak.currentStreak} overallPct={overallPct} />

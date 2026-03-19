@@ -12,7 +12,7 @@ import OverviewTab from "@/components/OverviewTab";
 import SystemDesignTab from "@/components/SystemDesignTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
-import { AlertTriangle, X } from "lucide-react";
+import { AlertTriangle, X, Maximize2, Minimize2 } from "lucide-react";
 import DisclaimerGate, { useDisclaimerAcknowledged } from "@/components/DisclaimerGate";
 
 // Simple confetti burst
@@ -42,6 +42,7 @@ export default function Home() {
   const [congratsShown, setCongratsShown] = useCongratsShown();
   const [patternRatings] = usePatternRatings();
   const [bqRatings] = useBehavioralRatings();
+  const [focusMode, setFocusMode] = useState(false);
 
   // Apply dark mode class
   useEffect(() => {
@@ -67,6 +68,8 @@ export default function Home() {
     if (e.key === "3") setActiveTab("behavioral");
     if (e.key === "4") setActiveTab("design");
     if (e.key === "5") setActiveTab("collab");
+    if (e.key === "f" || e.key === "F") setFocusMode(m => !m);
+    if (e.key === "Escape") setFocusMode(false);
   }, []);
 
   useEffect(() => {
@@ -109,19 +112,35 @@ export default function Home() {
         </div>
       )}
 
-      {/* Top navigation */}
-      <TopNav
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
-        darkMode={darkMode}
-        onToggleDark={() => setDarkMode(d => !d)}
-      />
+      {/* Top navigation — hidden in focus mode */}
+      {!focusMode && (
+        <TopNav
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          darkMode={darkMode}
+          onToggleDark={() => setDarkMode(d => !d)}
+        />
+      )}
 
-      {/* Hero section */}
-      <HeroSection onTabChange={setActiveTab} />
+      {/* Hero section — hidden in focus mode */}
+      {!focusMode && <HeroSection onTabChange={setActiveTab} />}
+
+      {/* Focus Mode bar */}
+      {focusMode && (
+        <div className="sticky top-0 z-50 flex items-center justify-between px-4 py-2 bg-background/90 backdrop-blur border-b border-border">
+          <div className="flex items-center gap-2">
+            <Maximize2 size={13} className="text-blue-400" />
+            <span className="text-xs font-semibold text-blue-400">Focus Mode</span>
+            <span className="text-xs text-muted-foreground">— Press <kbd className="px-1 py-0.5 rounded bg-secondary border border-border font-mono text-xs">F</kbd> or <kbd className="px-1 py-0.5 rounded bg-secondary border border-border font-mono text-xs">Esc</kbd> to exit</span>
+          </div>
+          <button onClick={() => setFocusMode(false)} className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors">
+            <Minimize2 size={13} /> Exit Focus
+          </button>
+        </div>
+      )}
 
       {/* Main content */}
-      <main className="container py-6">
+      <main className={`container ${focusMode ? "py-4" : "py-6"}`}>
         {activeTab === "overview" && <OverviewTab />}
         {activeTab === "coding" && <CodingTab />}
         {activeTab === "behavioral" && <BehavioralTab />}
@@ -129,13 +148,15 @@ export default function Home() {
         {activeTab === "collab" && <CollabLobby />}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-6 mt-8">
-        <div className="container text-center text-xs text-muted-foreground space-y-1">
-          <div>Meta IC6/IC7 Interview Prep Guide · All progress saved locally in your browser</div>
-          <div>Press <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">5</kbd> to switch tabs</div>
-        </div>
-      </footer>
+      {/* Footer — hidden in focus mode */}
+      {!focusMode && (
+        <footer className="border-t border-border py-6 mt-8">
+          <div className="container text-center text-xs text-muted-foreground space-y-1">
+            <div>Meta IC6/IC7 Interview Prep Guide · All progress saved locally in your browser</div>
+            <div>Press <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">5</kbd> to switch tabs · <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">F</kbd> Focus Mode</div>
+          </div>
+        </footer>
+      )}
 
       {/* Onboarding modal */}
       {!onboardingDismissed && <OnboardingModal onDismiss={() => setOnboardingDismissed(true)} />}
