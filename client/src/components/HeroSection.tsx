@@ -229,7 +229,7 @@ export default function HeroSection({ onTabChange }: HeroSectionProps) {
       </div>
 
       {/* Leaderboard */}
-      <div className="mt-4">
+      <div className="mt-4" id="hero-leaderboard">
         <Leaderboard />
       </div>
     </div>

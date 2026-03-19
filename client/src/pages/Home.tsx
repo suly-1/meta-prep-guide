@@ -226,6 +226,12 @@ export default function Home() {
                   { key: "?", desc: "Show / hide this overlay" },
                   { key: "Esc", desc: "Exit Focus Mode / close overlay" },
                 ]},
+                { section: "Quick Actions", shortcuts: [
+                  { key: "⌥1", desc: "Plan / Resume Today's Session" },
+                  { key: "⌥2", desc: "Start Coding Mock" },
+                  { key: "⌥3", desc: "Record STAR Answer" },
+                  { key: "⌥4", desc: "Open Diagram Template" },
+                ]},
                 { section: "Pattern Cards", shortcuts: [
                   { key: "J / K", desc: "Move down / up through patterns" },
                   { key: "Enter", desc: "Expand / collapse pattern" },
@@ -265,22 +271,43 @@ function CollabLobby() {
   const [roomId, setRoomId] = useState("");
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
-
   const generateId = () => Math.random().toString(36).slice(2, 8).toUpperCase();
-
   const handleCreate = () => {
     if (!name.trim()) return;
     const id = generateId();
     window.location.href = `/room/${id}?name=${encodeURIComponent(name.trim())}`;
   };
-
   const handleJoin = () => {
     if (!name.trim() || !roomId.trim()) return;
     window.location.href = `/room/${roomId.trim().toUpperCase()}?name=${encodeURIComponent(name.trim())}`;
   };
-
+  const scrollTo = (id: string) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
   return (
-    <div className="max-w-md mx-auto space-y-4 pt-4">
+    <div className="space-y-4">
+      {/* Quick Actions sticky row */}
+      <div className="sticky top-0 z-20 -mx-4 px-4 py-2.5 bg-background/90 backdrop-blur-sm border-b border-border flex items-center gap-3">
+        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">Quick Actions</span>
+        <div className="flex gap-2 flex-1 flex-wrap">
+          <button
+            onClick={() => scrollTo("collab-create-room")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 text-blue-300 text-xs font-semibold transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Start Collab Session
+          </button>
+          <button
+            onClick={() => scrollTo("hero-leaderboard")}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-600/20 hover:bg-amber-600/30 border border-amber-500/30 text-amber-300 text-xs font-semibold transition-all"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+            View Leaderboard
+          </button>
+        </div>
+      </div>
+      <div id="collab-create-room" className="max-w-md mx-auto space-y-4">
       <div className="prep-card p-6">
         <div className="section-title text-blue-400 mb-4">🤝 Collaborative Mock Interview</div>
         <p className="text-sm text-muted-foreground mb-5">
@@ -326,6 +353,7 @@ function CollabLobby() {
             </div>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );

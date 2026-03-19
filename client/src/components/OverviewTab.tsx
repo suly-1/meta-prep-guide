@@ -1504,10 +1504,25 @@ function QuickActionsRow() {
   useEffect(() => {
     const milestone = STREAK_MILESTONES[streak.currentStreak];
     if (milestone && lastMilestoneDay !== today) {
-      toast(`🔥 ${streak.currentStreak}-day streak! ${milestone}`, {
-        duration: 6000,
-        style: { background: "oklch(0.25 0.02 60)", border: "1px solid oklch(0.6 0.18 60)", color: "oklch(0.9 0.1 60)" },
-      });
+      const tweetText = `🔥 ${streak.currentStreak}-day streak on my Meta IC${streak.currentStreak >= 30 ? 7 : 6} interview prep! ${milestone} #SoftwareEngineering #MetaInterview`;
+      toast.custom(() => (
+        <div style={{ background: "oklch(0.22 0.02 60)", border: "1px solid oklch(0.55 0.18 60)", color: "oklch(0.92 0.08 60)", borderRadius: "0.75rem", padding: "0.75rem 1rem", display: "flex", flexDirection: "column", gap: "0.5rem", minWidth: "280px", maxWidth: "380px" }}>
+          <div style={{ fontWeight: 700, fontSize: "0.875rem" }}>🔥 {streak.currentStreak}-day streak!</div>
+          <div style={{ fontSize: "0.75rem", opacity: 0.85 }}>{milestone}</div>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(tweetText).then(() => {
+                toast.success("Tweet copied to clipboard!", { duration: 2500 });
+              }).catch(() => {
+                toast.error("Couldn't copy — try manually", { duration: 2500 });
+              });
+            }}
+            style={{ alignSelf: "flex-start", marginTop: "0.25rem", padding: "0.25rem 0.75rem", borderRadius: "0.5rem", background: "oklch(0.55 0.18 60)", color: "oklch(0.1 0.01 60)", fontSize: "0.7rem", fontWeight: 700, border: "none", cursor: "pointer" }}
+          >
+            📤 Share
+          </button>
+        </div>
+      ), { duration: 8000 });
       localStorage.setItem("streak_milestone_day", today);
       setLastMilestoneDay(today);
     }
