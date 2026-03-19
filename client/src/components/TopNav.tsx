@@ -1,5 +1,6 @@
 // Design: Bold Engineering Dashboard — dark charcoal, Space Grotesk, blue accent
 import { Sun, Moon, BookOpen, CalendarClock } from "lucide-react";
+import { useState, useRef, useEffect } from "react";
 import { useStreak, useInterviewDate, useSpacedRepetition, usePatternRatings, useBehavioralRatings, useFlashCardSRDue, useDailyChecklist } from "@/hooks/useLocalStorage";
 import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 
@@ -56,6 +57,69 @@ function CountdownPill({ onTabChange }: { onTabChange: (tab: string) => void }) 
   );
 }
 
+// ── Badge breakdown popover ────────────────────────────────────────────────
+interface BadgePopoverProps {
+  items: { label: string; reason: string }[];
+  onJump: () => void;
+  onClose: () => void;
+  title: string;
+}
+
+function BadgePopover({ items, onJump, onClose, title }: BadgePopoverProps) {
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        onClose();
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [onClose]);
+
+  return (
+    <div
+      ref={ref}
+      className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[200] w-64 rounded-xl border border-amber-500/30 bg-background shadow-xl shadow-black/30 overflow-hidden"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Header */}
+      <div className="flex items-center justify-between px-3 py-2 bg-amber-500/10 border-b border-amber-500/20">
+        <span className="text-xs font-bold text-amber-400">{title}</span>
+        <button onClick={onClose} className="text-muted-foreground hover:text-foreground text-xs">✕</button>
+      </div>
+      {/* Item list */}
+      <div className="max-h-52 overflow-y-auto divide-y divide-border">
+        {items.slice(0, 12).map((item, i) => (
+          <button
+            key={i}
+            onClick={() => { onJump(); onClose(); }}
+            className="w-full text-left px-3 py-2 hover:bg-secondary transition-colors group"
+          >
+            <div className="text-xs font-medium text-foreground group-hover:text-amber-400 transition-colors truncate">{item.label}</div>
+            <div className="text-[10px] text-muted-foreground mt-0.5">{item.reason}</div>
+          </button>
+        ))}
+        {items.length > 12 && (
+          <div className="px-3 py-2 text-[10px] text-muted-foreground">
+            +{items.length - 12} more — go to tab to see all
+          </div>
+        )}
+      </div>
+      {/* Footer CTA */}
+      <div className="px-3 py-2 border-t border-border bg-secondary/30">
+        <button
+          onClick={() => { onJump(); onClose(); }}
+          className="w-full text-xs font-semibold text-amber-400 hover:text-amber-300 transition-colors text-center"
+        >
+          Go to tab to review →
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── Tab badge counters ─────────────────────────────────────────────────────
 function useTabBadgeCounts() {
   const [srDue] = useSpacedRepetition();
@@ -65,36 +129,61 @@ function useTabBadgeCounts() {
   const [dailyChecklist] = useDailyChecklist();
   const today = new Date().toISOString().split("T")[0];
 
-  // Coding: SR due patterns + weak patterns (rated 1-2) + incomplete daily checklist items
-  const codingSRDue = PATTERNS.filter(p => srDue[p.id] && srDue[p.id] <= today).length;
-  const weakPatterns = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) > 0 && (patternRatings[p.id] ?? 0) <= 2).length;
-  // Daily checklist: count high-priority incomplete items that relate to coding
-  const dailyIncomplete = Object.keys(dailyChecklist).length > 0
-    ? 0 // if any checklist exists today, don't double-count
-    : 0;
-  const codingDue = codingSRDue + weakPatterns + dailyIncomplete;
+  // Coding: SR due patterns + weak patterns (rated 1-2)
+  const codingSRDuePatterns = PATTERNS.filter(p => srDue[p.id] && srDue[p.id] <= today);
+  const weakPatternsList = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) > 0 && (patternRatings[p.id] ?? 0) <= 2);
+  // Deduplicate by id
+  const codingItemsMap = new Map<string, { label: string; reason: string }>();
+  for (const p of codingSRDuePatterns) {
+    codingItemsMap.set(p.id, { label: p.name, reason: "SR review due" });
+  }
+  for (const p of weakPatternsList) {
+    if (!codingItemsMap.has(p.id)) {
+      codingItemsMap.set(p.id, { label: p.name, reason: `Rated ${patternRatings[p.id] ?? 0}/5 — needs practice` });
+    } else {
+      codingItemsMap.set(p.id, { label: p.name, reason: `SR due + rated ${patternRatings[p.id] ?? 0}/5` });
+    }
+  }
+  const codingItems = Array.from(codingItemsMap.values());
+  const codingDue = codingItems.length;
 
   // Behavioral: SR due BQs + weak BQ stories (rated 1-2)
-  const behavioralSRDue = BEHAVIORAL_QUESTIONS.filter(q => srDue[q.id] && srDue[q.id] <= today).length;
-  const weakBQs = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) > 0 && (bqRatings[q.id] ?? 0) <= 2).length;
-  const behavioralDue = behavioralSRDue + weakBQs;
+  const behavioralSRDueBQs = BEHAVIORAL_QUESTIONS.filter(q => srDue[q.id] && srDue[q.id] <= today);
+  const weakBQsList = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) > 0 && (bqRatings[q.id] ?? 0) <= 2);
+  const behavioralItemsMap = new Map<string, { label: string; reason: string }>();
+  for (const q of behavioralSRDueBQs) {
+    behavioralItemsMap.set(q.id, { label: q.q.length > 50 ? q.q.slice(0, 50) + "…" : q.q, reason: "SR review due" });
+  }
+  for (const q of weakBQsList) {
+    if (!behavioralItemsMap.has(q.id)) {
+      behavioralItemsMap.set(q.id, { label: q.q.length > 50 ? q.q.slice(0, 50) + "…" : q.q, reason: `Rated ${bqRatings[q.id] ?? 0}/5 — needs practice` });
+    } else {
+      behavioralItemsMap.set(q.id, { label: q.q.length > 50 ? q.q.slice(0, 50) + "…" : q.q, reason: `SR due + rated ${bqRatings[q.id] ?? 0}/5` });
+    }
+  }
+  const behavioralItems = Array.from(behavioralItemsMap.values());
+  const behavioralDue = behavioralItems.length;
 
   // System Design: flash card SR due count
   const flashCardDue = Object.values(flashCardSRDue).filter(d => d <= today).length;
 
-  return { codingDue, behavioralDue, flashCardDue };
+  // Suppress unused variable warning
+  void dailyChecklist;
+
+  return { codingDue, behavioralDue, flashCardDue, codingItems, behavioralItems };
 }
 
 export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark }: TopNavProps) {
   const streak = useStreak();
-  const { codingDue, behavioralDue, flashCardDue } = useTabBadgeCounts();
+  const { codingDue, behavioralDue, flashCardDue, codingItems, behavioralItems } = useTabBadgeCounts();
+  const [openPopover, setOpenPopover] = useState<string | null>(null);
 
   const TABS = [
-    { id: "overview",   label: "Overview",      due: 0,             tooltip: "" },
-    { id: "coding",     label: "Coding",        due: codingDue,     tooltip: `${codingDue} item${codingDue !== 1 ? "s" : ""} need attention (weak patterns + SR due)` },
-    { id: "behavioral", label: "Behavioral",    due: behavioralDue, tooltip: `${behavioralDue} item${behavioralDue !== 1 ? "s" : ""} need attention (weak stories + SR due)` },
-    { id: "design",     label: "System Design", due: flashCardDue,  tooltip: `${flashCardDue} flash card${flashCardDue !== 1 ? "s" : ""} due for spaced repetition review` },
-    { id: "collab",     label: "Collab",        due: 0,             tooltip: "" },
+    { id: "overview",   label: "Overview",      due: 0,             items: [] as { label: string; reason: string }[] },
+    { id: "coding",     label: "Coding",        due: codingDue,     items: codingItems },
+    { id: "behavioral", label: "Behavioral",    due: behavioralDue, items: behavioralItems },
+    { id: "design",     label: "System Design", due: flashCardDue,  items: [] },
+    { id: "collab",     label: "Collab",        due: 0,             items: [] },
   ];
 
   return (
@@ -115,23 +204,48 @@ export default function TopNav({ activeTab, onTabChange, darkMode, onToggleDark 
           {/* Tabs — desktop */}
           <nav className="hidden md:flex items-center gap-1">
             {TABS.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => onTabChange(tab.id)}
-                title={tab.due > 0 ? tab.tooltip : undefined}
-                className={`relative px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
-                  activeTab === tab.id
-                    ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
-                    : "text-muted-foreground hover:text-foreground hover:bg-secondary"
-                }`}
-              >
-                {tab.label}
-                {tab.due > 0 && (
-                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-[10px] font-bold text-black flex items-center justify-center leading-none">
-                    {tab.due}
-                  </span>
+              <div key={tab.id} className="relative">
+                <button
+                  onClick={() => {
+                    onTabChange(tab.id);
+                    setOpenPopover(null);
+                  }}
+                  className={`relative px-3.5 py-1.5 rounded-md text-sm font-medium transition-all ${
+                    activeTab === tab.id
+                      ? "bg-blue-500/15 text-blue-400 border border-blue-500/30"
+                      : "text-muted-foreground hover:text-foreground hover:bg-secondary"
+                  }`}
+                >
+                  {tab.label}
+                  {tab.due > 0 && (
+                    <span
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setOpenPopover(openPopover === tab.id ? null : tab.id);
+                      }}
+                      title={`${tab.due} item${tab.due !== 1 ? "s" : ""} need attention — click for details`}
+                      className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 rounded-full bg-amber-500 text-[10px] font-bold text-black flex items-center justify-center leading-none cursor-pointer hover:bg-amber-400 transition-colors"
+                    >
+                      {tab.due}
+                    </span>
+                  )}
+                </button>
+                {/* Breakdown popover for Coding and Behavioral */}
+                {openPopover === tab.id && tab.items.length > 0 && (
+                  <BadgePopover
+                    title={`${tab.due} item${tab.due !== 1 ? "s" : ""} need attention`}
+                    items={tab.items}
+                    onJump={() => onTabChange(tab.id)}
+                    onClose={() => setOpenPopover(null)}
+                  />
                 )}
-              </button>
+                {/* Simple tooltip for System Design (no item list) */}
+                {openPopover === tab.id && tab.items.length === 0 && tab.due > 0 && (
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 z-[200] px-3 py-2 rounded-lg border border-border bg-background shadow-lg text-xs text-muted-foreground whitespace-nowrap">
+                    {tab.due} flash card{tab.due !== 1 ? "s" : ""} due for SR review
+                  </div>
+                )}
+              </div>
             ))}
           </nav>
 

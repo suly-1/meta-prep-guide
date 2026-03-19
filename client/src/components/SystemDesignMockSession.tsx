@@ -299,6 +299,7 @@ export function SystemDesignMockSession() {
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const scoreMutation = trpc.ai.sysDesignMockScorecard.useMutation();
+  const upsertSessionMutation = trpc.mockHistory.upsertSession.useMutation();
 
   const filteredQuestions = SYSTEM_DESIGN_QUESTIONS.filter(
     (q) => levelFilter === "All" || q.level === levelFilter
@@ -371,6 +372,12 @@ export function SystemDesignMockSession() {
         };
         const existing = loadHistory();
         saveHistory([...existing, entry]);
+        // Persist to DB for cross-device sync
+        upsertSessionMutation.mutate({
+          sessionType: "sd",
+          sessionId: entry.id,
+          sessionData: entry as unknown as Record<string, unknown>,
+        });
       } catch {
         toast.error("AI scorecard failed. Please try again.");
       }

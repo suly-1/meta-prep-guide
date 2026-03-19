@@ -283,3 +283,8 @@
 - [x] Sync bqRatings to DB (same table, separate type field)
 - [x] Onboarding all-done confetti burst + share-to-Twitter toast
 - [x] Tab badge counters: Coding (weak patterns + SR due), Behavioral (weak BQs), System Design (SR due flash cards)
+
+## New Features — Round 41
+- [x] CTCI progress DB sync (solved state + self-difficulty estimates, new ctci_progress table)
+- [x] Mock session history DB sync (Coding, System Design, XFN — new mock_sessions table)
+- [x] Badge breakdown popover (Coding: weak patterns list; Behavioral: weak BQ stories list)

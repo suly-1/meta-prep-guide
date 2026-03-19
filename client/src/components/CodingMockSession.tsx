@@ -302,6 +302,7 @@ export function CodingMockSession() {
   const historyCount = loadHistory().length;
 
   const scoreMutation = trpc.ai.codingMockScorecard.useMutation();
+  const upsertSessionMutation = trpc.mockHistory.upsertSession.useMutation();
 
   const filteredPatterns = PATTERNS.filter(p =>
     diffFilter === "All" || p.diff === diffFilter
@@ -379,6 +380,12 @@ export function CodingMockSession() {
       };
       const existing = loadHistory();
       saveHistory([...existing, entry]);
+      // Persist to DB for cross-device sync
+      upsertSessionMutation.mutate({
+        sessionType: "coding",
+        sessionId: entry.id,
+        sessionData: entry as unknown as Record<string, unknown>,
+      });
     } catch {
       // scorecard stays null
     }

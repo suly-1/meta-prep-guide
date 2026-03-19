@@ -278,6 +278,7 @@ export function BehavioralMockSession() {
   });
 
   const scoreMutation = trpc.ai.xfnMockScorecard.useMutation();
+  const upsertSessionMutation = trpc.mockHistory.upsertSession.useMutation();
   const icModeRef = useRef<"IC6" | "IC7">(icMode);
   useEffect(() => { icModeRef.current = icMode; }, [icMode]);
 
@@ -342,6 +343,12 @@ export function BehavioralMockSession() {
         };
         const existing = loadHistory();
         saveHistory([...existing, entry]);
+        // Persist to DB for cross-device sync
+        upsertSessionMutation.mutate({
+          sessionType: "xfn",
+          sessionId: entry.id,
+          sessionData: entry as unknown as Record<string, unknown>,
+        });
       } catch {
         toast.error("AI scorecard failed. Please try again.");
       }

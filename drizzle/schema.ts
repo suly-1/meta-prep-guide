@@ -98,3 +98,24 @@ export const userRatings = mysqlTable("user_ratings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 export type UserRating = typeof userRatings.$inferSelect;
+
+// ── CTCI Progress (solved state + self-difficulty estimates) ────────────────────
+export const ctciProgress = mysqlTable("ctci_progress", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  solved: json("solved").notNull().$type<Record<string, boolean>>(),
+  difficulty: json("difficulty").notNull().$type<Record<string, string>>(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type CtciProgress = typeof ctciProgress.$inferSelect;
+
+// ── Mock Session History (Coding, System Design, XFN) ───────────────────────
+export const mockSessions = mysqlTable("mock_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  sessionType: varchar("sessionType", { length: 32 }).notNull(), // 'coding' | 'sd' | 'xfn'
+  sessionId: varchar("sessionId", { length: 64 }).notNull(), // client-generated nanoid
+  sessionData: json("sessionData").notNull().$type<Record<string, unknown>>(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type MockSession = typeof mockSessions.$inferSelect;

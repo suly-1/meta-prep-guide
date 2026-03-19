@@ -1556,6 +1556,12 @@ function CTCITracker() {
   const [solved, setSolved] = useState<Record<number, boolean>>(() => {
     try { return JSON.parse(localStorage.getItem("ctci_solved") ?? "{}"); } catch { return {}; }
   });
+
+  // DB sync for CTCI progress (hooks declared early; effect wired after diffEstimates below)
+  const ctciDbSynced = useRef(false);
+  const { data: ctciDbData } = trpc.ctciProgress.get.useQuery(undefined, { retry: false });
+  const saveCtciProgressMutation = trpc.ctciProgress.save.useMutation();
+
   const [open, setOpen] = useState(false);
   const [editorOpen, setEditorOpen] = useState<number | null>(null);
   const [editorCode, setEditorCode] = useState<Record<number, string>>(() => {
@@ -1567,6 +1573,29 @@ function CTCITracker() {
   const [notesOpen, setNotesOpen] = useState<number | null>(null);
   const [diffEstOpen, setDiffEstOpen] = useState<number | null>(null);
   const [diffEstimates, setDiffEstimates] = useCTCIDifficultyEstimates();
+
+  // Load from DB on mount — merge DB solved/difficulty into localStorage
+  useEffect(() => {
+    if (ctciDbData && !ctciDbSynced.current) {
+      ctciDbSynced.current = true;
+      setSolved(local => {
+        const merged = { ...local };
+        for (const [k, v] of Object.entries(ctciDbData.solved)) {
+          if (v) merged[Number(k)] = true;
+        }
+        localStorage.setItem("ctci_solved", JSON.stringify(merged));
+        return merged;
+      });
+      setDiffEstimates(local => {
+        const merged = { ...local };
+        for (const [k, v] of Object.entries(ctciDbData.difficulty)) {
+          if (v && !local[k]) merged[k] = { selfRating: v as SelfDifficulty, timestamp: Date.now() };
+        }
+        return merged;
+      });
+    }
+  }, [ctciDbData, setDiffEstimates]);
+
   const [notes, setNotes] = useState<Record<number, string>>(() => {
     try { return JSON.parse(localStorage.getItem("ctci_notes") ?? "{}"); } catch { return {}; }
   });
@@ -1623,6 +1652,18 @@ function CTCITracker() {
     setSolved(s => {
       const next = { ...s, [num]: !s[num] };
       localStorage.setItem("ctci_solved", JSON.stringify(next));
+      // Persist to DB if logged in
+      if (ctciDbSynced.current) {
+        const diffMap: Record<string, string> = {};
+        for (const [k, v] of Object.entries(diffEstimates)) {
+          diffMap[k] = v.selfRating;
+        }
+        const solvedMap: Record<string, boolean> = {};
+        for (const [k, v] of Object.entries(next)) {
+          solvedMap[String(k)] = v;
+        }
+        saveCtciProgressMutation.mutate({ solved: solvedMap, difficulty: diffMap });
+      }
       // Update CTCI streak when solving the daily challenge
       if (next[num] && num === dailyChallengeNum) {
         setCTCIStreak(prev => {
