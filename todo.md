@@ -388,3 +388,6 @@
 
 - [x] Full Mock Interview Scorecard (4-round timed session, LLM composite IC6/IC7 promotion decision)
 - [x] Personalized Weak-Spot Study Plan Generator (7-day plan from actual AI scores)
+
+## Bug Fixes
+- [x] System Design tab crash — root cause: useToast undefined in TopicRoulette (cached browser version from 05:04 AM); confirmed TopNav now uses toast from sonner correctly; removed duplicate Google Fonts @import from index.css
