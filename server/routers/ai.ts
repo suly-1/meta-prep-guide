@@ -600,4 +600,151 @@ Be direct and honest — this is what a real debrief would look like.`,
       if (!rawContent) throw new Error("No response from AI");
       return { explanation: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
     }),
+
+  // ── Code Practice AI ─────────────────────────────────────────────────────
+
+  // 1. AI Solution Reviewer — score code against IC6/IC7 rubric
+  reviewSolution: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      difficulty: z.string().max(10),
+      topic: z.string().max(60),
+      code: z.string().max(6000),
+      language: z.string().max(20),
+      icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+    }))
+    .mutation(async ({ input }) => {
+      const icRubric = input.icMode === "IC7"
+        ? "IC7 (Senior Staff): Require optimal complexity, ≥4 edge cases unprompted, production-quality code structure, and proactive follow-up optimizations."
+        : "IC6 (Staff): Expect clean correct solution, proper complexity analysis, 2-3 edge cases, clear communication. Minor inefficiencies OK if trade-offs explained.";
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: `You are a senior Meta Staff Engineer (E7) reviewing a coding interview solution. ${icRubric} Return JSON only.` },
+          { role: "user", content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nLanguage: ${input.language}\n\nCode:\n${input.code}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence, e.g. 'This signals IC6 — clean solution but missed the O(n) optimization'), "correctness": number (1-5), "complexity": number (1-5), "edgeCases": number (1-5), "codeQuality": number (1-5), "icLevel": "IC5"|"IC6"|"IC7", "strengths": [string, string], "coaching": string (one concrete improvement), "optimalComplexity": string (e.g. 'O(n) time, O(1) space') }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "solution_review", strict: true, schema: { type: "object", properties: { score: { type: "number" }, verdict: { type: "string" }, correctness: { type: "number" }, complexity: { type: "number" }, edgeCases: { type: "number" }, codeQuality: { type: "number" }, icLevel: { type: "string" }, strengths: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 2 }, coaching: { type: "string" }, optimalComplexity: { type: "string" } }, required: ["score", "verdict", "correctness", "complexity", "edgeCases", "codeQuality", "icLevel", "strengths", "coaching", "optimalComplexity"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { score: number; verdict: string; correctness: number; complexity: number; edgeCases: number; codeQuality: number; icLevel: string; strengths: string[]; coaching: string; optimalComplexity: string };
+    }),
+
+  // 2. 3-Level Hint System — progressive hints without giving away the answer
+  getProgressiveHint: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      difficulty: z.string().max(10),
+      topic: z.string().max(60),
+      description: z.string().max(1000),
+      level: z.number().int().min(1).max(3),
+    }))
+    .mutation(async ({ input }) => {
+      const levelInstructions = [
+        "Level 1 (Pattern Recognition): Give ONLY a pattern recognition hint — what data structure or algorithmic pattern applies. Do NOT mention the approach. Example: 'Think about what data structure gives O(1) lookup.' Max 2 sentences.",
+        "Level 2 (Approach): Give a directional approach hint — the general strategy without pseudocode. Example: 'Try a sliding window with two pointers — expand right, shrink left when the window becomes invalid.' Max 3 sentences.",
+        "Level 3 (Pseudocode Skeleton): Provide a pseudocode skeleton with blanks for the candidate to fill in. Show the structure but leave the key logic as comments like '# fill in: condition to shrink window'. Max 10 lines.",
+      ][input.level - 1];
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: `You are a Meta coding interviewer giving a progressive hint. ${levelInstructions} Do NOT give the full solution.` },
+          { role: "user", content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nDescription: ${input.description}\n\nGive a Level ${input.level} hint.` },
+        ],
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { hint: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent), level: input.level };
+    }),
+
+  // 3. Follow-Up Question Generator — 2-3 interviewer follow-ups after solution
+  generateFollowUps: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      difficulty: z.string().max(10),
+      topic: z.string().max(60),
+      code: z.string().max(6000),
+      icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: `You are a senior Meta ${input.icMode} interviewer. After a candidate submits their solution, you ask 3 follow-up questions to probe deeper. Questions should test: edge cases, scalability, alternative approaches, or real-world constraints. Return JSON only.` },
+          { role: "user", content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nSolution:\n${input.code}\n\nReturn JSON: { "questions": [ { "question": string, "intent": string (why you're asking), "icLevel": "IC6"|"IC7" (which level this question targets) } ] }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "followup_questions", strict: true, schema: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, intent: { type: "string" }, icLevel: { type: "string" } }, required: ["question", "intent", "icLevel"], additionalProperties: false }, minItems: 2, maxItems: 3 } }, required: ["questions"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { questions: Array<{ question: string; intent: string; icLevel: string }> };
+    }),
+
+  // 4. Complexity Analyzer — identify actual vs optimal time/space complexity
+  analyzeComplexity: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      topic: z.string().max(60),
+      code: z.string().max(6000),
+      language: z.string().max(20),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta engineer analyzing the time and space complexity of a coding solution. Be precise. Return JSON only." },
+          { role: "user", content: `Problem: ${input.problemTitle} (${input.topic})\nLanguage: ${input.language}\n\nCode:\n${input.code}\n\nReturn JSON: { "actualTime": string (e.g. 'O(n log n)'), "actualSpace": string, "optimalTime": string, "optimalSpace": string, "isOptimal": boolean, "timeExplanation": string (1-2 sentences explaining the actual time complexity), "gapExplanation": string (if not optimal: what change would achieve optimal; if optimal: 'Your solution is already optimal.'), "bottleneck": string (the specific line or operation that dominates the complexity) }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "complexity_analysis", strict: true, schema: { type: "object", properties: { actualTime: { type: "string" }, actualSpace: { type: "string" }, optimalTime: { type: "string" }, optimalSpace: { type: "string" }, isOptimal: { type: "boolean" }, timeExplanation: { type: "string" }, gapExplanation: { type: "string" }, bottleneck: { type: "string" } }, required: ["actualTime", "actualSpace", "optimalTime", "optimalSpace", "isOptimal", "timeExplanation", "gapExplanation", "bottleneck"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { actualTime: string; actualSpace: string; optimalTime: string; optimalSpace: string; isOptimal: boolean; timeExplanation: string; gapExplanation: string; bottleneck: string };
+    }),
+
+  // 5. Pattern Recognition Trainer — score candidate's pattern guess
+  scorePatternGuess: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      description: z.string().max(1000),
+      correctTopic: z.string().max(60),
+      candidateGuess: z.string().max(200),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a Meta coding interviewer scoring a candidate's pattern recognition guess. Return JSON only." },
+          { role: "user", content: `Problem: ${input.problemTitle}\nDescription: ${input.description}\nCorrect pattern: ${input.correctTopic}\nCandidate's guess: ${input.candidateGuess}\n\nReturn JSON: { "isCorrect": boolean, "score": number (0-3: 0=wrong, 1=partially right, 2=right pattern wrong name, 3=exactly right), "feedback": string (1-2 sentences: confirm/correct the guess and explain why this pattern fits), "keySignal": string (the one signal in the problem description that most strongly indicates this pattern) }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "pattern_score", strict: true, schema: { type: "object", properties: { isCorrect: { type: "boolean" }, score: { type: "number" }, feedback: { type: "string" }, keySignal: { type: "string" } }, required: ["isCorrect", "score", "feedback", "keySignal"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { isCorrect: boolean; score: number; feedback: string; keySignal: string };
+    }),
+
+  // 6. IC7 Optimization Challenge — challenge candidate to improve their solution
+  ic7OptimizationChallenge: publicProcedure
+    .input(z.object({
+      problemTitle: z.string().max(200),
+      topic: z.string().max(60),
+      code: z.string().max(6000),
+      language: z.string().max(20),
+      currentComplexity: z.string().max(100),
+      targetComplexity: z.string().max(100),
+      hint: z.boolean().default(false),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta Principal Engineer (IC7) challenging a candidate to optimize their solution. Be direct and Socratic — ask questions, don't give answers. Return JSON only." },
+          { role: "user", content: `Problem: ${input.problemTitle} (${input.topic})\nLanguage: ${input.language}\nCurrent solution complexity: ${input.currentComplexity}\nTarget complexity: ${input.targetComplexity}\n\nCode:\n${input.code}\n\nReturn JSON: { "challenge": string (the IC7 challenge statement, e.g. 'Your O(n log n) solution is correct. Can you get to O(n)?'), "probeQuestion": string (one Socratic question to guide them without giving the answer), ${input.hint ? '"hint": string (a concrete directional hint — what to change, not how),' : '"hint": null,'} "ic7Insight": string (what an IC7 engineer would immediately see that the current solution misses) }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "ic7_challenge", strict: true, schema: { type: "object", properties: { challenge: { type: "string" }, probeQuestion: { type: "string" }, hint: { type: ["string", "null"] }, ic7Insight: { type: "string" } }, required: ["challenge", "probeQuestion", "hint", "ic7Insight"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { challenge: string; probeQuestion: string; hint: string | null; ic7Insight: string };
+    }),
 });

@@ -7,6 +7,8 @@ import { Play, Shuffle, Zap, Trophy, Timer, Flame, ChevronDown, ChevronRight, Ch
 import { useLocalStorage } from "@/hooks/useLocalStorage";
 import { toast } from "sonner";
 
+import { CodePracticeAIPanel } from "@/components/CodePracticeAI";
+
 // ── Problem Data ───────────────────────────────────────────────────────────
 type Difficulty = "Easy" | "Medium" | "Hard";
 type Topic = "Arrays" | "Strings" | "Linked Lists" | "Trees" | "Graphs" | "DP" | "Backtracking" | "Sorting" | "Binary Search" | "Heaps" | "Tries" | "Sliding Window" | "Two Pointers" | "Stack/Queue" | "Math" | "Bit Manipulation";
@@ -303,7 +305,7 @@ export default function CodePracticeTab() {
       </div>
 
       {/* Main layout */}
-      <div className="flex flex-col lg:flex-row gap-4 min-h-[600px]">
+      <div className="flex flex-col xl:flex-row gap-4 min-h-[600px]">
         {/* Problem list */}
         <div className="lg:w-80 shrink-0 flex flex-col gap-3">
           {/* Filters */}
@@ -368,6 +370,7 @@ export default function CodePracticeTab() {
 
         {/* Editor panel */}
         {selectedProblem ? (
+          <div className="flex-1 flex flex-col xl:flex-row gap-3 min-w-0">
           <div className="flex-1 flex flex-col gap-3 min-w-0">
             {/* Problem header */}
             <div className="flex flex-col gap-2 p-4 rounded-xl border border-border bg-secondary/30">
@@ -497,6 +500,15 @@ export default function CodePracticeTab() {
                 Note: This is a practice editor. Code runs in your browser only — no execution engine. Use LeetCode or a local IDE to test your solution.
               </p>
             </div>
+          </div>
+          {/* AI Panel */}
+          <div className="xl:w-80 shrink-0 flex flex-col gap-2">
+            <CodePracticeAIPanel
+              problem={selectedProblem}
+              code={code}
+              language={lang}
+            />
+          </div>
           </div>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center gap-4 rounded-xl border border-dashed border-border text-center p-8">

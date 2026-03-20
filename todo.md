@@ -350,3 +350,18 @@
 - [x] Complexity Cheat Sheet (CAP theorem, latency numbers)
 - [x] Explain Like a PM Mode (LLM)
 - [x] Time-Boxed Practice Timer with phase checkpoints
+
+## New Features (Batch 6)
+
+- [ ] System Design Diagram Canvas (React Flow, Meta component nodes, PNG export)
+- [ ] Mock Full Interview Day (4-round chained session, composite IC6/IC7 scorecard)
+- [ ] Weak Area Auto-Drill (Drill this now button after AI scorecards)
+
+## New Features (Batch 7 — Code Practice AI)
+
+- [x] AI Solution Reviewer (IC6/IC7 rubric scoring, verdict, coaching note)
+- [x] 3-Level Hint System (pattern recognition → approach → pseudocode skeleton)
+- [x] Follow-Up Question Generator (2-3 interviewer follow-ups after solution)
+- [x] Complexity Analyzer (actual vs optimal time/space with gap explanation)
+- [x] Pattern Recognition Trainer (hide label, score candidate's pattern guess)
+- [x] IC7 Optimization Challenge (auto-challenge after IC6-level solution)
