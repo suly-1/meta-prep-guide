@@ -6,6 +6,7 @@ import { useFlashCardSRDue } from "@/hooks/useLocalStorage";
 import { SystemDesignMockSession } from "@/components/SystemDesignMockSession";
 import { CapacityCalculator, DesignPatternLibrary, FlashCardCSVImport } from "@/components/SystemDesignExtras";
 import { SystemDesignDiagramTemplates } from "@/components/SystemDesignDiagramTemplates";
+import SystemDesignFailureAnalysis from "@/components/SystemDesignFailureAnalysis";
 import {
   GuidedDesignWalkthrough,
   TradeoffDecisionSimulator,
@@ -1120,7 +1121,14 @@ export default function SystemDesignTab() {
           <EnhancedQuestionBank />
         </div>
       </div>
-
+      {/* ═══════════════════════════════════════════════════════════════
+           📊 WHY CANDIDATES FAIL — Research-backed failure analysis
+          ═══════════════════════════════════════════════════════════════ */}
+      <div id="sd-failure-analysis" className="prep-card border border-red-500/20 bg-red-500/5">
+        <div className="p-4">
+          <SystemDesignFailureAnalysis />
+        </div>
+      </div>
     </div>
   );
 }
