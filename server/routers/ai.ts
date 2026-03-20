@@ -486,4 +486,118 @@ Be direct and honest — this is what a real debrief would look like.`,
       if (!rawContent) throw new Error("No response from AI");
       return { explanation: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
     }),
+
+  // Guided Design Walkthrough — AI feedback on full walkthrough transcript
+  guidedWalkthroughFeedback: publicProcedure
+    .input(z.object({
+      problem: z.string().max(200),
+      transcript: z.string().max(8000),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta Staff/Principal Engineer conducting a system design interview. Score the candidate's walkthrough against the IC6/IC7 rubric. Be specific, constructive, and cite exact quotes from their transcript. Respond in Markdown." },
+          { role: "user", content: `Problem: ${input.problem}\n\nCandidate's walkthrough:\n${input.transcript}\n\nProvide: 1) Overall IC level signal (IC5/IC6/IC7) with one-line verdict. 2) Strengths (2-3 specific things done well). 3) Gaps (2-3 specific things missing or weak). 4) IC7 differentiators they missed. 5) One concrete suggestion to improve the weakest section. Keep total response under 400 words.` },
+        ],
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { feedback: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
+    }),
+
+  // Trade-off Decision Simulator — score a candidate's trade-off justification
+  scoreTradeoff: publicProcedure
+    .input(z.object({
+      scenarioTitle: z.string().max(200),
+      context: z.string().max(500),
+      question: z.string().max(300),
+      chosenOption: z.string().max(100),
+      chosenDesc: z.string().max(300),
+      justification: z.string().max(2000),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta engineer scoring a system design trade-off justification. Score 1-5. Return JSON only." },
+          { role: "user", content: `Scenario: ${input.scenarioTitle}\nContext: ${input.context}\nQuestion: ${input.question}\nChosen: ${input.chosenOption} — ${input.chosenDesc}\nJustification: ${input.justification}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence), "coaching": string (one concrete improvement), "ic7Signal": string (what IC7 answer would add) }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "tradeoff_score", strict: true, schema: { type: "object", properties: { score: { type: "number" }, verdict: { type: "string" }, coaching: { type: "string" }, ic7Signal: { type: "string" } }, required: ["score", "verdict", "coaching", "ic7Signal"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { score: number; verdict: string; coaching: string; ic7Signal: string };
+    }),
+
+  // Architecture Anti-Pattern Detector
+  detectAntiPatterns: publicProcedure
+    .input(z.object({ design: z.string().max(4000) }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta engineer reviewing a system design for anti-patterns. Return JSON only." },
+          { role: "user", content: `Design description:\n${input.design}\n\nIdentify up to 5 anti-patterns. Return JSON: { "antiPatterns": [ { "name": string, "severity": "Critical"|"High"|"Medium", "explanation": string, "fix": string } ], "overallSignal": string, "icLevel": "IC5"|"IC6"|"IC7" }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "anti_patterns", strict: true, schema: { type: "object", properties: { antiPatterns: { type: "array", items: { type: "object", properties: { name: { type: "string" }, severity: { type: "string" }, explanation: { type: "string" }, fix: { type: "string" } }, required: ["name", "severity", "explanation", "fix"], additionalProperties: false } }, overallSignal: { type: "string" }, icLevel: { type: "string" } }, required: ["antiPatterns", "overallSignal", "icLevel"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { antiPatterns: Array<{ name: string; severity: string; explanation: string; fix: string }>; overallSignal: string; icLevel: string };
+    }),
+
+  // Peer Design Review — generate adversarial questions
+  peerDesignReview: publicProcedure
+    .input(z.object({
+      problem: z.string().max(200),
+      design: z.string().max(4000),
+      icMode: z.enum(["IC6", "IC7"]),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: `You are a skeptical senior ${input.icMode} Meta engineer reviewing a system design. Generate 3 adversarial follow-up questions that probe weak points. Return JSON only.` },
+          { role: "user", content: `Problem: ${input.problem}\nDesign: ${input.design}\n\nReturn JSON: { "questions": [ { "question": string, "whyAsked": string, "goodAnswerHint": string } ], "overallVerdict": string, "ic7Gap": string }` },
+        ],
+        response_format: { type: "json_schema", json_schema: { name: "peer_review", strict: true, schema: { type: "object", properties: { questions: { type: "array", items: { type: "object", properties: { question: { type: "string" }, whyAsked: { type: "string" }, goodAnswerHint: { type: "string" } }, required: ["question", "whyAsked", "goodAnswerHint"], additionalProperties: false } }, overallVerdict: { type: "string" }, ic7Gap: { type: "string" } }, required: ["questions", "overallVerdict", "ic7Gap"], additionalProperties: false } } },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      const parsed = typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
+      return parsed as { questions: Array<{ question: string; whyAsked: string; goodAnswerHint: string }>; overallVerdict: string; ic7Gap: string };
+    }),
+
+  // Score Peer Review Answers
+  scorePeerReviewAnswers: publicProcedure
+    .input(z.object({
+      problem: z.string().max(200),
+      icMode: z.enum(["IC6", "IC7"]),
+      transcript: z.string().max(6000),
+    }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: `You are a senior Meta ${input.icMode} engineer scoring a candidate's defense of their system design. Be specific and cite their answers. Respond in Markdown.` },
+          { role: "user", content: `Problem: ${input.problem}\n\nQ&A Transcript:\n${input.transcript}\n\nProvide: 1) Overall defense score (1-5) with verdict. 2) Best answer (cite it). 3) Weakest answer and what was missing. 4) IC7 signal: what would a principal engineer have said differently? Keep under 350 words.` },
+        ],
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { feedback: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
+    }),
+
+  // Explain Like a PM
+  explainLikeAPM: publicProcedure
+    .input(z.object({ design: z.string().max(4000) }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          { role: "system", content: "You are a senior Meta engineer who excels at communicating technical architecture to non-technical stakeholders. Rewrite the given technical design in clear, jargon-free language that a Product Manager or business executive would understand. Focus on: what the system does, why each major decision was made, what risks were mitigated, and what the user impact is. Respond in Markdown." },
+          { role: "user", content: `Technical design:\n${input.design}\n\nRewrite this for a PM audience. Use analogies where helpful. Keep under 300 words.` },
+        ],
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { explanation: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
+    }),
 });

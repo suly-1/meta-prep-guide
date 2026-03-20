@@ -6,6 +6,19 @@ import { useFlashCardSRDue } from "@/hooks/useLocalStorage";
 import { SystemDesignMockSession } from "@/components/SystemDesignMockSession";
 import { CapacityCalculator, DesignPatternLibrary, FlashCardCSVImport } from "@/components/SystemDesignExtras";
 import { SystemDesignDiagramTemplates } from "@/components/SystemDesignDiagramTemplates";
+import {
+  GuidedDesignWalkthrough,
+  TradeoffDecisionSimulator,
+  MetaComponentLibrary,
+  ScaleEstimationCalculator,
+  AntiPatternDetector,
+  PeerDesignReview,
+  DesignDocGenerator,
+  ComplexityCheatSheet,
+  ExplainLikeAPM,
+  TimeBoxedPracticeTimer,
+  EnhancedQuestionBank,
+} from "@/components/SystemDesignEnhancements";
 
 const FRAMEWORK_STEPS = [
   { step: "1. Requirements", time: "5 min", items: ["Functional: what the system must do", "Non-functional: scale, latency, availability, consistency", "Ask: DAU, QPS, data volume, read/write ratio", "Clarify: global vs regional, mobile vs web"] },
@@ -938,6 +951,176 @@ export default function SystemDesignTab() {
 
       {/* System Design Flash Cards Drill Mode */}
       <SystemDesignFlashCards />
+
+      {/* ═══════════════════════════════════════════════════════════════
+           🆕 SYSTEM DESIGN ENHANCEMENTS — BATCH 5
+          ═══════════════════════════════════════════════════════════════ */}
+
+      {/* Time-Boxed Practice Timer */}
+      <div className="prep-card border border-blue-500/20 bg-blue-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-400">⏱</span>
+            <span className="text-sm font-bold text-foreground">Time-Boxed Practice Timer</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">45/60/30-min interview timer with phase checkpoints and transition alerts.</p>
+        </div>
+        <div className="p-4">
+          <TimeBoxedPracticeTimer />
+        </div>
+      </div>
+
+      {/* Guided Design Walkthrough */}
+      <div className="prep-card border border-blue-500/20 bg-blue-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Brain size={14} className="text-blue-400" />
+            <span className="text-sm font-bold text-foreground">Guided Design Walkthrough Mode</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold">NEW · AI</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Walk through any problem using Meta's 5-step framework. Get AI coaching on your IC6/IC7 signal.</p>
+        </div>
+        <div className="p-4">
+          <GuidedDesignWalkthrough />
+        </div>
+      </div>
+
+      {/* Trade-off Decision Simulator */}
+      <div className="prep-card border border-violet-500/20 bg-violet-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-violet-400" />
+            <span className="text-sm font-bold text-foreground">Trade-off Decision Simulator</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-semibold">NEW · AI</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Pick a strategy, justify it, get IC6/IC7 scoring. 5 real Meta-scale scenarios.</p>
+        </div>
+        <div className="p-4">
+          <TradeoffDecisionSimulator />
+        </div>
+      </div>
+
+      {/* Meta-Specific Component Library */}
+      <div className="prep-card border border-cyan-500/20 bg-cyan-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Database size={14} className="text-cyan-400" />
+            <span className="text-sm font-bold text-foreground">Meta-Specific Component Library</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">TAO, Memcache, Scuba, ZippyDB, Laser, Tupperware, Haystack, Presto — with IC7 interview signals.</p>
+        </div>
+        <div className="p-4">
+          <MetaComponentLibrary />
+        </div>
+      </div>
+
+      {/* Enhanced Scale Estimation Calculator */}
+      <div className="prep-card border border-cyan-500/20 bg-cyan-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <BarChart3 size={14} className="text-cyan-400" />
+            <span className="text-sm font-bold text-foreground">Scale Estimation Calculator</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Real-time sliders for DAU, writes, reads, record size, retention, media. Instant QPS, storage, and bandwidth estimates with sanity warnings.</p>
+        </div>
+        <div className="p-4">
+          <ScaleEstimationCalculator />
+        </div>
+      </div>
+
+      {/* Architecture Anti-Pattern Detector */}
+      <div className="prep-card border border-rose-500/20 bg-rose-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Shield size={14} className="text-rose-400" />
+            <span className="text-sm font-bold text-foreground">Architecture Anti-Pattern Detector</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 font-semibold">NEW · AI</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Paste your design. AI scans for SPOFs, missing async processing, no consistency model, and other IC6 failure patterns.</p>
+        </div>
+        <div className="p-4">
+          <AntiPatternDetector />
+        </div>
+      </div>
+
+      {/* Peer Design Review Simulator */}
+      <div className="prep-card border border-emerald-500/20 bg-emerald-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Search size={14} className="text-emerald-400" />
+            <span className="text-sm font-bold text-foreground">Peer Design Review Simulator</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold">NEW · AI</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Describe your design. A skeptical senior engineer asks 3 adversarial questions to probe it under pressure.</p>
+        </div>
+        <div className="p-4">
+          <PeerDesignReview />
+        </div>
+      </div>
+
+      {/* Complexity Cheat Sheet */}
+      <div className="prep-card border border-amber-500/20 bg-amber-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-amber-400">📊</span>
+            <span className="text-sm font-bold text-foreground">Complexity Cheat Sheet</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Latency numbers every engineer should know, CAP theorem quick reference, and read/write patterns.</p>
+        </div>
+        <div className="p-4">
+          <ComplexityCheatSheet />
+        </div>
+      </div>
+
+      {/* Design Doc Template Generator */}
+      <div className="prep-card border border-violet-500/20 bg-violet-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-violet-400">📄</span>
+            <span className="text-sm font-bold text-foreground">Design Doc Template Generator</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Fill in each section to generate a Meta-style design doc. Export as Markdown or PDF.</p>
+        </div>
+        <div className="p-4">
+          <DesignDocGenerator />
+        </div>
+      </div>
+
+      {/* Explain Like a PM */}
+      <div className="prep-card border border-orange-500/20 bg-orange-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <Zap size={14} className="text-orange-400" />
+            <span className="text-sm font-bold text-foreground">Explain Like a PM Mode</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-orange-500/20 text-orange-300 font-semibold">NEW · AI</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">Paste your technical design. AI rewrites it in PM-friendly language — practicing the IC7 communication skill.</p>
+        </div>
+        <div className="p-4">
+          <ExplainLikeAPM />
+        </div>
+      </div>
+
+      {/* Enhanced Question Bank */}
+      <div className="prep-card border border-blue-500/20 bg-blue-500/5">
+        <div className="p-4 border-b border-border">
+          <div className="flex items-center gap-2">
+            <span className="text-blue-400">📚</span>
+            <span className="text-sm font-bold text-foreground">Question Bank with Difficulty Tiers</span>
+            <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-blue-500/20 text-blue-300 font-semibold">NEW</span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-1">20 questions categorised by tier (Coding-Adjacent / Full System Design / Deep Dive) and Meta relevance.</p>
+        </div>
+        <div className="p-4">
+          <EnhancedQuestionBank />
+        </div>
+      </div>
+
     </div>
   );
 }

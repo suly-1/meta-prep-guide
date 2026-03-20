@@ -330,3 +330,23 @@
 - [x] D-0 Interview Day Mode — 2-hour morning routine (warm-up, STAR reviews, design recap, breathing timer)
 - [x] Last-Mile Cheat Sheet Generator — 1-page PDF (top 3 STAR stories, 5 weakest patterns, SD template)
 - [x] Confidence Calibration Quiz — 10-question rapid-fire self-assessment with readiness score + focus recs
+
+## New Features (Batch 4)
+
+- [ ] Post-Interview Debrief Form (localStorage + PDF export)
+- [ ] Mock Interviewer Persona Selector (tough vs supportive)
+- [ ] Recruiter Email Draft Generator (LLM-powered)
+
+## System Design Enhancements (Batch 5)
+
+- [x] Guided Design Walkthrough Mode (LLM step-by-step coach)
+- [x] Trade-off Decision Simulator (LLM scoring)
+- [x] Meta-Specific Component Library (TAO, Memcache, Scuba, ZippyDB, Laser, Tupperware)
+- [x] Scale Estimation Calculator (DAU/QPS/storage)
+- [ ] System Design Question Bank with Difficulty Tiers
+- [x] Architecture Anti-Pattern Detector (LLM)
+- [x] Peer Design Review Simulator (LLM adversarial questions)
+- [x] Design Doc Template Generator
+- [x] Complexity Cheat Sheet (CAP theorem, latency numbers)
+- [x] Explain Like a PM Mode (LLM)
+- [x] Time-Boxed Practice Timer with phase checkpoints
