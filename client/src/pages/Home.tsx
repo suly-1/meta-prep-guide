@@ -10,6 +10,7 @@ import CodingTab from "@/components/CodingTab";
 import BehavioralTab from "@/components/BehavioralTab";
 import OverviewTab from "@/components/OverviewTab";
 import SystemDesignTab from "@/components/SystemDesignTab";
+import CodePracticeTab from "@/components/CodePracticeTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -37,7 +38,7 @@ function triggerConfetti() {
 export default function Home() {
   const { gateOpen, dbLoading, confirm: confirmDisclaimer } = useDisclaimerGate();
   // Deep-link URL routing: ?tab=coding&section=mock
-  const VALID_TABS = ["overview", "coding", "behavioral", "design", "collab"];
+  const VALID_TABS = ["overview", "coding", "behavioral", "design", "collab", "practice"];
   const getTabFromUrl = () => {
     const params = new URLSearchParams(window.location.search);
     const t = params.get("tab");
@@ -235,6 +236,7 @@ export default function Home() {
         {activeTab === "behavioral" && <BehavioralTab />}
         {activeTab === "design" && <SystemDesignTab />}
         {activeTab === "collab" && <CollabLobby />}
+        {activeTab === "practice" && <CodePracticeTab />}
       </main>
 
       {/* Footer — hidden in focus mode */}

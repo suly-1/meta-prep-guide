@@ -4,7 +4,7 @@
 // with peer comparison, progress export, interview day checklist
 import { useState, useEffect } from "react";
 import { Calendar, Download, Printer, Target, Brain, TrendingUp, Flame, ChevronDown, ChevronUp, Copy, Check, Send, Trophy, HelpCircle } from "lucide-react";
-import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
+import { PATTERNS, BEHAVIORAL_QUESTIONS, STAR_STORIES, PREP_TIMELINE, FAST_TRACK_TIMELINE, TEN_WEEK_TIMELINE, INTERVIEW_DAY_CHECKLIST, RESOURCES, IC_COMPARISON, PEER_BENCHMARKS } from "@/lib/data";
 import { usePatternRatings, useBehavioralRatings, useMockHistory, useInterviewDate, useStarNotes, useStreak, useReadinessTrend, useCTCIStreak, useReadinessGoal, useHintAnalytics, useCTCIDifficultyEstimates } from "@/hooks/useLocalStorage";
 import { CTCI_QUESTIONS } from "@/lib/ctciData";
 import { toast } from "sonner";
@@ -521,9 +521,9 @@ function InterviewCountdown() {
 // ── Prep Timeline ──────────────────────────────────────────────────────────
 function PrepTimeline() {
   const [interviewDate] = useInterviewDate();
-  const [mode, setMode] = useState<"standard" | "fast">("standard");
+  const [mode, setMode] = useState<"standard" | "fast" | "10week">("standard");
 
-  const timeline = mode === "fast" ? FAST_TRACK_TIMELINE : PREP_TIMELINE;
+  const timeline = mode === "fast" ? FAST_TRACK_TIMELINE : mode === "10week" ? TEN_WEEK_TIMELINE : PREP_TIMELINE;
 
   const currentWeek = (() => {
     if (!interviewDate) return -1;
@@ -532,11 +532,26 @@ function PrepTimeline() {
       if (days > 7) return 0;
       return 1;
     }
+    if (mode === "10week") {
+      if (days > 63) return 0;
+      if (days > 56) return 1;
+      if (days > 49) return 2;
+      if (days > 42) return 3;
+      if (days > 35) return 4;
+      if (days > 28) return 5;
+      if (days > 21) return 6;
+      if (days > 14) return 7;
+      if (days > 7) return 8;
+      return 9;
+    }
     if (days > 21) return 0;
     if (days > 14) return 1;
     if (days > 7) return 2;
     return 3;
   })();
+
+  const accentColor = mode === "fast" ? "orange" : mode === "10week" ? "emerald" : "blue";
+  const totalLabel = mode === "fast" ? "2 weeks" : mode === "10week" ? "10 weeks" : "4 weeks";
 
   return (
     <div className="prep-card p-5">
@@ -564,14 +579,30 @@ function PrepTimeline() {
           >
             ⚡ 2-Week
           </button>
+          <button
+            onClick={() => setMode("10week")}
+            className={`px-3 py-1 rounded-md text-xs font-semibold transition-all ${
+              mode === "10week"
+                ? "bg-emerald-600 text-white shadow"
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+          >
+            🗓️ 10-Week
+          </button>
         </div>
       </div>
 
-      {/* Fast-track warning */}
+      {/* Mode-specific warnings */}
       {mode === "fast" && (
         <div className="mb-3 p-3 rounded-lg border border-orange-500/30 bg-orange-500/5 text-xs text-orange-300">
           <span className="font-semibold text-orange-400">⚠️ Fast-Track: </span>
           Requires 3–4 hours of focused daily practice. Best for candidates with strong CS fundamentals who need to sharpen interview-specific skills quickly.
+        </div>
+      )}
+      {mode === "10week" && (
+        <div className="mb-3 p-3 rounded-lg border border-emerald-500/30 bg-emerald-500/5 text-xs text-emerald-300">
+          <span className="font-semibold text-emerald-400">🗓️ Comprehensive Plan: </span>
+          Ideal for candidates with 10+ weeks before their interview. Builds deep mastery with time for multiple full mock days and weak-spot elimination. Requires ~2 hours/day.
         </div>
       )}
 
@@ -584,7 +615,9 @@ function PrepTimeline() {
               i === currentWeek
                 ? mode === "fast"
                   ? "border-orange-500/40 bg-orange-500/5"
-                  : "border-blue-500/40 bg-blue-500/5"
+                  : mode === "10week"
+                    ? "border-emerald-500/40 bg-emerald-500/5"
+                    : "border-blue-500/40 bg-blue-500/5"
                 : "border-border bg-secondary/30"
             }`}
           >
@@ -592,11 +625,13 @@ function PrepTimeline() {
               <span className="text-xs font-bold text-foreground">{week.week}</span>
               <span className={`badge ${
                 i === currentWeek
-                  ? mode === "fast" ? "badge-orange" : "badge-blue"
+                  ? mode === "fast" ? "badge-orange" : mode === "10week" ? "badge-green" : "badge-blue"
                   : "badge-gray"
               }`}>{week.focus}</span>
               {i === currentWeek && (
-                <span className={`badge text-xs ${mode === "fast" ? "badge-orange" : "badge-blue"}`}>
+                <span className={`badge text-xs ${
+                  mode === "fast" ? "badge-orange" : mode === "10week" ? "badge-green" : "badge-blue"
+                }`}>
                   ← You are here
                 </span>
               )}
@@ -604,7 +639,9 @@ function PrepTimeline() {
             <ul className="space-y-1">
               {week.items.map((item, j) => (
                 <li key={j} className="flex items-start gap-2 text-xs text-muted-foreground">
-                  <span className={`mt-0.5 ${mode === "fast" ? "text-orange-400" : "text-blue-400"}`}>·</span>
+                  <span className={`mt-0.5 ${
+                    mode === "fast" ? "text-orange-400" : mode === "10week" ? "text-emerald-400" : "text-blue-400"
+                  }`}>·</span>
                   {item}
                 </li>
               ))}
@@ -616,7 +653,7 @@ function PrepTimeline() {
       {/* Footer */}
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
         <span>
-          Total: <span className="font-semibold text-foreground">{mode === "fast" ? "2 weeks" : "4 weeks"}</span> to interview-ready
+          Total: <span className="font-semibold text-foreground">{totalLabel}</span> to interview-ready
         </span>
         {interviewDate && (
           <span>Interview in <span className="font-semibold text-foreground">{getDaysUntil(interviewDate)} days</span></span>
@@ -839,6 +876,84 @@ function ProgressExport() {
         className="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-secondary hover:bg-accent border border-border text-sm font-semibold text-muted-foreground hover:text-foreground transition-all">
         <Download size={13} /> Export Progress Report (.txt)
       </button>
+    </div>
+  );
+}
+
+// ── Share Prep State URL ──────────────────────────────────────────────────
+function SharePrepState() {
+  const [patternRatings] = usePatternRatings();
+  const [bqRatings] = useBehavioralRatings();
+  const [interviewDate] = useInterviewDate();
+  const [copied, setCopied] = useState(false);
+
+  const generateShareUrl = () => {
+    const masteredPatterns = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4).map(p => p.id);
+    const readyStories = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 4).map(q => q.id);
+    const overallPct = Math.round(((masteredPatterns.length / PATTERNS.length) * 0.6 + (readyStories.length / BEHAVIORAL_QUESTIONS.length) * 0.4) * 100);
+    const params = new URLSearchParams();
+    params.set("tab", "overview");
+    params.set("shared", "1");
+    params.set("readiness", String(overallPct));
+    params.set("patterns", String(masteredPatterns.length));
+    params.set("stories", String(readyStories.length));
+    if (interviewDate) params.set("date", interviewDate);
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  };
+
+  const handleCopy = () => {
+    const url = generateShareUrl();
+    navigator.clipboard.writeText(url).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+      toast.success("Share URL copied to clipboard!");
+    }).catch(() => toast.error("Could not copy — try manually"));
+  };
+
+  const masteredCount = PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 4).length;
+  const readyCount = BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 4).length;
+  const overallPct = Math.round(((masteredCount / PATTERNS.length) * 0.6 + (readyCount / BEHAVIORAL_QUESTIONS.length) * 0.4) * 100);
+
+  return (
+    <div className="prep-card p-5">
+      <div className="section-title">Share Your Prep Progress</div>
+      <div className="text-xs text-muted-foreground mb-4">
+        Generate a shareable URL that encodes your readiness snapshot. Your actual ratings are not included — only the summary stats.
+      </div>
+      <div className="grid grid-cols-3 gap-3 mb-4">
+        <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+          <div className="text-lg font-black text-blue-400">{overallPct}%</div>
+          <div className="text-[10px] text-muted-foreground">Overall Readiness</div>
+        </div>
+        <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+          <div className="text-lg font-black text-emerald-400">{masteredCount}/{PATTERNS.length}</div>
+          <div className="text-[10px] text-muted-foreground">Patterns Mastered</div>
+        </div>
+        <div className="p-3 rounded-lg bg-secondary/50 border border-border text-center">
+          <div className="text-lg font-black text-amber-400">{readyCount}/{BEHAVIORAL_QUESTIONS.length}</div>
+          <div className="text-[10px] text-muted-foreground">Stories Ready</div>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <input
+          readOnly
+          value={generateShareUrl()}
+          className="flex-1 px-3 py-2 rounded-lg bg-secondary border border-border text-xs text-muted-foreground font-mono focus:outline-none focus:border-blue-500/50 truncate"
+        />
+        <button
+          onClick={handleCopy}
+          className={`flex items-center gap-1.5 px-4 py-2 rounded-lg border text-xs font-semibold transition-all ${
+            copied
+              ? "bg-emerald-500/20 border-emerald-500/30 text-emerald-400"
+              : "bg-blue-500/20 hover:bg-blue-500/30 border-blue-500/30 text-blue-400"
+          }`}
+        >
+          {copied ? <><Check size={12} /> Copied!</> : <><Copy size={12} /> Copy URL</>}
+        </button>
+      </div>
+      <div className="mt-3 text-[10px] text-muted-foreground">
+        Tip: Share this link with your prep partner or mentor to show your current readiness snapshot.
+      </div>
     </div>
   );
 }
@@ -1708,6 +1823,7 @@ export default function OverviewTab() {
       <CTCIDivergenceReport />
       <MostHintedBadge />
       <WeeklyDigest />
+      <SharePrepState />
       <div className="flex justify-start">
         <ProgressExport />
       </div>

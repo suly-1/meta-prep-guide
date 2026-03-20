@@ -147,6 +147,110 @@ export const PREP_TIMELINE = [
   },
 ];
 
+// 10-week comprehensive plan
+export const TEN_WEEK_TIMELINE = [
+  {
+    week: "Week 1", focus: "Mindset & Assessment",
+    items: [
+      "Baseline assessment: solve 5 LeetCode problems (Easy×2, Medium×2, Hard×1) untimed",
+      "Rate all 20 coding patterns with honest self-assessment",
+      "Set up your prep environment: CoderPad, Excalidraw, STAR doc",
+      "Read DDIA Chapter 1 (Reliable, Scalable, Maintainable Applications)",
+      "Identify your 3 biggest gaps from the IC6/IC7 comparison table",
+    ],
+  },
+  {
+    week: "Week 2", focus: "Core Arrays & Strings",
+    items: [
+      "Master Two Pointers, Sliding Window, Prefix Sum — 10 problems each",
+      "Master Hash Map, Stack patterns — 8 problems each",
+      "Build your first 2 STAR stories (ownership, conflict)",
+      "System Design intro: URL Shortener end-to-end",
+      "Daily: 1 Easy problem in < 15 min as warm-up",
+    ],
+  },
+  {
+    week: "Week 3", focus: "Trees & Graphs",
+    items: [
+      "Master Binary Trees, BST, Tree traversals — 12 problems",
+      "Master BFS, DFS, Graph algorithms — 10 problems",
+      "Build 2 more STAR stories (scale & impact, failure & learning)",
+      "System Design: Design a News Feed (focus on fanout)",
+      "First timed session: 3 problems × 35 min",
+    ],
+  },
+  {
+    week: "Week 4", focus: "Dynamic Programming",
+    items: [
+      "Master 1D DP (Fibonacci, Knapsack, LCS patterns) — 10 problems",
+      "Master 2D DP (grid, string, interval DP) — 8 problems",
+      "Build 2 more STAR stories (XFN partnership, technical depth)",
+      "System Design: Distributed Cache (Redis architecture)",
+      "First full behavioral mock — record and self-review",
+    ],
+  },
+  {
+    week: "Week 5", focus: "Advanced Patterns",
+    items: [
+      "Master Heaps, Tries, Union-Find — 8 problems each",
+      "Master Backtracking, Bit Manipulation — 6 problems each",
+      "Expand STAR bank to 8 stories covering all 7 focus areas",
+      "System Design: Rate Limiter + API Gateway",
+      "Peer mock: coding (1 problem, 45 min)",
+    ],
+  },
+  {
+    week: "Week 6", focus: "System Design Deep Dive",
+    items: [
+      "Master Intervals, Monotonic Stack, Segment Tree — 6 problems each",
+      "System Design: Design Instagram / Photo Sharing at scale",
+      "System Design: Design a Search Autocomplete System",
+      "IC7-specific: practice Technical Retrospective narrative",
+      "Second timed coding session: 3 problems × 35 min",
+    ],
+  },
+  {
+    week: "Week 7", focus: "Simulation Week",
+    items: [
+      "Full mock interview day #1: coding + design + behavioral back-to-back",
+      "Debrief and identify top 3 weaknesses from the mock",
+      "Targeted drill on weak patterns (use Weak Spots filter)",
+      "System Design: Design a Distributed Message Queue (Kafka)",
+      "Re-record any behavioral story rated < 4 stars",
+    ],
+  },
+  {
+    week: "Week 8", focus: "Weak Spot Elimination",
+    items: [
+      "Focus exclusively on patterns rated ★★ or below",
+      "Do 15+ problems in your 2 weakest pattern areas",
+      "System Design: Design a Payments System / Stripe",
+      "IC7-specific: practice XFN Partnership stories with org-level scope",
+      "Peer mock: system design (1 problem, 60 min)",
+    ],
+  },
+  {
+    week: "Week 9", focus: "Final Simulation",
+    items: [
+      "Full mock interview day #2 with a different peer or AI Interviewer",
+      "Calibrate story selection: map each story to IC6 vs IC7 signal",
+      "Speed drill: 10 Easy problems in 90 min (target < 9 min each)",
+      "Review all system design patterns: CAP theorem, consistency models, sharding",
+      "Polish your Technical Retrospective project narrative",
+    ],
+  },
+  {
+    week: "Week 10", focus: "Final Polish & Readiness",
+    items: [
+      "Review all STAR stories aloud — aim for 2-min delivery per story",
+      "Logistics check: CoderPad, Excalidraw, audio/video, time zones",
+      "Light coding: 1–2 Easy problems per day, no Hard problems",
+      "Review IC6 vs IC7 expectations one final time",
+      "Rest, sleep 8+ hours, trust your preparation",
+    ],
+  },
+];
+
 // Fast-track 2-week plan
 export const FAST_TRACK_TIMELINE = [
   {

@@ -270,3 +270,31 @@ export function useOnboardingProgress() {
 export function useThemePreference() {
   return useLocalStorage<"dark" | "light">("meta_theme_v1", "dark");
 }
+
+// ── Density selector (S/M/L layout density) ───────────────────────────────
+export type Density = "compact" | "comfortable" | "spacious";
+export function useDensity() {
+  return useLocalStorage<Density>("meta_density_v1", "comfortable");
+}
+
+// ── Gauntlet Mode state ────────────────────────────────────────────────────
+export interface GauntletState {
+  active: boolean;
+  startedAt: number | null;   // epoch ms
+  tabsCompleted: string[];    // tab ids completed in order
+  bestTimeMs: number | null;  // best all-7-tab run in ms
+}
+export function useGauntletState() {
+  return useLocalStorage<GauntletState>("meta_gauntlet_v1", {
+    active: false,
+    startedAt: null,
+    tabsCompleted: [],
+    bestTimeMs: null,
+  });
+}
+
+// ── Study Soundtrack preference ────────────────────────────────────────────
+export type SoundtrackTrack = "off" | "lofi" | "focus" | "nature";
+export function useSoundtrack() {
+  return useLocalStorage<SoundtrackTrack>("meta_soundtrack_v1", "off");
+}

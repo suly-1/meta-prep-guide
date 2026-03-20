@@ -12,6 +12,324 @@ import { trpc } from "@/lib/trpc";
 import { BehavioralMockSession } from "@/components/BehavioralMockSession";
 
 const AREAS = ["All", "Conflict & Influence", "Ownership & Ambiguity", "Scale & Impact", "Failure & Learning", "XFN Partnership"];
+
+// ── Flashcard Flip Deck ────────────────────────────────────────────────────
+interface Flashcard {
+  id: string;
+  question: string;
+  area: string;
+  probes: string[];
+  ic6Answer: string;
+  ic7Answer: string;
+}
+
+const FLASHCARDS: Flashcard[] = [
+  {
+    id: "fc-1",
+    question: "Tell me about a time you influenced without authority.",
+    area: "Conflict & Influence",
+    probes: ["How did you build alignment?", "What resistance did you face?", "What would you do differently?"],
+    ic6Answer: "I identified key stakeholders, built a data-driven case, and held 1:1s to address concerns. The team adopted my proposal after I demonstrated a small pilot with measurable results.",
+    ic7Answer: "I mapped the org landscape to find hidden influencers, built a coalition across 3 orgs, and created a shared narrative that tied the proposal to each team's OKRs. I also anticipated objections and pre-addressed them in the doc. The initiative shipped org-wide and became a standard pattern.",
+  },
+  {
+    id: "fc-2",
+    question: "Describe a project where you had to make a decision with incomplete information.",
+    area: "Ownership & Ambiguity",
+    probes: ["What was the cost of waiting for more data?", "How did you de-risk the decision?", "What was the outcome?"],
+    ic6Answer: "I defined the minimum data needed to make a reversible decision, set a time-box, and moved forward with a rollback plan. The decision proved correct and we shipped on schedule.",
+    ic7Answer: "I framed the decision as a two-way door vs. one-way door. For reversible decisions I moved fast with instrumentation; for irreversible ones I ran a structured pre-mortem with 5 senior engineers. I also documented the decision log so the team could learn from it. This pattern became our team's default for ambiguous calls.",
+  },
+  {
+    id: "fc-3",
+    question: "Tell me about the most impactful project you've led.",
+    area: "Scale & Impact",
+    probes: ["What made it IC7 scope?", "How did you measure success?", "What was the org-wide effect?"],
+    ic6Answer: "I led a 3-engineer team to rebuild our data pipeline, reducing latency by 40% and enabling two new product features that drove a 15% increase in DAU.",
+    ic7Answer: "I identified a platform-level bottleneck affecting 8 product teams, built the business case for a 6-month investment, staffed a cross-functional team of 12, and drove the architecture decisions. The platform now handles 10x traffic, unblocked 3 major product launches, and saved $2M/year in infrastructure costs. I also mentored 2 engineers who are now TLs.",
+  },
+  {
+    id: "fc-4",
+    question: "Tell me about a significant failure and what you learned.",
+    area: "Failure & Learning",
+    probes: ["What was your personal role in the failure?", "How did you handle the aftermath?", "What systemic change did you drive?"],
+    ic6Answer: "I underestimated the complexity of a migration, causing a 2-hour outage. I owned the incident, wrote a thorough post-mortem, and implemented automated rollback that prevented 3 similar incidents.",
+    ic7Answer: "I made a strategic bet on a technology that didn't pan out, costing 4 months of eng time. I took full ownership, presented the learnings to leadership, and used the failure to build a better technical evaluation framework that the org now uses. I also used it as a coaching moment for my team on how to fail fast and learn faster.",
+  },
+  {
+    id: "fc-5",
+    question: "How do you handle a situation where you disagree with your manager?",
+    area: "Conflict & Influence",
+    probes: ["Did you escalate? Why or why not?", "How did you maintain the relationship?", "What was the outcome?"],
+    ic6Answer: "I prepared a data-backed counter-proposal, had a direct 1:1 conversation, and committed to the decision once made. I made sure to revisit the outcome together.",
+    ic7Answer: "I distinguish between disagreements on strategy vs. execution. For strategy, I write a crisp 1-pager with tradeoffs and request a structured debate. For execution, I disagree-and-commit while documenting my concerns. I've learned that the quality of the disagreement process matters as much as the outcome — it builds trust and psychological safety.",
+  },
+  {
+    id: "fc-6",
+    question: "Describe a time you had to deliver bad news to stakeholders.",
+    area: "Ownership & Ambiguity",
+    probes: ["How did you frame the news?", "What was the stakeholder reaction?", "What did you do to rebuild trust?"],
+    ic6Answer: "I delivered the news early with context, proposed a mitigation plan, and set up a weekly sync to restore confidence. The stakeholders appreciated the transparency.",
+    ic7Answer: "I believe bad news should travel fast. I gave stakeholders a heads-up before the formal announcement, provided a root cause analysis, and presented 3 recovery options with tradeoffs. I also took accountability publicly in the all-hands. This approach turned a potential trust crisis into a demonstration of leadership maturity.",
+  },
+  {
+    id: "fc-7",
+    question: "Tell me about a time you drove a cross-functional initiative.",
+    area: "XFN Partnership",
+    probes: ["How did you align different priorities?", "What was the biggest friction point?", "How did you measure success?"],
+    ic6Answer: "I set up a shared OKR with PM and Design, held weekly syncs, and used a RACI matrix to clarify ownership. The feature shipped on time with high quality.",
+    ic7Answer: "I started by mapping each team's incentives and finding the shared north star metric. I created a joint charter, ran a kickoff with all stakeholders, and established a lightweight governance model. When priorities conflicted, I escalated with a clear recommendation rather than just surfacing the problem. The initiative delivered $5M in incremental revenue and became a template for future XFN work.",
+  },
+  {
+    id: "fc-8",
+    question: "How do you prioritize when everything seems urgent?",
+    area: "Ownership & Ambiguity",
+    probes: ["What framework do you use?", "How do you communicate trade-offs?", "What do you deprioritize?"],
+    ic6Answer: "I use an impact/effort matrix, align with my manager on the top 3 priorities, and communicate trade-offs to stakeholders. I revisit priorities weekly.",
+    ic7Answer: "I use a combination of RICE scoring and strategic alignment checks. I also distinguish between urgent-important (do now), important-not-urgent (schedule), and urgent-not-important (delegate). At IC7, I also think about which decisions only I can make vs. which I should push down to my team. I've found that the best prioritization is often about what NOT to do.",
+  },
+];
+
+function FlashcardFlipDeck() {
+  const [cardIdx, setCardIdx] = useState(0);
+  const [flipped, setFlipped] = useState(false);
+  const [showIC7, setShowIC7] = useState(false);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [filter, setFilter] = useState("All");
+
+  const filteredCards = filter === "All" ? FLASHCARDS : FLASHCARDS.filter(c => c.area === filter);
+  const card = filteredCards[cardIdx % filteredCards.length];
+
+  const next = () => { setCardIdx(i => (i + 1) % filteredCards.length); setFlipped(false); setShowIC7(false); setUserAnswer(""); };
+  const prev = () => { setCardIdx(i => (i - 1 + filteredCards.length) % filteredCards.length); setFlipped(false); setShowIC7(false); setUserAnswer(""); };
+  const wc = userAnswer.trim().split(/\s+/).filter(Boolean).length;
+
+  return (
+    <div className="prep-card p-5 space-y-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <div className="section-title mb-0.5">Flashcard Flip Deck</div>
+          <div className="text-xs text-muted-foreground">Type your answer, then flip to compare IC6 vs IC7 sample responses</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={filter}
+            onChange={e => { setFilter(e.target.value); setCardIdx(0); setFlipped(false); setUserAnswer(""); }}
+            className="px-2 py-1 rounded-md bg-secondary border border-border text-xs text-foreground focus:outline-none"
+          >
+            <option value="All">All Areas</option>
+            {AREAS.slice(1).map(a => <option key={a} value={a}>{a}</option>)}
+          </select>
+          <span className="text-xs text-muted-foreground">{cardIdx % filteredCards.length + 1}/{filteredCards.length}</span>
+        </div>
+      </div>
+
+      {/* Card */}
+      <div className="rounded-xl border border-border bg-secondary/30 p-5 space-y-4">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${AREA_COLORS[card.area] ? `badge ${AREA_COLORS[card.area]}` : "badge badge-gray"}`}>{card.area}</span>
+            <p className="mt-2 text-sm font-semibold text-foreground leading-relaxed">{card.question}</p>
+          </div>
+        </div>
+
+        {/* User answer */}
+        {!flipped && (
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-muted-foreground font-semibold">Your Answer (STAR format)</span>
+              <span className={`text-[10px] font-mono ${wc < 50 ? "text-red-400" : wc < 150 ? "text-amber-400" : "text-emerald-400"}`}>{wc} words</span>
+            </div>
+            <textarea
+              value={userAnswer}
+              onChange={e => setUserAnswer(e.target.value)}
+              placeholder="S: Situation...&#10;T: Task...&#10;A: Action...&#10;R: Result..."
+              rows={5}
+              className="w-full px-3 py-2 rounded-lg bg-background border border-border text-xs text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-blue-500/50 resize-none leading-relaxed"
+            />
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] text-muted-foreground">Probes the interviewer may ask:</span>
+              <div className="flex flex-wrap gap-1">
+                {card.probes.map((p, i) => (
+                  <span key={i} className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">{p}</span>
+                ))}
+              </div>
+            </div>
+            <button
+              onClick={() => setFlipped(true)}
+              className="w-full py-2 rounded-lg bg-blue-500 hover:bg-blue-600 text-white text-xs font-semibold transition-all"
+            >
+              🔄 Flip — See Sample Answers
+            </button>
+          </div>
+        )}
+
+        {/* Flipped: sample answers */}
+        {flipped && (
+          <div className="space-y-3">
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowIC7(false)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  !showIC7 ? "bg-blue-500/15 border-blue-500/30 text-blue-400" : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                IC6 Sample
+              </button>
+              <button
+                onClick={() => setShowIC7(true)}
+                className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
+                  showIC7 ? "bg-violet-500/15 border-violet-500/30 text-violet-400" : "bg-secondary border-border text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                IC7 Sample
+              </button>
+            </div>
+            <div className={`p-4 rounded-lg border text-xs leading-relaxed ${
+              showIC7 ? "bg-violet-500/10 border-violet-500/20 text-violet-100" : "bg-blue-500/10 border-blue-500/20 text-blue-100"
+            }`}>
+              <div className={`text-[10px] font-bold mb-2 ${showIC7 ? "text-violet-400" : "text-blue-400"}`}>
+                {showIC7 ? "IC7 Answer — Strategic, Org-wide, Systemic" : "IC6 Answer — Solid, Data-driven, Team-scoped"}
+              </div>
+              {showIC7 ? card.ic7Answer : card.ic6Answer}
+            </div>
+            {userAnswer.trim() && (
+              <div className="p-3 rounded-lg bg-secondary/50 border border-border">
+                <div className="text-[10px] font-bold text-muted-foreground mb-1">Your Answer</div>
+                <p className="text-xs text-muted-foreground leading-relaxed">{userAnswer}</p>
+              </div>
+            )}
+            <button
+              onClick={() => setFlipped(false)}
+              className="w-full py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs text-muted-foreground transition-all"
+            >
+              ↩ Back to answer
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex items-center justify-between">
+        <button onClick={prev} className="px-4 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs text-muted-foreground transition-all">← Prev</button>
+        <div className="flex gap-1.5">
+          {filteredCards.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => { setCardIdx(i); setFlipped(false); setUserAnswer(""); }}
+              className={`w-2 h-2 rounded-full transition-all ${i === cardIdx % filteredCards.length ? "bg-blue-500" : "bg-secondary hover:bg-muted-foreground"}`}
+            />
+          ))}
+        </div>
+        <button onClick={next} className="px-4 py-1.5 rounded-lg bg-secondary hover:bg-secondary/80 text-xs text-muted-foreground transition-all">Next →</button>
+      </div>
+    </div>
+  );
+}
+
+// ── 8 Key Signals That Distinguish IC7 from IC6 ────────────────────────────
+const IC7_SIGNALS = [
+  {
+    num: 1,
+    signal: "Scope of Impact",
+    ic6: "Drives impact within your team or a single product area. Projects affect 1–2 teams.",
+    ic7: "Drives org-wide or company-wide impact. Projects affect multiple orgs, platforms, or external partners.",
+    tip: "Quantify the blast radius of your work. How many teams, users, or revenue lines were affected?",
+  },
+  {
+    num: 2,
+    signal: "Ambiguity Tolerance",
+    ic6: "Works well with defined requirements. Can handle moderate ambiguity with manager guidance.",
+    ic7: "Thrives in high ambiguity. Creates clarity for others. Defines the problem before solving it.",
+    tip: "Show examples where YOU defined the problem statement, not just solved a given one.",
+  },
+  {
+    num: 3,
+    signal: "Influence & Persuasion",
+    ic6: "Influences within team and immediate stakeholders. Good at 1:1 alignment.",
+    ic7: "Influences across org boundaries, including senior leadership. Shapes strategy, not just execution.",
+    tip: "Name the VP or Director you influenced. Describe the coalition you built across orgs.",
+  },
+  {
+    num: 4,
+    signal: "Technical Depth vs. Breadth",
+    ic6: "Deep expertise in 1–2 technical domains. Strong individual contributor.",
+    ic7: "Deep expertise PLUS broad architectural judgment. Can reason about system-level tradeoffs across domains.",
+    tip: "Demonstrate both: a deep technical decision AND a cross-cutting architectural choice.",
+  },
+  {
+    num: 5,
+    signal: "Talent Multiplier",
+    ic6: "Mentors 1–2 junior engineers. Good at code reviews and pair programming.",
+    ic7: "Systematically raises the bar for the whole team. Creates leverage through documentation, frameworks, and processes that outlast you.",
+    tip: "Describe a framework, RFC, or process you created that others now use independently.",
+  },
+  {
+    num: 6,
+    signal: "Failure & Learning",
+    ic6: "Owns mistakes, writes post-mortems, implements fixes. Learns from failures.",
+    ic7: "Turns failures into systemic improvements. Uses failures to build institutional knowledge and change org behavior.",
+    tip: "Show how your failure led to a process, tool, or cultural change that prevented future failures.",
+  },
+  {
+    num: 7,
+    signal: "Strategic Thinking",
+    ic6: "Understands the 'why' behind projects. Can articulate business impact.",
+    ic7: "Proactively identifies strategic opportunities and risks. Shapes the roadmap, not just executes it.",
+    tip: "Describe a time you proposed a project that wasn't on the roadmap and convinced leadership to fund it.",
+  },
+  {
+    num: 8,
+    signal: "Communication & Storytelling",
+    ic6: "Clear written and verbal communication. Good at technical docs and design reviews.",
+    ic7: "Tailors communication to the audience (engineer, PM, VP, CEO). Tells compelling stories that drive decisions.",
+    tip: "Prepare a version of each story for a technical audience AND a non-technical executive audience.",
+  },
+];
+
+function IC7Signals() {
+  const [expanded, setExpanded] = useState<number | null>(null);
+  return (
+    <div className="prep-card p-5 space-y-4">
+      <div>
+        <div className="section-title mb-0.5">8 Key Signals That Distinguish IC7 from IC6</div>
+        <div className="text-xs text-muted-foreground">Click any signal to see the IC6 vs IC7 contrast and a coaching tip</div>
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2">
+        {IC7_SIGNALS.map(s => (
+          <div key={s.num} className="rounded-xl border border-border bg-secondary/30 overflow-hidden">
+            <button
+              onClick={() => setExpanded(expanded === s.num ? null : s.num)}
+              className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-secondary/50 transition-colors"
+            >
+              <span className="w-6 h-6 rounded-full bg-violet-500/20 border border-violet-500/30 text-violet-400 text-xs font-bold flex items-center justify-center shrink-0">{s.num}</span>
+              <span className="text-sm font-semibold text-foreground flex-1">{s.signal}</span>
+              <span className="text-muted-foreground text-xs">{expanded === s.num ? "▲" : "▼"}</span>
+            </button>
+            {expanded === s.num && (
+              <div className="px-4 pb-4 space-y-3 border-t border-border">
+                <div className="grid grid-cols-2 gap-2 mt-3">
+                  <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
+                    <div className="text-[10px] font-bold text-blue-400 mb-1">IC6</div>
+                    <p className="text-xs text-blue-100 leading-relaxed">{s.ic6}</p>
+                  </div>
+                  <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
+                    <div className="text-[10px] font-bold text-violet-400 mb-1">IC7</div>
+                    <p className="text-xs text-violet-100 leading-relaxed">{s.ic7}</p>
+                  </div>
+                </div>
+                <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/20">
+                  <div className="text-[10px] font-bold text-amber-400 mb-1">💡 Coaching Tip</div>
+                  <p className="text-xs text-amber-100 leading-relaxed">{s.tip}</p>
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 const AREA_COLORS: Record<string, string> = {
   "Conflict & Influence": "badge-red",
   "Ownership & Ambiguity": "badge-amber",
@@ -1815,6 +2133,12 @@ export default function BehavioralTab() {
       <div id="behavioral-voice-star">
         <VoiceToStar />
       </div>
+
+      {/* Flashcard Flip Deck */}
+      <FlashcardFlipDeck />
+
+      {/* 8 Key Signals That Distinguish IC7 from IC6 */}
+      <IC7Signals />
 
       {/* STAR Framework */}
       <div className="prep-card p-5">

@@ -307,3 +307,16 @@
 
 ## New Features — Round 45
 - [x] Block app access until disclaimer acknowledged — for logged-in users verify DB record, not just localStorage
+
+## New Features — Round 46
+- [ ] Add pnpm build:standalone script (rebuild + CDN upload in one command, prints new link)
+
+## New Features — Round 47 (PREP SCREEN parity)
+- [ ] S/M/L Density Selector in toolbar (compact/comfortable/spacious layout)
+- [ ] Gauntlet Mode — 7-tab timed unbroken run challenge
+- [ ] Topic Roulette — spin for random pattern/BQ/SD challenge
+- [ ] Study Soundtrack — ambient music toggle in toolbar
+- [ ] Flashcard Flip Deck in Behavioral tab (type answer, word count, flip to see probes + IC6/IC7 sample answers)
+- [ ] 8 Key Signals That Distinguish IC7 from IC6 in Behavioral tab
+- [ ] Share Prep State URL (encode interview date + checklist progress into shareable URL)
+- [ ] 10-Week Study Timeline option (alongside existing 4-week and 2-week plans)
