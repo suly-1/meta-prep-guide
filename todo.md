@@ -391,3 +391,9 @@
 
 ## Bug Fixes
 - [x] System Design tab crash — root cause: useToast undefined in TopicRoulette (cached browser version from 05:04 AM); confirmed TopNav now uses toast from sonner correctly; removed duplicate Google Fonts @import from index.css
+
+## New Features — Stability & DX Round
+- [x] Wrap AI components in per-section ErrorBoundaries (SystemDesignMockSession, GuidedDesignWalkthrough, InterviewerPerspectiveSimulator, TradeoffDecisionSimulator, AntiPatternDetector, PeerDesignReview, ExplainLikeAPM)
+- [x] Add Clear Site Cache button (footer + PWA service worker cache bust)
+- [x] Vitest smoke tests for TopNav components (TopicRoulette, GauntletMode, StudySoundtrack render without throwing)
+- [x] Run pnpm build:standalone after all features complete

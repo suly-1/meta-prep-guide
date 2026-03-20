@@ -14,7 +14,7 @@ import CodePracticeTab from "@/components/CodePracticeTab";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
 import GlobalSearch from "@/components/GlobalSearch";
-import { AlertTriangle, X, Maximize2, Minimize2, Keyboard, HelpCircle } from "lucide-react";
+import { AlertTriangle, X, Maximize2, Minimize2, Keyboard, HelpCircle, Trash2 } from "lucide-react";
 import DisclaimerGate, { useDisclaimerGate } from "@/components/DisclaimerGate";
 
 // Simple confetti burst
@@ -245,6 +245,28 @@ export default function Home() {
           <div className="container text-center text-xs text-muted-foreground space-y-1">
             <div>Meta IC6/IC7 Interview Prep Guide · All progress saved locally in your browser</div>
             <div>Press <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">1</kbd>–<kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">5</kbd> to switch tabs · <kbd className="px-1.5 py-0.5 rounded bg-secondary border border-border font-mono">F</kbd> Focus Mode</div>
+            <div className="pt-2">
+              <button
+                onClick={async () => {
+                  // Unregister service workers
+                  if ('serviceWorker' in navigator) {
+                    const registrations = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(registrations.map(r => r.unregister()));
+                  }
+                  // Clear all caches
+                  if ('caches' in window) {
+                    const keys = await caches.keys();
+                    await Promise.all(keys.map(k => caches.delete(k)));
+                  }
+                  window.location.reload();
+                }}
+                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-medium text-muted-foreground hover:text-rose-400 hover:bg-rose-500/10 border border-transparent hover:border-rose-500/20 transition-all"
+                title="Unregisters the service worker and clears all cached bundles — fixes stale UI issues"
+              >
+                <Trash2 size={10} />
+                Clear site cache &amp; reload
+              </button>
+            </div>
           </div>
         </footer>
       )}

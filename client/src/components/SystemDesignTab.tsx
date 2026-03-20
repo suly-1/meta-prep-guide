@@ -7,6 +7,7 @@ import { SystemDesignMockSession } from "@/components/SystemDesignMockSession";
 import { CapacityCalculator, DesignPatternLibrary, FlashCardCSVImport } from "@/components/SystemDesignExtras";
 import { SystemDesignDiagramTemplates } from "@/components/SystemDesignDiagramTemplates";
 import SystemDesignFailureAnalysis from "@/components/SystemDesignFailureAnalysis";
+import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import {
   GuidedDesignWalkthrough,
   TradeoffDecisionSimulator,
@@ -947,7 +948,9 @@ export default function SystemDesignTab() {
 
       {/* System Design Mock Session */}
       <div id="sysdesign-mock-session">
-        <SystemDesignMockSession />
+        <SectionErrorBoundary label="AI Mock Session">
+          <SystemDesignMockSession />
+        </SectionErrorBoundary>
       </div>
 
       {/* System Design Flash Cards Drill Mode */}
@@ -983,7 +986,9 @@ export default function SystemDesignTab() {
           <p className="text-xs text-muted-foreground mt-1">Walk through any problem using Meta's 5-step framework. Get AI coaching on your IC6/IC7 signal.</p>
         </div>
         <div className="p-4">
-          <GuidedDesignWalkthrough />
+          <SectionErrorBoundary label="Guided Design Walkthrough">
+            <GuidedDesignWalkthrough />
+          </SectionErrorBoundary>
         </div>
       </div>
 
@@ -998,7 +1003,9 @@ export default function SystemDesignTab() {
           <p className="text-xs text-muted-foreground mt-1">Pick a strategy, justify it, get IC6/IC7 scoring. 5 real Meta-scale scenarios.</p>
         </div>
         <div className="p-4">
-          <TradeoffDecisionSimulator />
+          <SectionErrorBoundary label="Trade-off Decision Simulator">
+            <TradeoffDecisionSimulator />
+          </SectionErrorBoundary>
         </div>
       </div>
 
@@ -1043,7 +1050,9 @@ export default function SystemDesignTab() {
           <p className="text-xs text-muted-foreground mt-1">Paste your design. AI scans for SPOFs, missing async processing, no consistency model, and other IC6 failure patterns.</p>
         </div>
         <div className="p-4">
-          <AntiPatternDetector />
+          <SectionErrorBoundary label="Anti-Pattern Detector">
+            <AntiPatternDetector />
+          </SectionErrorBoundary>
         </div>
       </div>
 
@@ -1058,7 +1067,9 @@ export default function SystemDesignTab() {
           <p className="text-xs text-muted-foreground mt-1">Describe your design. A skeptical senior engineer asks 3 adversarial questions to probe it under pressure.</p>
         </div>
         <div className="p-4">
-          <PeerDesignReview />
+          <SectionErrorBoundary label="Peer Design Review">
+            <PeerDesignReview />
+          </SectionErrorBoundary>
         </div>
       </div>
 
@@ -1103,7 +1114,9 @@ export default function SystemDesignTab() {
           <p className="text-xs text-muted-foreground mt-1">Paste your technical design. AI rewrites it in PM-friendly language — practicing the IC7 communication skill.</p>
         </div>
         <div className="p-4">
-          <ExplainLikeAPM />
+          <SectionErrorBoundary label="Explain Like a PM">
+            <ExplainLikeAPM />
+          </SectionErrorBoundary>
         </div>
       </div>
 
@@ -1126,7 +1139,9 @@ export default function SystemDesignTab() {
           ═══════════════════════════════════════════════════════════════ */}
       <div id="sd-failure-analysis" className="prep-card border border-red-500/20 bg-red-500/5">
         <div className="p-4">
-          <SystemDesignFailureAnalysis />
+          <SectionErrorBoundary label="Failure Analysis">
+            <SystemDesignFailureAnalysis />
+          </SectionErrorBoundary>
         </div>
       </div>
     </div>
