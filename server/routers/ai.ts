@@ -787,4 +787,55 @@ Be direct and honest — this is what a real debrief would look like.`,
         strengths: string[]; gaps: string[]; coaching: string; starStructure: string;
       };
     }),
+
+  // Interviewer Perspective Simulator — responds as a Meta interviewer reviewing a design summary
+  interviewerPerspective: publicProcedure
+    .input(z.object({ designSummary: z.string().min(30).max(2000) }))
+    .output(z.object({ content: z.string() }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior Meta Staff Engineer (IC7) conducting a system design interview. Review the candidate's design summary and respond as a real Meta interviewer would. Return ONLY valid JSON with this exact structure: { "verdict": string, "failurePatterns": string[], "rubricScores": { "Scope & Success Metrics": string, "Request Flow & Hot Path": string, "Data Model & Storage": string, "Architecture & Boundaries": string, "Scale & Bottlenecks": string, "Reliability & Operability": string, "Trade-offs & Judgment": string, "Collaboration & Communication": string }, "feedback": string }. Each rubric score must be exactly one of: "Strong", "Adequate", or "Weak". Verdict must be one of: "IC7 Strong Hire", "IC6 Hire", "IC6 Borderline", "Below IC6 - No Hire".`,
+          },
+          { role: "user", content: `Candidate's design summary:\n"${input.designSummary}"` },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "interviewer_perspective",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                verdict: { type: "string" },
+                failurePatterns: { type: "array", items: { type: "string" } },
+                rubricScores: {
+                  type: "object",
+                  properties: {
+                    "Scope & Success Metrics": { type: "string" },
+                    "Request Flow & Hot Path": { type: "string" },
+                    "Data Model & Storage": { type: "string" },
+                    "Architecture & Boundaries": { type: "string" },
+                    "Scale & Bottlenecks": { type: "string" },
+                    "Reliability & Operability": { type: "string" },
+                    "Trade-offs & Judgment": { type: "string" },
+                    "Collaboration & Communication": { type: "string" },
+                  },
+                  required: ["Scope & Success Metrics", "Request Flow & Hot Path", "Data Model & Storage", "Architecture & Boundaries", "Scale & Bottlenecks", "Reliability & Operability", "Trade-offs & Judgment", "Collaboration & Communication"],
+                  additionalProperties: false,
+                },
+                feedback: { type: "string" },
+              },
+              required: ["verdict", "failurePatterns", "rubricScores", "feedback"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const rawContent = response?.choices?.[0]?.message?.content;
+      if (!rawContent) throw new Error("No response from AI");
+      return { content: typeof rawContent === "string" ? rawContent : JSON.stringify(rawContent) };
+    }),
 });

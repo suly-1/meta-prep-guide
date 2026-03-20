@@ -377,3 +377,9 @@
 - [x] Score Trend Chart — sparkline in Session History panel showing score progression
 - [x] Daily Drill Reminder — 3 weak patterns due today in Overview Quick Actions row
 - [x] Voice Answer Replay — audio playback alongside transcript in VoiceAnswerMode
+
+## New Features (Batch 8 — Failure Analysis Enhancements)
+
+- [x] Failure Pattern Self-Assessment (8-question checklist, top-3 risks callout)
+- [x] Interviewer Perspective Simulator (LLM design summary reviewer)
+- [x] Failure Reason Drill Links (wire each failure to relevant tool)
