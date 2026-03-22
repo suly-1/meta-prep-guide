@@ -508,3 +508,10 @@
 
 - [x] Rewrite DisclaimerGate wording to match relaxed footer tone (friendlier, less legal) — Option B4 selected
 - [x] Deploy to GitHub Pages
+
+## Deployment Status Badge
+
+- [x] Add GITHUB_TOKEN secret for GitHub API access (public repo — no token needed)
+- [x] Add tRPC procedure to fetch latest GitHub Actions run status
+- [x] Build DeployStatus badge component (green/yellow/red) in footer
+- [x] Deploy to GitHub Pages

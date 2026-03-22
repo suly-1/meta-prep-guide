@@ -11,6 +11,7 @@ import { ratingsRouter } from "./routers/ratings";
 import { ctciProgressRouter } from "./routers/ctciProgress";
 import { mockHistoryRouter } from "./routers/mockHistory";
 import { disclaimerRouter } from "./routers/disclaimer";
+import { deployStatusRouter } from "./routers/deployStatus";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -35,6 +36,7 @@ export const appRouter = router({
   ctciProgress: ctciProgressRouter,
   mockHistory: mockHistoryRouter,
   disclaimer: disclaimerRouter,
+  deployStatus: deployStatusRouter,
 });
 
 export type AppRouter = typeof appRouter;

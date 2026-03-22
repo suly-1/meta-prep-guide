@@ -27,6 +27,7 @@ import {
   Trash2,
 } from "lucide-react";
 import DisclaimerGate, { useDisclaimerGate } from "@/components/DisclaimerGate";
+import DeployStatusBadge from "@/components/DeployStatusBadge";
 
 // Static imports — dynamic (lazy) imports are incompatible with the standalone
 // CDN build because chunk URLs become absolute CDN paths that cannot be resolved
@@ -392,6 +393,9 @@ export default function Home() {
               >
                 Terms of Use
               </button>
+              <span className="text-border">·</span>
+              {/* Deploy status badge */}
+              <DeployStatusBadge />
             </div>
             <div className="pt-1">
               <button
