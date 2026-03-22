@@ -472,3 +472,10 @@
 
 - [x] Revert React.lazy tab imports to static imports (dynamic imports break standalone CDN build)
 - [x] Run pnpm build:standalone
+
+## Hero Banner Redesign
+
+- [x] Generate 3 visual mockup options for new hero banner
+- [x] User selects preferred option (Option C — navy/purple gradient, center-aligned)
+- [x] Implement chosen banner design (Option A — CommunityBanner component)
+- [x] Run pnpm build:standalone

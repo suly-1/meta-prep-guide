@@ -13,6 +13,7 @@ import {
 import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 import TopNav from "@/components/TopNav";
 import HeroSection from "@/components/HeroSection";
+import CommunityBanner from "@/components/CommunityBanner";
 import OnboardingModal from "@/components/OnboardingModal";
 import NotificationBanner from "@/components/NotificationBanner";
 import GlobalSearch from "@/components/GlobalSearch";
@@ -259,6 +260,8 @@ export default function Home() {
         </>
       )}
 
+      {/* Community resource banner — always visible (not hidden in focus mode) */}
+      <CommunityBanner />
       {/* Hero section — hidden in focus mode */}
       {!focusMode && <HeroSection onTabChange={setActiveTabWithUrl} />}
 
