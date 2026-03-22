@@ -84,8 +84,8 @@ describe("TopNav smoke tests", () => {
 
   it("renders the brand name", () => {
     renderTopNav();
-    // The logo text "Meta Prep" is in a hidden-sm:inline span but still in the DOM
-    expect(screen.getByText("Meta Prep")).toBeDefined();
+    // The logo text "Staff Eng Prep" is in a hidden-sm:inline span but still in the DOM
+    expect(screen.getByText("Staff Eng Prep")).toBeDefined();
   });
 
   it("renders the Roulette button (TopicRoulette sub-component)", () => {
