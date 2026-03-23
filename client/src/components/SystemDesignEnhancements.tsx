@@ -130,7 +130,7 @@ const WALKTHROUGH_STEPS = [
     label: "Trade-offs & Bottlenecks",
     time: "5 min",
     prompt:
-      "Identify 2 SPOFs. Discuss consistency vs availability. Name one IC7 signal: operational concern, phased rollout, or business impact connection.",
+      "Identify 2 SPOFs. Discuss consistency vs availability. Name one L7 signal: operational concern, phased rollout, or business impact connection.",
   },
 ];
 
@@ -193,7 +193,7 @@ export function GuidedDesignWalkthrough() {
       <div className="space-y-4">
         <p className="text-xs text-muted-foreground">
           Walk through any system design problem using Meta's 5-step framework.
-          At each step, write your answer — then get AI coaching on your IC6/IC7
+          At each step, write your answer — then get AI coaching on your L6/L7
           signal.
         </p>
         <div className="flex gap-2 flex-wrap">
@@ -565,7 +565,7 @@ export function TradeoffDecisionSimulator() {
           >
             {scoreMutation.isPending
               ? "Scoring your trade-off…"
-              : "Submit for IC6/IC7 Scoring"}
+              : "Submit for L6/L7 Scoring"}
           </button>
         </>
       )}
@@ -593,7 +593,7 @@ export function TradeoffDecisionSimulator() {
           </div>
           <div className="p-3 rounded-lg bg-purple-500/5 border border-purple-500/20">
             <div className="text-xs font-bold text-purple-400 mb-1">
-              IC7 Signal
+              L7 Signal
             </div>
             <div className="text-xs text-muted-foreground">
               {feedback.ic7Signal}
@@ -657,7 +657,7 @@ const META_COMPONENTS = [
       "Regional pools for geo-locality",
     ],
     metaSignal:
-      "Discussing the lease mechanism or thundering herd prevention shows IC7-level depth.",
+      "Discussing the lease mechanism or thundering herd prevention shows L7-level depth.",
   },
   {
     name: "Scuba",
@@ -711,7 +711,7 @@ const META_COMPONENTS = [
       "Supports batch and real-time feature updates",
     ],
     metaSignal:
-      "Citing Laser in an ML system design round immediately elevates the answer to IC7 territory.",
+      "Citing Laser in an ML system design round immediately elevates the answer to L7 territory.",
   },
   {
     name: "Tupperware",
@@ -920,7 +920,7 @@ export function MetaComponentLibrary() {
                       className="text-[10px] font-bold uppercase tracking-wider mb-0.5"
                       style={{ color: "inherit" }}
                     >
-                      IC7 Interview Signal
+                      L7 Interview Signal
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {comp.metaSignal}
@@ -1194,7 +1194,7 @@ export function AntiPatternDetector() {
       fix: string;
     }>;
     overallSignal: string;
-    icLevel: string;
+    level: string;
   } | null>(null);
   const detectMutation = trpc.ai.detectAntiPatterns.useMutation();
 
@@ -1221,7 +1221,7 @@ export function AntiPatternDetector() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Paste or describe your system design. The AI will scan for common IC6
+        Paste or describe your system design. The AI will scan for common L6
         failure patterns: SPOFs, missing async processing, synchronous critical
         paths, no consistency model, no capacity planning.
       </p>
@@ -1250,9 +1250,9 @@ export function AntiPatternDetector() {
               {result.antiPatterns.length !== 1 ? "s" : ""}
             </div>
             <span
-              className={`text-xs font-bold px-2 py-0.5 rounded ${result.icLevel === "IC7" ? "text-purple-400 bg-purple-500/10" : result.icLevel === "IC6" ? "text-blue-400 bg-blue-500/10" : "text-amber-400 bg-amber-500/10"}`}
+              className={`text-xs font-bold px-2 py-0.5 rounded ${result.level === "L7" ? "text-purple-400 bg-purple-500/10" : result.level === "L6" ? "text-blue-400 bg-blue-500/10" : "text-amber-400 bg-amber-500/10"}`}
             >
-              {result.icLevel} Signal
+              {result.level} Signal
             </span>
           </div>
           {result.antiPatterns.map((ap, i) => (
@@ -1303,7 +1303,7 @@ export function AntiPatternDetector() {
 export function PeerDesignReview() {
   const [problem, setProblem] = useState("Design Facebook News Feed");
   const [design, setDesign] = useState("");
-  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC6");
+  const [icMode, setIcMode] = useState<"L6" | "L7">("L6");
   const [result, setResult] = useState<{
     questions: Array<{
       question: string;
@@ -1366,8 +1366,8 @@ export function PeerDesignReview() {
         <>
           <p className="text-xs text-muted-foreground">
             Describe your design. A skeptical senior engineer will ask 3
-            adversarial questions to probe your design under pressure — a key
-            IC7 differentiator.
+            adversarial questions to probe your design under pressure — a key L7
+            differentiator.
           </p>
           <div className="flex gap-2">
             <select
@@ -1392,11 +1392,11 @@ export function PeerDesignReview() {
             </select>
             <select
               value={icMode}
-              onChange={e => setIcMode(e.target.value as "IC6" | "IC7")}
+              onChange={e => setIcMode(e.target.value as "L6" | "L7")}
               className="bg-secondary border border-border rounded-lg px-3 py-2 text-sm text-foreground"
             >
-              <option value="IC6">IC6</option>
-              <option value="IC7">IC7</option>
+              <option value="L6">L6</option>
+              <option value="L7">L7</option>
             </select>
           </div>
           <textarea
@@ -1892,7 +1892,7 @@ export function ExplainLikeAPM() {
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
         Paste your technical design. The AI rewrites it in non-technical
-        language — practicing the IC7 skill of communicating architecture to PMs
+        language — practicing the L7 skill of communicating architecture to PMs
         and business stakeholders.
       </p>
       <textarea
@@ -2312,8 +2312,8 @@ export function EnhancedQuestionBank() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Questions categorised by FAANG interview round type and relevance.
-        Start with Critical + Full System Design for maximum ROI.
+        Questions categorised by FAANG interview round type and relevance. Start
+        with Critical + Full System Design for maximum ROI.
       </p>
       <div className="space-y-2">
         <div className="flex gap-1 flex-wrap">

@@ -30,7 +30,7 @@ export default function DiscoveryLandingPage({
             Engineering Interview Prep
           </h1>
           <p className="text-sm text-muted-foreground">
-            IC4 · IC5 · IC6 · IC7 — FAANG Interview Study Guide
+            L4 · L5 · L6 · L7 — FAANG Interview Study Guide
           </p>
         </div>
 
@@ -58,7 +58,7 @@ export default function DiscoveryLandingPage({
                 Independently discoverable
               </p>
               <p className="text-xs text-muted-foreground">
-                You can find this guide by searching "FAANG IC6 interview prep",
+                You can find this guide by searching "FAANG L6 interview prep",
                 "Staff Engineer interview guide", or similar terms. It is not
                 affiliated with any company's official recruitment process.
               </p>
@@ -75,7 +75,7 @@ export default function DiscoveryLandingPage({
                 This is an independent study resource. It is not endorsed by,
                 affiliated with, or approved by Meta Platforms, Google, Amazon,
                 Apple, Netflix, or any other company. Interview formats may
-                change — always verify with your recruiter.
+                change — always verify with any official guidance you receive.
               </p>
             </div>
           </div>
@@ -96,8 +96,8 @@ export default function DiscoveryLandingPage({
               </span>{" "}
               using this resource for my own interview preparation. I
               independently discovered this public resource and it was not
-              provided to me by an interviewer, recruiter, or company employee
-              as part of any official process.
+              provided to me by any interviewer or company as part of any
+              official process.
             </span>
           </label>
         </div>
@@ -145,8 +145,8 @@ export function DisclaimerBanner({ onDismiss }: { onDismiss: () => void }) {
           This guide is publicly available at{" "}
           <span className="text-blue-400">www.metaguide.blog</span> and is not
           affiliated with Meta, Google, or any FAANG company. It was not
-          provided by any interviewer or recruiter. Always refer to official
-          materials from your recruiter.
+          provided by any interviewer. Always refer to official materials from
+          official sources.
         </p>
         <button
           onClick={onDismiss}

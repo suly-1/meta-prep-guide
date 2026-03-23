@@ -1,7 +1,7 @@
 /**
  * SystemDesignFailureAnalysis
  * Evidence-backed section showing why candidates fail system design interviews,
- * with data, statistics, and actionable guidance for Meta IC6/IC7 candidates.
+ * with data, statistics, and actionable guidance for Meta L6/L7 candidates.
  *
  * Sources:
  * - IGotAnOffer (Apr 2025): Meta interview pass rates
@@ -75,7 +75,7 @@ const FAILURE_REASONS = [
       '"You assumed traffic numbers." — Real Meta interviewer feedback',
     fix: "Spend the first 5–10 minutes asking: What is the scale? What is the acceptable latency? What can we trade off? Never assume — always ask.",
     ic7Signal:
-      "IC7 candidates define success metrics (e.g., p99 < 200ms, 99.95% uptime) before drawing a single box.",
+      "L7 candidates define success metrics (e.g., p99 < 200ms, 99.95% uptime) before drawing a single box.",
   },
   {
     rank: 2,
@@ -89,7 +89,7 @@ const FAILURE_REASONS = [
       '"Interviewers care less about your specific choices and more about whether you can identify trade-offs." — Exponent 2026',
     fix: "For every major decision say: 'I'm choosing X because it trades A for B, and B matters more under these constraints.'",
     ic7Signal:
-      "IC7 makes trade-offs measurable: 'I'll accept up to 5 seconds of staleness to reduce write latency by 80%.'",
+      "L7 makes trade-offs measurable: 'I'll accept up to 5 seconds of staleness to reduce write latency by 80%.'",
   },
   {
     rank: 3,
@@ -103,7 +103,7 @@ const FAILURE_REASONS = [
       '"Generic add more servers answers don\'t cut it." — Exponent 2026',
     fix: "Always address: sharding strategy, caching layers (L1/L2), CDN placement, event-driven fanout for write-heavy systems.",
     ic7Signal:
-      "IC7 names the first bottleneck proactively: 'At 500M DAU the fanout queue becomes the bottleneck — here's how I'd mitigate it.'",
+      "L7 names the first bottleneck proactively: 'At 500M DAU the fanout queue becomes the bottleneck — here's how I'd mitigate it.'",
   },
   {
     rank: 4,
@@ -117,7 +117,7 @@ const FAILURE_REASONS = [
       '"The last 10–15 minutes are where strong candidates differentiate themselves." — Exponent 2026',
     fix: "Use the 5-10-25-10 split: 5 min requirements, 10 min baseline, 25 min deep dive + trade-offs, 10 min failure modes + Q&A.",
     ic7Signal:
-      "IC7 candidates manage the clock visibly: 'I want to spend the next 10 minutes on the data model, then move to scale.'",
+      "L7 candidates manage the clock visibly: 'I want to spend the next 10 minutes on the data model, then move to scale.'",
   },
   {
     rank: 5,
@@ -131,7 +131,7 @@ const FAILURE_REASONS = [
       '"Your bottleneck analysis was weak." — Real Stripe interviewer feedback',
     fix: "Before adding any optimization, state: 'The first bottleneck at this scale is X. Here's how I'd measure it and what I'd do.'",
     ic7Signal:
-      "IC7 uses back-of-envelope math to justify: '10M DAU × 10 writes/day = ~1,160 writes/sec — within a single DB, no sharding needed yet.'",
+      "L7 uses back-of-envelope math to justify: '10M DAU × 10 writes/day = ~1,160 writes/sec — within a single DB, no sharding needed yet.'",
   },
   {
     rank: 6,
@@ -145,7 +145,7 @@ const FAILURE_REASONS = [
       '"Ignores overload/cascades/metrics" = weak signal on the Beyz AI rubric used by Meta interviewers',
     fix: "For every critical dependency, add: 'If this slows down, we need a timeout + circuit breaker + degraded path.'",
     ic7Signal:
-      "IC7 proactively names what to monitor: 'I'd alert on p99 latency > 500ms, queue depth > 10K, and error rate > 0.1%.'",
+      "L7 proactively names what to monitor: 'I'd alert on p99 latency > 500ms, queue depth > 10K, and error rate > 0.1%.'",
   },
   {
     rank: 7,
@@ -159,7 +159,7 @@ const FAILURE_REASONS = [
       '"Microservices soup" is a named anti-pattern in Meta\'s internal rubric',
     fix: "Start with the simplest baseline that satisfies the constraints. Add complexity only when you can justify it with a specific constraint.",
     ic7Signal:
-      "IC7 explicitly says: 'I'll start monolithic and extract services only when X constraint forces it — here's the trigger.'",
+      "L7 explicitly says: 'I'll start monolithic and extract services only when X constraint forces it — here's the trigger.'",
   },
   {
     rank: 8,
@@ -172,7 +172,7 @@ const FAILURE_REASONS = [
     metaFeedback: '"Picks a DB because X" = weak signal on the Beyz AI rubric',
     fix: "Always say: 'The storage choice follows the access pattern. We read by X and write by Y, so the schema should be...'",
     ic7Signal:
-      "IC7 designs the data model first, then picks the storage: 'Given 90% reads by user_id, a key-value store with user_id as partition key is optimal.'",
+      "L7 designs the data model first, then picks the storage: 'Given 90% reads by user_id, a key-value store with user_id as partition key is optimal.'",
   },
 ];
 
@@ -227,7 +227,7 @@ const RUBRIC_AXES = [
   },
 ];
 
-const IC6_VS_IC7 = [
+const L6_VS_L7 = [
   {
     dimension: "Scale Handling",
     ic6: "Addresses scale when prompted; knows the right patterns",
@@ -502,8 +502,8 @@ function FailurePatternSelfAssessment() {
             No critical gaps detected
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Your answers suggest strong fundamentals. Focus on the IC7 signals
-            in each failure reason to push from hire to strong hire.
+            Your answers suggest strong fundamentals. Focus on the L7 signals in
+            each failure reason to push from hire to strong hire.
           </p>
         </div>
       )}
@@ -614,9 +614,9 @@ function InterviewerPerspectiveSimulator() {
         <div className="space-y-3">
           <div
             className={`p-3 rounded-lg border font-semibold text-sm ${
-              result.verdict.includes("IC7")
+              result.verdict.includes("L7")
                 ? "border-purple-500/40 bg-purple-500/10 text-purple-400"
-                : result.verdict.includes("IC6")
+                : result.verdict.includes("L6")
                   ? "border-blue-500/40 bg-blue-500/10 text-blue-400"
                   : "border-amber-500/40 bg-amber-500/10 text-amber-400"
             }`}
@@ -786,7 +786,7 @@ function FailureReasonCard({
           </div>
           <div>
             <p className="text-xs font-semibold text-blue-400 mb-1">
-              IC7 signal
+              L7 signal
             </p>
             <p className="text-xs text-muted-foreground">{reason.ic7Signal}</p>
           </div>
@@ -873,15 +873,14 @@ function RubricTable() {
   );
 }
 
-function IC6vsIC7Table() {
+function L6vsL7Table() {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <h3 className="text-sm font-semibold text-foreground mb-1">
-        IC4 vs IC5 vs IC6 vs IC7 — System Design Differentiators
+        L4 vs L5 vs L6 vs L7 — System Design Differentiators
       </h3>
       <p className="text-xs text-muted-foreground mb-4">
-        What separates a hire at IC6 from a hire at IC7 in the system design
-        round
+        What separates a hire at L6 from a hire at L7 in the system design round
       </p>
       <div className="overflow-x-auto">
         <table className="w-full text-xs">
@@ -891,15 +890,15 @@ function IC6vsIC7Table() {
                 Dimension
               </th>
               <th className="text-left py-2 pr-3 text-blue-400 font-medium">
-                IC6 (Strong Hire)
+                L6 (Strong Hire)
               </th>
               <th className="text-left py-2 text-purple-400 font-medium">
-                IC7 (Exceptional)
+                L7 (Exceptional)
               </th>
             </tr>
           </thead>
           <tbody>
-            {IC6_VS_IC7.map((row, i) => (
+            {L6_VS_L7.map((row, i) => (
               <tr key={i} className="border-b border-border/50 last:border-0">
                 <td className="py-2.5 pr-3 font-medium text-foreground">
                   {row.dimension}
@@ -964,7 +963,7 @@ function FrameworkGuide() {
 export default function SystemDesignFailureAnalysis() {
   const [openReason, setOpenReason] = useState<number | null>(null);
   const [activeTab, setActiveTab] = useState<
-    "failures" | "rubric" | "ic6ic7" | "framework"
+    "failures" | "rubric" | "l6l7" | "framework"
   >("failures");
 
   return (
@@ -994,7 +993,7 @@ export default function SystemDesignFailureAnalysis() {
         {[
           { key: "failures", label: "8 Failure Reasons" },
           { key: "rubric", label: "Interviewer Rubric" },
-          { key: "ic6ic7", label: "IC6 vs IC7" },
+          { key: "l6l7", label: "L6 vs L7" },
           { key: "framework", label: "Winning Framework" },
         ].map(tab => (
           <button
@@ -1016,7 +1015,7 @@ export default function SystemDesignFailureAnalysis() {
         <div className="space-y-2">
           <p className="text-xs text-muted-foreground px-1">
             Click any failure reason to see the real interviewer feedback, how
-            to fix it, and what IC7 looks like.
+            to fix it, and what L7 looks like.
           </p>
           {FAILURE_REASONS.map(reason => (
             <FailureReasonCard
@@ -1032,7 +1031,7 @@ export default function SystemDesignFailureAnalysis() {
       )}
 
       {activeTab === "rubric" && <RubricTable />}
-      {activeTab === "ic6ic7" && <IC6vsIC7Table />}
+      {activeTab === "l6l7" && <L6vsL7Table />}
       {activeTab === "framework" && <FrameworkGuide />}
       {/* Self-Assessment */}
       <FailurePatternSelfAssessment />
@@ -1057,7 +1056,7 @@ export default function SystemDesignFailureAnalysis() {
               , not whether you know the "right" architecture. Candidates who
               pass consistently do three things: they clarify before designing,
               they make trade-offs explicit and measurable, and they proactively
-              discuss failure modes. The difference between IC6 and IC7 is not
+              discuss failure modes. The difference between L6 and L7 is not
               knowledge — it's the depth and proactivity of reasoning.
             </p>
           </div>

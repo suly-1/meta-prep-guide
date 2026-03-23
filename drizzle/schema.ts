@@ -131,3 +131,65 @@ export const mockSessions = mysqlTable("mock_sessions", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type MockSession = typeof mockSessions.$inferSelect;
+
+// ── User Feedback (general site + sprint plan suggestions) ─────────────────
+export const feedback = mysqlTable("feedback", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  feedbackType: mysqlEnum("feedbackType", ["general", "sprint_plan"])
+    .notNull()
+    .default("general"),
+  category: mysqlEnum("category", [
+    "bug",
+    "feature_request",
+    "content",
+    "ux",
+    "other",
+  ])
+    .notNull()
+    .default("other"),
+  message: text("message").notNull(),
+  page: varchar("page", { length: 64 }),
+  metadata: json("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type Feedback = typeof feedback.$inferSelect;
+
+// ── User Score Snapshots (cross-device persistent scores) ─────────────────
+export const userScores = mysqlTable("user_scores", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().unique(),
+  patternRatings: json("patternRatings")
+    .notNull()
+    .$type<Record<string, number>>()
+    .default({}),
+  behavioralRatings: json("behavioralRatings")
+    .notNull()
+    .$type<Record<string, number>>()
+    .default({}),
+  starNotes: json("starNotes")
+    .notNull()
+    .$type<Record<string, string>>()
+    .default({}),
+  patternTime: json("patternTime")
+    .notNull()
+    .$type<Record<string, number>>()
+    .default({}),
+  interviewDate: varchar("interviewDate", { length: 16 }),
+  targetLevel: varchar("targetLevel", { length: 8 }),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type UserScores = typeof userScores.$inferSelect;
+
+// ── Sprint Plans (7-day generated plans) ─────────────────────────────────
+export const sprintPlans = mysqlTable("sprint_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId"),
+  planId: varchar("planId", { length: 64 }).notNull().unique(),
+  targetLevel: varchar("targetLevel", { length: 8 }),
+  timeline: varchar("timeline", { length: 32 }),
+  planData: json("planData").notNull().$type<Record<string, unknown>>(),
+  shareToken: varchar("shareToken", { length: 64 }).unique(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type SprintPlan = typeof sprintPlans.$inferSelect;

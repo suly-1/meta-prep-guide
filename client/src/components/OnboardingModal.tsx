@@ -5,7 +5,7 @@ import { X, ChevronRight, ChevronLeft } from "lucide-react";
 const STEPS = [
   {
     title: "Welcome to Staff Eng Prep",
-    body: "This guide covers everything you need for Software Engineer (IC4) through Senior Staff (IC7) engineering interviews at FAANG companies: Coding, System Design, and Behavioral rounds.",
+    body: "This guide covers everything you need for Software Engineer (L4) through Senior Staff (L7) engineering interviews at FAANG companies: Coding, System Design, and Behavioral rounds.",
     icon: "🎯",
   },
   {

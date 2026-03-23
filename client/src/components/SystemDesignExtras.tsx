@@ -281,7 +281,7 @@ const DESIGN_PATTERNS = [
     tradeoffs:
       "Choreography is decoupled but hard to trace. Orchestration is easier to reason about but creates a coordinator SPOF.",
     metaSignal:
-      "IC7 signal: knowing when to use each and how to handle compensating transactions.",
+      "L7 signal: knowing when to use each and how to handle compensating transactions.",
   },
   {
     name: "CQRS",
@@ -325,7 +325,7 @@ const DESIGN_PATTERNS = [
     tradeoffs:
       "Adds latency (relay polling). Requires idempotent consumers. Solves dual-write problem without distributed transactions.",
     metaSignal:
-      "IC7: understanding the dual-write problem and why 2PC is impractical at scale.",
+      "L7: understanding the dual-write problem and why 2PC is impractical at scale.",
   },
   {
     name: "Read-Through Cache",

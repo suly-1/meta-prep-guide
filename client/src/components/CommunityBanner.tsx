@@ -4,7 +4,7 @@
 // confirmation modal before navigating away.
 
 import { useState } from "react";
-import { ExternalLink, X } from "lucide-react";
+import { X } from "lucide-react";
 
 // ── SVG mesh grid ─────────────────────────────────────────────────────────────
 function MeshGrid() {
@@ -103,71 +103,6 @@ function MeshGrid() {
   );
 }
 
-// ── External link confirmation modal ─────────────────────────────────────────
-interface ExternalLinkModalProps {
-  url: string;
-  label: string;
-  onClose: () => void;
-}
-function ExternalLinkModal({ url, label, onClose }: ExternalLinkModalProps) {
-  return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="ext-link-title"
-      onClick={onClose}
-    >
-      <div
-        className="relative mx-4 w-full max-w-md rounded-xl border border-white/10 bg-[#1a2235] p-6 shadow-2xl"
-        onClick={e => e.stopPropagation()}
-      >
-        <button
-          onClick={onClose}
-          className="absolute right-4 top-4 text-slate-400 hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <X size={16} />
-        </button>
-
-        <h2
-          id="ext-link-title"
-          className="mb-1 text-base font-semibold text-white"
-        >
-          You are leaving this guide
-        </h2>
-        <p className="mb-3 text-sm text-slate-400">
-          You are about to open an official Meta careers page in a new tab.
-        </p>
-
-        {/* Link preview */}
-        <div className="mb-5 rounded-lg border border-white/10 bg-white/5 px-3 py-2">
-          <p className="mb-0.5 text-xs font-medium text-slate-400">{label}</p>
-          <p className="break-all text-xs text-blue-400">{url}</p>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={onClose}
-            className="flex-1 rounded-lg border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-300 hover:bg-white/10 transition-colors"
-          >
-            Cancel
-          </button>
-          <a
-            href={url}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={onClose}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-500 transition-colors"
-          >
-            Open link <ExternalLink size={12} />
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Storage key ───────────────────────────────────────────────────────────────
 const DISMISSED_KEY = "meta_community_banner_dismissed_v1";
 
@@ -181,10 +116,6 @@ export default function CommunityBanner() {
     }
   });
 
-  const [modal, setModal] = useState<{ url: string; label: string } | null>(
-    null
-  );
-
   const handleDismiss = () => {
     setDismissed(true);
     try {
@@ -192,11 +123,6 @@ export default function CommunityBanner() {
     } catch {
       /* storage unavailable */
     }
-  };
-
-  const openModal = (url: string, label: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    setModal({ url, label });
   };
 
   if (dismissed) return null;
@@ -238,8 +164,8 @@ export default function CommunityBanner() {
 
             <p className="text-sm sm:text-base text-slate-400 leading-relaxed mb-4">
               A community-sourced, independent study resource — not affiliated
-              with Meta. Covers IC4–IC7 Behavioral &amp; Coding rounds,
-              including the{" "}
+              with Meta. Covers L4–L7 Behavioral &amp; Coding rounds, including
+              the{" "}
               <span className="text-blue-400 font-medium">
                 AI-Enabled Coding Round
               </span>
@@ -247,39 +173,9 @@ export default function CommunityBanner() {
             </p>
 
             <p className="text-sm text-amber-400 font-medium leading-snug mb-4">
-              Always refer first to the official preparation materials your
-              recruiter or hiring manager has shared with you.
+              Always refer first to any official preparation materials you have
+              received.
             </p>
-
-            {/* Official links — open confirmation modal */}
-            <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-5">
-              <button
-                onClick={e =>
-                  openModal(
-                    "https://www.metacareers.com/life/preparing-for-your-software-engineering-interview-at-facebook/",
-                    "Technical Screen Guide",
-                    e
-                  )
-                }
-                className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors bg-transparent border-none p-0 cursor-pointer"
-              >
-                Technical Screen Guide
-                <ExternalLink size={12} />
-              </button>
-              <button
-                onClick={e =>
-                  openModal(
-                    "https://www.metacareers.com/life/get-prepared-for-your-software-engineer-interview/",
-                    "Full Loop Interview Guide",
-                    e
-                  )
-                }
-                className="inline-flex items-center gap-1 text-sm text-blue-400 hover:text-blue-300 underline underline-offset-2 transition-colors bg-transparent border-none p-0 cursor-pointer"
-              >
-                Full Loop Interview Guide
-                <ExternalLink size={12} />
-              </button>
-            </div>
 
             {/* Footer badges */}
             <div className="flex flex-wrap gap-2">
@@ -298,15 +194,6 @@ export default function CommunityBanner() {
           </div>
         </div>
       </section>
-
-      {/* External link confirmation modal */}
-      {modal && (
-        <ExternalLinkModal
-          url={modal.url}
-          label={modal.label}
-          onClose={() => setModal(null)}
-        />
-      )}
     </>
   );
 }

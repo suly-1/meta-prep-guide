@@ -61,7 +61,7 @@ const TOOL_MAP: Record<string, { tool: string; anchor: string; icon: string }> =
       icon: "🔍",
     },
     "Code Quality": {
-      tool: "IC7 Optimization Challenge",
+      tool: "L7 Optimization Challenge",
       anchor: "#code-practice",
       icon: "✨",
     },
@@ -198,7 +198,7 @@ export function WeakSpotStudyPlan() {
         {
           label: "Code Quality",
           avgScore: avgScore("codeQuality"),
-          tool: "IC7 Optimization Challenge",
+          tool: "L7 Optimization Challenge",
           toolAnchor: "#code-practice",
           icon: "✨",
           description: "Code clarity, naming, and structure",
@@ -315,7 +315,7 @@ export function WeakSpotStudyPlan() {
       focus: "Mixed Review",
       tool: "AI Solution Reviewer + Voice Answer Mode",
       toolAnchor: "#code-practice",
-      task: "Alternate between a coding problem and a behavioral question. Score both with AI. Aim for at least one IC6 verdict in each.",
+      task: "Alternate between a coding problem and a behavioral question. Score both with AI. Aim for at least one L6 verdict in each.",
       icon: "🔄",
       score: 0,
     });

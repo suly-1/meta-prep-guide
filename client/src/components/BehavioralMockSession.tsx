@@ -46,7 +46,7 @@ type XFNScorecardResult = {
   conflictScore: number;
   alignmentScore: number;
   communicationScore: number;
-  icLevel: string;
+  level: string;
   strengths: string[];
   improvements: string[];
   followUpQuestions: string[];
@@ -241,7 +241,7 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
                 {new Date(entryA.date).toLocaleDateString()}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {entryA.scorecard.icLevel}
+                {entryA.scorecard.level}
               </div>
             </div>
             <div className="text-center p-2 rounded-lg bg-secondary">
@@ -250,7 +250,7 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
                 {new Date(entryB.date).toLocaleDateString()}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {entryB.scorecard.icLevel}
+                {entryB.scorecard.level}
               </div>
             </div>
           </div>
@@ -284,9 +284,9 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
                     {entry.scorecard.overallScore.toFixed(1)}/5
                   </span>
                   <span
-                    className={`text-xs font-bold ${entry.scorecard.icLevel === "IC7" ? "text-violet-400" : entry.scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                    className={`text-xs font-bold ${entry.scorecard.level === "L7" ? "text-violet-400" : entry.scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
                   >
-                    {entry.scorecard.icLevel}
+                    {entry.scorecard.level}
                   </span>
                 </div>
               </div>
@@ -417,7 +417,7 @@ export function BehavioralMockSession() {
   const [answers, setAnswers] = useState<string[]>(["", "", ""]);
   const [scorecard, setScorecard] = useState<XFNScorecardResult | null>(null);
   const [showHint, setShowHint] = useState(false);
-  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC7"); // Difficulty selector
+  const [icMode, setIcMode] = useState<"L6" | "L7">("L7"); // Difficulty selector
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Pick 3 random XFN questions once per session
@@ -435,7 +435,7 @@ export function BehavioralMockSession() {
 
   const scoreMutation = trpc.ai.xfnMockScorecard.useMutation();
   const upsertSessionMutation = trpc.mockHistory.upsertSession.useMutation();
-  const icModeRef = useRef<"IC6" | "IC7">(icMode);
+  const icModeRef = useRef<"L6" | "L7">(icMode);
   useEffect(() => {
     icModeRef.current = icMode;
   }, [icMode]);
@@ -584,36 +584,36 @@ export function BehavioralMockSession() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => setIcMode("IC6")}
+              onClick={() => setIcMode("L6")}
               className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-bold border transition-all ${
-                icMode === "IC6"
+                icMode === "L6"
                   ? "bg-blue-500/20 border-blue-500/40 text-blue-300"
                   : "bg-secondary border-border text-muted-foreground hover:border-blue-500/30 hover:text-blue-400"
               }`}
             >
-              <div className="text-sm mb-0.5">🎯 IC6</div>
+              <div className="text-sm mb-0.5">🎯 L6</div>
               <div className="text-[10px] font-normal opacity-80">
                 Project-level XFN impact
               </div>
             </button>
             <button
-              onClick={() => setIcMode("IC7")}
+              onClick={() => setIcMode("L7")}
               className={`flex-1 py-2.5 px-3 rounded-lg text-xs font-bold border transition-all ${
-                icMode === "IC7"
+                icMode === "L7"
                   ? "bg-violet-500/20 border-violet-500/40 text-violet-300"
                   : "bg-secondary border-border text-muted-foreground hover:border-violet-500/30 hover:text-violet-400"
               }`}
             >
-              <div className="text-sm mb-0.5">🚀 IC7</div>
+              <div className="text-sm mb-0.5">🚀 L7</div>
               <div className="text-[10px] font-normal opacity-80">
                 Org-level strategic influence
               </div>
             </button>
           </div>
           <div className="mt-2 text-[10px] text-muted-foreground">
-            {icMode === "IC6"
-              ? "IC6 rubric: effective project-level XFN collaboration, clear communication, resolves team-level conflicts"
-              : "IC7 rubric: long-term strategic partnerships, proactive org alignment, drives cross-org initiatives, multiplies team impact"}
+            {icMode === "L6"
+              ? "L6 rubric: effective project-level XFN collaboration, clear communication, resolves team-level conflicts"
+              : "L7 rubric: long-term strategic partnerships, proactive org alignment, drives cross-org initiatives, multiplies team impact"}
           </div>
         </div>
       </div>
@@ -637,7 +637,7 @@ export function BehavioralMockSession() {
           <span className="badge badge-teal">3 questions · ~36 min</span>
           <span
             className={`badge ${
-              icMode === "IC7"
+              icMode === "L7"
                 ? "bg-violet-500/20 text-violet-400 border border-violet-500/30"
                 : "bg-blue-500/20 text-blue-400 border border-blue-500/30"
             } text-[10px] px-2 py-0.5 rounded-full font-bold`}
@@ -648,13 +648,13 @@ export function BehavioralMockSession() {
         <p className="text-sm text-muted-foreground">
           Simulates Meta's XFN Partnership interview round at{" "}
           <strong
-            className={icMode === "IC7" ? "text-violet-400" : "text-blue-400"}
+            className={icMode === "L7" ? "text-violet-400" : "text-blue-400"}
           >
             {icMode}
           </strong>{" "}
           level. Answer 3 XFN questions using the STAR framework with a
           12-minute timer each.
-          {icMode === "IC7"
+          {icMode === "L7"
             ? " AI rubric evaluates for org-level strategic influence and long-term partnership patterns."
             : " AI rubric evaluates for effective project-level collaboration and conflict resolution."}
         </p>
@@ -708,7 +708,7 @@ export function BehavioralMockSession() {
           <span className="badge badge-green">Session done</span>
           <span
             className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-              icMode === "IC7"
+              icMode === "L7"
                 ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
                 : "bg-blue-500/20 text-blue-400 border-blue-500/30"
             }`}
@@ -758,9 +758,9 @@ export function BehavioralMockSession() {
                   IC Level
                 </div>
                 <div
-                  className={`text-xl font-black ${scorecard.icLevel === "IC7" ? "text-violet-400" : scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                  className={`text-xl font-black ${scorecard.level === "L7" ? "text-violet-400" : scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
                 >
-                  {scorecard.icLevel}
+                  {scorecard.level}
                 </div>
               </div>
             </div>
@@ -849,7 +849,7 @@ export function BehavioralMockSession() {
                   `# XFN Behavioral Mock Transcript`,
                   `**Date:** ${new Date().toLocaleString()}`,
                   `**IC Mode:** ${icMode}`,
-                  `**Overall Score:** ${scorecard.overallScore.toFixed(1)}/5  |  **IC Level:** ${scorecard.icLevel}`,
+                  `**Overall Score:** ${scorecard.overallScore.toFixed(1)}/5  |  **IC Level:** ${scorecard.level}`,
                   ``,
                   `## Scores`,
                   `| Dimension | Score |`,
@@ -954,7 +954,7 @@ export function BehavioralMockSession() {
             <span className="badge badge-teal">XFN Partnership</span>
             <span
               className={`text-[10px] px-2 py-0.5 rounded-full font-bold border ${
-                icMode === "IC7"
+                icMode === "L7"
                   ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
                   : "bg-blue-500/20 text-blue-400 border-blue-500/30"
               }`}

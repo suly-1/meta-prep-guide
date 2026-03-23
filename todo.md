@@ -542,3 +542,64 @@
 - [x] Soften body text: replace "not affiliated with Meta, Google, Amazon, or any other company" with "not affiliated with any company"
 - [x] Add warmer subtitle: replace "Takes 10 seconds — worth it" with "A note from the community"
 - [x] Auto-skip gate for returning users already in DB (remove loading spinner delay)
+
+## Level Label + Neutral Language Updates
+
+- [x] Replace all IC4/IC5/IC6/IC7 with L4/L5/L6/L7 across entire codebase
+- [x] Fix DisclaimerGate recruiter line: "Always pair it with whatever your recruiter sends you" → "Always pair it with any official guidance you receive"
+- [x] Remove "Technical Screen Guide" and "Full Loop Interview Guide" buttons and their links
+- [x] Fix TypeScript errors from IC→L rename (type union definitions still using IC5/IC6/IC7)
+- [x] Make DisclaimerGate domain dynamic via window.location.hostname
+
+## High-Impact Features (Audit Round — 10 Features)
+
+- [ ] #1 AI Interviewer Interrupt Mode — System Design session with disruptive AI questions every 3-5 min, scores pivot/recovery quality
+- [ ] #2 Back-of-Envelope Calculator with "Show Your Work" grading — AI grades math correctness, assumptions, and connection to architecture
+- [ ] #3 "Tear Down My Design" Adversarial Review — AI finds 3 weakest points, attacks with follow-ups, scores defense quality
+- [ ] #4 "Think Out Loud" Coaching Mode — voice memo during coding, AI scores narration quality (pattern named, complexity stated, bugs caught)
+- [ ] #5 Pattern Recognition Speed Drill — 90-second drill: name the pattern, state complexity, name one edge case
+- [ ] #6 Personalized Weak Pattern Remediation Plan — AI generates 5-problem sequence targeting the 2-3 weakest patterns
+- [ ] #7 Story Coverage Matrix — visual matrix of STAR stories vs Meta behavioral focus areas, red cells = gaps
+- [ ] #8 Interviewer Persona Stress Test with Scoring — live 3-exchange simulation with AI in character, scores composure/depth/quantification
+- [ ] #9 Impact Quantification Coach — paste any STAR answer, AI highlights sentences missing metrics and suggests what to add
+- [ ] #10 Personalized Interview Readiness Report — weekly AI-generated 1-page report synthesizing all data into top 3 action items
+
+## New Features (Mar 23 2026)
+
+- [ ] Fix all TypeScript errors in 10 new components (field name mismatches)
+- [ ] Move all 10 high-impact features to the top of their respective tabs
+- [ ] Add DB schema for score persistence (patterns, behavioral, system design scores per user)
+- [ ] tRPC procedures: saveScores, loadScores for cross-device sync
+- [ ] Build "Start Here" onboarding flow — 60-second guided tour → Readiness Report
+- [ ] Build 7-Day Sprint Plan generator using Readiness Report data (printable/saveable)
+
+## Phase Completion (Mar 23 2026 - Continued)
+
+- [x] Move all 10 high-impact features to the top of their respective tabs
+- [x] TypeScript: 0 errors, Tests: 26/26 passing
+- [x] Deploy to GitHub Pages (www.metaguide.blog)
+- [ ] Build "Start Here" Onboarding Flow (60-second guided tour routing to Readiness Report)
+- [ ] Build 7-Day Sprint Plan Generator (day-by-day schedule from Readiness Report, printable)
+- [ ] Score Persistence to DB (cross-device tracking with anonymized aggregate stats)
+
+## New Features (Mar 23 2026 - User Requests)
+
+- [ ] Fix CodingTab JSX structure issue (unclosed div from feature-to-top migration)
+- [ ] General Feedback Mechanism (site-wide suggestion button → owner notification)
+- [ ] 7-Day Sprint Feedback (sprint-specific suggestions sent to owner)
+- [ ] Start Here Onboarding Flow (60-second guided tour → Readiness Report)
+- [ ] 7-Day Sprint Plan Generator (day-by-day schedule, printable, shareable with mentor/peer)
+- [ ] Sprint Plan Sharing (share link/copy for mentor or peer review)
+- [ ] Progress & Performance Analytics Dashboard (charts from persistent scores)
+- [ ] Score Persistence to DB (cross-device tracking, anonymized aggregate stats)
+
+## Phase 3 Features (Mar 23 2026)
+
+- [x] Fix CodingTab JSX structure (fragment → div wrapper)
+- [x] General Feedback Mechanism (floating button + modal, DB + owner notification)
+- [x] Start Here Onboarding Flow (60-second guided tour → Readiness Report)
+- [x] 7-Day Sprint Plan Generator (AI-generated, printable, shareable)
+- [x] Sprint Plan Feedback (sprint-specific suggestions)
+- [x] Progress & Performance Analytics Dashboard
+- [x] Score Persistence to DB (ScoreSyncBanner, cross-device sync)
+- [x] All 10 features moved to top of their respective tabs

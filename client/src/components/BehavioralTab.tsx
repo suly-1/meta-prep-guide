@@ -1,6 +1,6 @@
 // Design: Bold Engineering Dashboard — Behavioral Tab
 // Features: search, practice mode (3-min timer), full mock session (4 questions),
-// IC6/IC7 comparison table, mock history log, meta values, STAR framework
+// L6/L7 comparison table, mock history log, meta values, STAR framework
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
   Search,
@@ -33,6 +33,9 @@ import { toast } from "sonner";
 import { nanoid } from "nanoid";
 import { trpc } from "@/lib/trpc";
 import { BehavioralMockSession } from "@/components/BehavioralMockSession";
+import { StoryCoverageMatrix } from "@/components/StoryCoverageMatrix";
+import { InterviewerPersonaStressTest } from "@/components/InterviewerPersonaStressTest";
+import { ImpactQuantificationCoach } from "@/components/ImpactQuantificationCoach";
 
 const AREAS = [
   "All",
@@ -43,10 +46,10 @@ const AREAS = [
   "XFN Partnership",
 ];
 
-// ── IC4 / IC5 Entry-Level Behavioral Guide ──────────────────────────────────
-const IC4_IC5_BEHAVIORAL = [
+// ── L4 / L5 Entry-Level Behavioral Guide ──────────────────────────────────
+const L4_L5_BEHAVIORAL = [
   {
-    level: "IC4",
+    level: "L4",
     color: "text-emerald-400",
     border: "border-emerald-500/30",
     bg: "bg-emerald-500/5",
@@ -65,7 +68,7 @@ const IC4_IC5_BEHAVIORAL = [
       "Keep Situation + Task to 1–2 sentences. Spend 70% of your answer on Action and Result.",
       "Quantify results wherever possible — even rough numbers (e.g. 'reduced latency by ~30%') are better than none.",
       "Prepare 3–4 strong stories that can flex across multiple question types (failure, conflict, impact).",
-      "It's OK to say 'I was wrong' — IC4 interviewers reward self-awareness and growth mindset.",
+      "It's OK to say 'I was wrong' — L4 interviewers reward self-awareness and growth mindset.",
     ],
     mustPrep: [
       "Tell me about a time you disagreed with a teammate.",
@@ -75,7 +78,7 @@ const IC4_IC5_BEHAVIORAL = [
     ],
   },
   {
-    level: "IC5",
+    level: "L5",
     color: "text-blue-400",
     border: "border-blue-500/30",
     bg: "bg-blue-500/5",
@@ -90,11 +93,11 @@ const IC4_IC5_BEHAVIORAL = [
       "Conflict & Influence",
     ],
     tips: [
-      "Elevate your scope: IC5 stories should involve cross-team impact, not just individual contributions.",
+      "Elevate your scope: L5 stories should involve cross-team impact, not just individual contributions.",
       "Show influence without authority — how did you align people who didn't report to you?",
       "Discuss trade-offs explicitly: 'I chose X over Y because...' signals senior-level judgment.",
       "Prepare at least one story about driving a decision with incomplete information.",
-      "Mention mentorship or leveling up teammates — IC5 is expected to grow the team around them.",
+      "Mention mentorship or leveling up teammates — L5 is expected to grow the team around them.",
     ],
     mustPrep: [
       "Tell me about a time you influenced a decision without formal authority.",
@@ -105,7 +108,7 @@ const IC4_IC5_BEHAVIORAL = [
   },
 ];
 
-function IC4IC5BehavioralCard() {
+function L4L5BehavioralCard() {
   const [open, setOpen] = useState(false);
   return (
     <div className="prep-card overflow-hidden">
@@ -115,7 +118,7 @@ function IC4IC5BehavioralCard() {
       >
         <div className="section-title mb-0 pb-0 border-0">
           <Brain size={14} className="text-emerald-400" />
-          IC4 / IC5 Entry-Level Behavioral Guide
+          L4 / L5 Entry-Level Behavioral Guide
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs text-muted-foreground">
@@ -130,7 +133,7 @@ function IC4IC5BehavioralCard() {
       </button>
       {open && (
         <div className="p-4 pt-0 grid sm:grid-cols-2 gap-4">
-          {IC4_IC5_BEHAVIORAL.map(tier => (
+          {L4_L5_BEHAVIORAL.map(tier => (
             <div
               key={tier.level}
               className={`rounded-lg border ${tier.border} ${tier.bg} p-4 space-y-3`}
@@ -209,8 +212,8 @@ interface Flashcard {
   question: string;
   area: string;
   probes: string[];
-  ic6Answer: string;
-  ic7Answer: string;
+  l6Answer: string;
+  l7Answer: string;
 }
 
 const FLASHCARDS: Flashcard[] = [
@@ -223,9 +226,9 @@ const FLASHCARDS: Flashcard[] = [
       "What resistance did you face?",
       "What would you do differently?",
     ],
-    ic6Answer:
+    l6Answer:
       "I identified key stakeholders, built a data-driven case, and held 1:1s to address concerns. The team adopted my proposal after I demonstrated a small pilot with measurable results.",
-    ic7Answer:
+    l7Answer:
       "I mapped the org landscape to find hidden influencers, built a coalition across 3 orgs, and created a shared narrative that tied the proposal to each team's OKRs. I also anticipated objections and pre-addressed them in the doc. The initiative shipped org-wide and became a standard pattern.",
   },
   {
@@ -238,9 +241,9 @@ const FLASHCARDS: Flashcard[] = [
       "How did you de-risk the decision?",
       "What was the outcome?",
     ],
-    ic6Answer:
+    l6Answer:
       "I defined the minimum data needed to make a reversible decision, set a time-box, and moved forward with a rollback plan. The decision proved correct and we shipped on schedule.",
-    ic7Answer:
+    l7Answer:
       "I framed the decision as a two-way door vs. one-way door. For reversible decisions I moved fast with instrumentation; for irreversible ones I ran a structured pre-mortem with 5 senior engineers. I also documented the decision log so the team could learn from it. This pattern became our team's default for ambiguous calls.",
   },
   {
@@ -248,13 +251,13 @@ const FLASHCARDS: Flashcard[] = [
     question: "Tell me about the most impactful project you've led.",
     area: "Scale & Impact",
     probes: [
-      "What made it IC7 scope?",
+      "What made it L7 scope?",
       "How did you measure success?",
       "What was the org-wide effect?",
     ],
-    ic6Answer:
+    l6Answer:
       "I led a 3-engineer team to rebuild our data pipeline, reducing latency by 40% and enabling two new product features that drove a 15% increase in DAU.",
-    ic7Answer:
+    l7Answer:
       "I identified a platform-level bottleneck affecting 8 product teams, built the business case for a 6-month investment, staffed a cross-functional team of 12, and drove the architecture decisions. The platform now handles 10x traffic, unblocked 3 major product launches, and saved $2M/year in infrastructure costs. I also mentored 2 engineers who are now TLs.",
   },
   {
@@ -266,9 +269,9 @@ const FLASHCARDS: Flashcard[] = [
       "How did you handle the aftermath?",
       "What systemic change did you drive?",
     ],
-    ic6Answer:
+    l6Answer:
       "I underestimated the complexity of a migration, causing a 2-hour outage. I owned the incident, wrote a thorough post-mortem, and implemented automated rollback that prevented 3 similar incidents.",
-    ic7Answer:
+    l7Answer:
       "I made a strategic bet on a technology that didn't pan out, costing 4 months of eng time. I took full ownership, presented the learnings to leadership, and used the failure to build a better technical evaluation framework that the org now uses. I also used it as a coaching moment for my team on how to fail fast and learn faster.",
   },
   {
@@ -281,9 +284,9 @@ const FLASHCARDS: Flashcard[] = [
       "How did you maintain the relationship?",
       "What was the outcome?",
     ],
-    ic6Answer:
+    l6Answer:
       "I prepared a data-backed counter-proposal, had a direct 1:1 conversation, and committed to the decision once made. I made sure to revisit the outcome together.",
-    ic7Answer:
+    l7Answer:
       "I distinguish between disagreements on strategy vs. execution. For strategy, I write a crisp 1-pager with tradeoffs and request a structured debate. For execution, I disagree-and-commit while documenting my concerns. I've learned that the quality of the disagreement process matters as much as the outcome — it builds trust and psychological safety.",
   },
   {
@@ -295,9 +298,9 @@ const FLASHCARDS: Flashcard[] = [
       "What was the stakeholder reaction?",
       "What did you do to rebuild trust?",
     ],
-    ic6Answer:
+    l6Answer:
       "I delivered the news early with context, proposed a mitigation plan, and set up a weekly sync to restore confidence. The stakeholders appreciated the transparency.",
-    ic7Answer:
+    l7Answer:
       "I believe bad news should travel fast. I gave stakeholders a heads-up before the formal announcement, provided a root cause analysis, and presented 3 recovery options with tradeoffs. I also took accountability publicly in the all-hands. This approach turned a potential trust crisis into a demonstration of leadership maturity.",
   },
   {
@@ -309,9 +312,9 @@ const FLASHCARDS: Flashcard[] = [
       "What was the biggest friction point?",
       "How did you measure success?",
     ],
-    ic6Answer:
+    l6Answer:
       "I set up a shared OKR with PM and Design, held weekly syncs, and used a RACI matrix to clarify ownership. The feature shipped on time with high quality.",
-    ic7Answer:
+    l7Answer:
       "I started by mapping each team's incentives and finding the shared north star metric. I created a joint charter, ran a kickoff with all stakeholders, and established a lightweight governance model. When priorities conflicted, I escalated with a clear recommendation rather than just surfacing the problem. The initiative delivered $5M in incremental revenue and became a template for future XFN work.",
   },
   {
@@ -323,17 +326,17 @@ const FLASHCARDS: Flashcard[] = [
       "How do you communicate trade-offs?",
       "What do you deprioritize?",
     ],
-    ic6Answer:
+    l6Answer:
       "I use an impact/effort matrix, align with my manager on the top 3 priorities, and communicate trade-offs to stakeholders. I revisit priorities weekly.",
-    ic7Answer:
-      "I use a combination of RICE scoring and strategic alignment checks. I also distinguish between urgent-important (do now), important-not-urgent (schedule), and urgent-not-important (delegate). At IC7, I also think about which decisions only I can make vs. which I should push down to my team. I've found that the best prioritization is often about what NOT to do.",
+    l7Answer:
+      "I use a combination of RICE scoring and strategic alignment checks. I also distinguish between urgent-important (do now), important-not-urgent (schedule), and urgent-not-important (delegate). At L7, I also think about which decisions only I can make vs. which I should push down to my team. I've found that the best prioritization is often about what NOT to do.",
   },
 ];
 
 function FlashcardFlipDeck() {
   const [cardIdx, setCardIdx] = useState(0);
   const [flipped, setFlipped] = useState(false);
-  const [showIC7, setShowIC7] = useState(false);
+  const [showL7, setShowL7] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -344,13 +347,13 @@ function FlashcardFlipDeck() {
   const next = () => {
     setCardIdx(i => (i + 1) % filteredCards.length);
     setFlipped(false);
-    setShowIC7(false);
+    setShowL7(false);
     setUserAnswer("");
   };
   const prev = () => {
     setCardIdx(i => (i - 1 + filteredCards.length) % filteredCards.length);
     setFlipped(false);
-    setShowIC7(false);
+    setShowL7(false);
     setUserAnswer("");
   };
   const wc = userAnswer.trim().split(/\s+/).filter(Boolean).length;
@@ -361,7 +364,7 @@ function FlashcardFlipDeck() {
         <div>
           <div className="section-title mb-0.5">Flashcard Flip Deck</div>
           <div className="text-xs text-muted-foreground">
-            Type your answer, then flip to compare IC6 vs IC7 sample responses
+            Type your answer, then flip to compare L6 vs L7 sample responses
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -452,41 +455,41 @@ function FlashcardFlipDeck() {
           <div className="space-y-3">
             <div className="flex gap-2">
               <button
-                onClick={() => setShowIC7(false)}
+                onClick={() => setShowL7(false)}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                  !showIC7
+                  !showL7
                     ? "bg-blue-500/15 border-blue-500/30 text-blue-400"
                     : "bg-secondary border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
-                IC6 Sample
+                L6 Sample
               </button>
               <button
-                onClick={() => setShowIC7(true)}
+                onClick={() => setShowL7(true)}
                 className={`flex-1 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                  showIC7
+                  showL7
                     ? "bg-violet-500/15 border-violet-500/30 text-violet-400"
                     : "bg-secondary border-border text-muted-foreground hover:text-foreground"
                 }`}
               >
-                IC7 Sample
+                L7 Sample
               </button>
             </div>
             <div
               className={`p-4 rounded-lg border text-xs leading-relaxed ${
-                showIC7
+                showL7
                   ? "bg-violet-500/10 border-violet-500/20 text-violet-100"
                   : "bg-blue-500/10 border-blue-500/20 text-blue-100"
               }`}
             >
               <div
-                className={`text-[10px] font-bold mb-2 ${showIC7 ? "text-violet-400" : "text-blue-400"}`}
+                className={`text-[10px] font-bold mb-2 ${showL7 ? "text-violet-400" : "text-blue-400"}`}
               >
-                {showIC7
-                  ? "IC7 Answer — Strategic, Org-wide, Systemic"
-                  : "IC6 Answer — Solid, Data-driven, Team-scoped"}
+                {showL7
+                  ? "L7 Answer — Strategic, Org-wide, Systemic"
+                  : "L6 Answer — Solid, Data-driven, Team-scoped"}
               </div>
-              {showIC7 ? card.ic7Answer : card.ic6Answer}
+              {showL7 ? card.l7Answer : card.l6Answer}
             </div>
             {userAnswer.trim() && (
               <div className="p-3 rounded-lg bg-secondary/50 border border-border">
@@ -540,8 +543,8 @@ function FlashcardFlipDeck() {
   );
 }
 
-// ── 8 Key Signals That Distinguish IC7 from IC6 ────────────────────────────
-const IC7_SIGNALS = [
+// ── 8 Key Signals That Distinguish L7 from L6 ────────────────────────────
+const L7_SIGNALS = [
   {
     num: 1,
     signal: "Scope of Impact",
@@ -600,20 +603,20 @@ const IC7_SIGNALS = [
   },
 ];
 
-function IC7Signals() {
+function L7Signals() {
   const [expanded, setExpanded] = useState<number | null>(null);
   return (
     <div className="prep-card p-5 space-y-4">
       <div>
         <div className="section-title mb-0.5">
-          8 Key Signals That Distinguish IC7 from IC6
+          8 Key Signals That Distinguish L7 from L6
         </div>
         <div className="text-xs text-muted-foreground">
-          Click any signal to see the IC6 vs IC7 contrast and a coaching tip
+          Click any signal to see the L6 vs L7 contrast and a coaching tip
         </div>
       </div>
       <div className="grid sm:grid-cols-2 gap-2">
-        {IC7_SIGNALS.map(s => (
+        {L7_SIGNALS.map(s => (
           <div
             key={s.num}
             className="rounded-xl border border-border bg-secondary/30 overflow-hidden"
@@ -637,7 +640,7 @@ function IC7Signals() {
                 <div className="grid grid-cols-2 gap-2 mt-3">
                   <div className="p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                     <div className="text-[10px] font-bold text-blue-400 mb-1">
-                      IC6
+                      L6
                     </div>
                     <p className="text-xs text-blue-100 leading-relaxed">
                       {s.ic6}
@@ -645,7 +648,7 @@ function IC7Signals() {
                   </div>
                   <div className="p-3 rounded-lg bg-violet-500/10 border border-violet-500/20">
                     <div className="text-[10px] font-bold text-violet-400 mb-1">
-                      IC7
+                      L7
                     </div>
                     <p className="text-xs text-violet-100 leading-relaxed">
                       {s.ic7}
@@ -771,9 +774,9 @@ function PracticeMode({
         {"tier" in q && (
           <span
             className={`text-[10px] px-1.5 py-0.5 rounded font-bold border ${
-              (q as any).tier === "IC7"
+              (q as any).tier === "L7"
                 ? "text-violet-300 bg-violet-500/15 border-violet-500/30"
-                : (q as any).tier === "IC6"
+                : (q as any).tier === "L6"
                   ? "text-blue-300 bg-blue-500/15 border-blue-500/30"
                   : "text-emerald-300 bg-emerald-500/15 border-emerald-500/30"
             }`}
@@ -2158,7 +2161,7 @@ function TechRetroPlanner({
   type QuestionScore = {
     specificity: number;
     impactClarity: number;
-    icLevel: string;
+    level: string;
     coachingNote: string;
     strengths: string;
     improvements: string;
@@ -2598,14 +2601,14 @@ function TechRetroPlanner({
                                   </span>
                                   <span
                                     className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                                      score.icLevel === "IC7"
+                                      score.level === "L7"
                                         ? "bg-violet-500/20 text-violet-400 border-violet-500/30"
-                                        : score.icLevel === "IC6"
+                                        : score.level === "L6"
                                           ? "bg-blue-500/20 text-blue-400 border-blue-500/30"
                                           : "bg-secondary text-muted-foreground border-border"
                                     }`}
                                   >
-                                    {score.icLevel}
+                                    {score.level}
                                   </span>
                                 </div>
                                 <div className="grid grid-cols-2 gap-2">
@@ -2705,11 +2708,11 @@ function AnswerScorer() {
   const [open, setOpen] = useState(false);
   const [question, setQuestion] = useState("");
   const [answer, setAnswer] = useState("");
-  const [icTarget, setIcTarget] = useState<"IC5" | "IC6" | "IC7">("IC6");
+  const [icTarget, setIcTarget] = useState<"L5" | "L6" | "L7">("L6");
   const [result, setResult] = useState<{
     specificity: number;
     impact: number;
-    icLevelFit: number;
+    levelFit: number;
     overall: number;
     strengths: string[];
     improvements: string[];
@@ -2759,7 +2762,7 @@ function AnswerScorer() {
             <span className="text-xs text-muted-foreground shrink-0">
               Target level:
             </span>
-            {(["IC5", "IC6", "IC7"] as const).map(ic => (
+            {(["L5", "L6", "L7"] as const).map(ic => (
               <button
                 key={ic}
                 onClick={() => setIcTarget(ic)}
@@ -2893,7 +2896,7 @@ Result: ..."
                 />
                 <ScoreBar
                   label={`IC-Level Fit (${icTarget} scope & ownership)`}
-                  value={result.icLevelFit}
+                  value={result.levelFit}
                   color="text-purple-400"
                 />
               </div>
@@ -3060,6 +3063,11 @@ export default function BehavioralTab() {
 
   return (
     <div className="space-y-5">
+      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <StoryCoverageMatrix />
+      <InterviewerPersonaStressTest />
+      <ImpactQuantificationCoach />
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* Quick Actions sticky row */}
       <div className="sticky top-0 z-20 -mx-4 px-4 py-2.5 bg-background/90 backdrop-blur-sm border-b border-border flex items-center gap-3">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">
@@ -3122,7 +3130,7 @@ export default function BehavioralTab() {
         <BehavioralMockSession />
       </div>
 
-      {/* ===== IC7 EXCLUSIVE: TECHNICAL RETROSPECTIVE + XFN PARTNERSHIP ===== */}
+      {/* ===== L7 EXCLUSIVE: TECHNICAL RETROSPECTIVE + XFN PARTNERSHIP ===== */}
       <div
         className="relative overflow-hidden rounded-xl"
         style={{
@@ -3156,7 +3164,7 @@ export default function BehavioralTab() {
             <div className="text-3xl animate-bounce">🎤</div>
             <div>
               <div className="text-lg font-black text-white tracking-tight">
-                IC7 EXCLUSIVE INTERVIEW ROUNDS
+                L7 EXCLUSIVE INTERVIEW ROUNDS
               </div>
               <div className="text-xs font-bold text-violet-300">
                 Technical Retrospective · XFN Partnership · MUST PREPARE ‼️
@@ -3164,7 +3172,7 @@ export default function BehavioralTab() {
             </div>
             <div className="ml-auto flex gap-1.5 flex-wrap justify-end">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-violet-500/30 text-violet-200 border border-violet-500/50 animate-pulse">
-                IC7 ONLY
+                L7 ONLY
               </span>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-blue-500/30 text-blue-200 border border-blue-500/50">
                 45 MIN EACH
@@ -3198,7 +3206,7 @@ export default function BehavioralTab() {
                       <strong className="text-violet-300">
                         recent project spanning 18–24 months
                       </strong>{" "}
-                      at IC7 scope
+                      at L7 scope
                     </li>
                     <li>
                       • Prepare an{" "}
@@ -3248,7 +3256,7 @@ export default function BehavioralTab() {
                     </li>
                     <li>
                       • <strong className="text-violet-300">Scope</strong> —
-                      does the project reflect IC7-level impact?
+                      does the project reflect L7-level impact?
                     </li>
                   </ul>
                 </div>
@@ -3383,7 +3391,7 @@ export default function BehavioralTab() {
                 </div>
                 <div className="p-3 rounded-lg bg-cyan-500/10 border border-cyan-500/30">
                   <div className="font-bold text-cyan-300 mb-1.5">
-                    🏆 IC7-Level Expectations
+                    🏆 L7-Level Expectations
                   </div>
                   <ul className="space-y-1 text-slate-300">
                     <li>
@@ -3479,8 +3487,8 @@ export default function BehavioralTab() {
                 </a>
               </div>
               <div>
-                🎯 <strong className="text-white">IC7 scope</strong> — every
-                example should reflect IC7-level impact
+                🎯 <strong className="text-white">L7 scope</strong> — every
+                example should reflect L7-level impact
               </div>
             </div>
           </div>
@@ -3511,11 +3519,11 @@ export default function BehavioralTab() {
         </div>
       </div>
 
-      {/* IC6 vs IC7 Comparison */}
+      {/* L6 vs L7 Comparison */}
       <div className="prep-card overflow-hidden">
         <div className="p-4 border-b border-border">
           <div className="section-title mb-0 pb-0 border-0">
-            IC6 vs IC7 Behavioral Expectations
+            L6 vs L7 Behavioral Expectations
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -3526,10 +3534,10 @@ export default function BehavioralTab() {
                   Dimension
                 </th>
                 <th className="text-left p-3 text-xs font-semibold text-blue-400 uppercase tracking-wider">
-                  IC6 — Staff Engineer
+                  L6 — Staff Engineer
                 </th>
                 <th className="text-left p-3 text-xs font-semibold text-purple-400 uppercase tracking-wider">
-                  IC7 — Senior Staff Engineer
+                  L7 — Senior Staff Engineer
                 </th>
               </tr>
             </thead>
@@ -3643,11 +3651,11 @@ export default function BehavioralTab() {
       {/* Flashcard Flip Deck */}
       <FlashcardFlipDeck />
 
-      {/* IC4 / IC5 Entry-Level Behavioral Guide */}
-      <IC4IC5BehavioralCard />
+      {/* L4 / L5 Entry-Level Behavioral Guide */}
+      <L4L5BehavioralCard />
 
-      {/* 8 Key Signals That Distinguish IC7 from IC6 */}
-      <IC7Signals />
+      {/* 8 Key Signals That Distinguish L7 from L6 */}
+      <L7Signals />
 
       {/* STAR Framework */}
       <div className="prep-card p-5">
@@ -3714,9 +3722,9 @@ export default function BehavioralTab() {
           className="px-3 py-2 rounded-lg bg-secondary border border-border text-sm text-foreground focus:outline-none"
         >
           <option value="All">All Levels</option>
-          <option value="IC5">IC5+</option>
-          <option value="IC6">IC6+</option>
-          <option value="IC7">IC7 Only</option>
+          <option value="L5">L5+</option>
+          <option value="L6">L6+</option>
+          <option value="L7">L7 Only</option>
         </select>
       </div>
 
@@ -3739,9 +3747,9 @@ export default function BehavioralTab() {
                   </span>
                   <span
                     className={`text-[9px] px-1 py-0.5 rounded font-bold border shrink-0 ${
-                      (q as any).tier === "IC7"
+                      (q as any).tier === "L7"
                         ? "text-violet-400 bg-violet-500/10 border-violet-500/20"
-                        : (q as any).tier === "IC6"
+                        : (q as any).tier === "L6"
                           ? "text-blue-400 bg-blue-500/10 border-blue-500/20"
                           : "text-emerald-400 bg-emerald-500/10 border-emerald-500/20"
                     }`}
@@ -3831,7 +3839,7 @@ export default function BehavioralTab() {
                     {/* Voice Answer Mode — record and score STAR answer inline */}
                     <VoiceAnswerMode
                       questionText={q.q}
-                      icMode={(q as any).tier === "IC7" ? "IC7" : "IC6"}
+                      icMode={(q as any).tier === "L7" ? "L7" : "L6"}
                     />
                     {/* Version History Panel */}
                     {showVersions === q.id &&
@@ -3879,6 +3887,7 @@ export default function BehavioralTab() {
           </div>
         )}
       </div>
+      {/* High impact features moved to top */}
     </div>
   );
 }

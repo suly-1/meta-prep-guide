@@ -2,7 +2,7 @@
  * Voice Answer Mode for Behavioral Tab
  * - Mic button to record a STAR answer
  * - Uploads audio to S3 via collab.uploadAudio
- * - Transcribes via Whisper and scores against IC6/IC7 rubric via ai.transcribeAndScoreVoice
+ * - Transcribes via Whisper and scores against L6/L7 rubric via ai.transcribeAndScoreVoice
  */
 import { useState, useRef, useCallback } from "react";
 import { trpc } from "@/lib/trpc";
@@ -23,7 +23,7 @@ import {
 
 interface VoiceAnswerModeProps {
   questionText: string;
-  icMode?: "IC6" | "IC7";
+  icMode?: "L6" | "L7";
 }
 
 type RecordingState =
@@ -66,13 +66,13 @@ function ScoreBar({
 
 function ICBadge({ level }: { level: string }) {
   const colors: Record<string, string> = {
-    IC5: "bg-slate-500/20 border-slate-500/40 text-slate-300",
-    IC6: "bg-blue-500/20 border-blue-500/40 text-blue-300",
-    IC7: "bg-purple-500/20 border-purple-500/40 text-purple-300",
+    L5: "bg-slate-500/20 border-slate-500/40 text-slate-300",
+    L6: "bg-blue-500/20 border-blue-500/40 text-blue-300",
+    L7: "bg-purple-500/20 border-purple-500/40 text-purple-300",
   };
   return (
     <span
-      className={`px-2 py-0.5 rounded-full border text-xs font-bold ${colors[level] ?? colors.IC6}`}
+      className={`px-2 py-0.5 rounded-full border text-xs font-bold ${colors[level] ?? colors.L6}`}
     >
       {level}
     </span>
@@ -81,7 +81,7 @@ function ICBadge({ level }: { level: string }) {
 
 export function VoiceAnswerMode({
   questionText,
-  icMode = "IC6",
+  icMode = "L6",
 }: VoiceAnswerModeProps) {
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<RecordingState>("idle");
@@ -93,7 +93,7 @@ export function VoiceAnswerMode({
     action: number;
     result: number;
     overallScore: number;
-    icLevel: string;
+    level: string;
     verdict: string;
     strengths: string[];
     gaps: string[];
@@ -117,7 +117,7 @@ export function VoiceAnswerMode({
         action: data.action,
         result: data.result,
         overallScore: data.overallScore,
-        icLevel: data.icLevel,
+        level: data.level,
         verdict: data.verdict,
         strengths: data.strengths,
         gaps: data.gaps,
@@ -275,7 +275,7 @@ export function VoiceAnswerMode({
                 <span>·</span>
                 <span>Max 5 min</span>
                 <span>·</span>
-                <span>IC{icMode === "IC7" ? "7" : "6"} rubric</span>
+                <span>IC{icMode === "L7" ? "7" : "6"} rubric</span>
               </div>
             </div>
           )}
@@ -374,7 +374,7 @@ export function VoiceAnswerMode({
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <ICBadge level={score.icLevel} />
+                    <ICBadge level={score.level} />
                     <span
                       className={`text-lg font-black ${score.overallScore >= 4 ? "text-emerald-400" : score.overallScore >= 3 ? "text-blue-400" : score.overallScore >= 2 ? "text-amber-400" : "text-red-400"}`}
                     >

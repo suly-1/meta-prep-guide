@@ -244,6 +244,136 @@ export const trpc = {
           coaching: "⚠️ AI coaching requires the online version.",
         })),
     },
+    interruptModeStart: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            interruptions: [
+              "⚠️ AI Interrupt Mode requires the online version at the Manus app.",
+              "Visit the online version to use this feature.",
+              "AI features are not available in the static build.",
+            ],
+          }),
+        })),
+    },
+    interruptModeScore: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            score: 0,
+            feedback: "⚠️ AI scoring requires the online version.",
+            betterResponse: "",
+          }),
+        })),
+    },
+    scoreBoECalculation: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            score: 0,
+            orderOfMagnitude: "unknown",
+            feedback: "⚠️ AI scoring requires the online version.",
+            keyAssumptions: [],
+            designImplication: "",
+          }),
+        })),
+    },
+    tearDownDesign: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            overallScore: 0,
+            verdict: "⚠️ AI review requires the online version.",
+            criticalFlaws: [],
+            minorIssues: [],
+            strengths: [],
+            prioritizedFixes: [],
+          }),
+        })),
+    },
+    scoreThinkOutLoud: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            overallScore: 0,
+            dimensions: [],
+            topTip: "⚠️ AI coaching requires the online version.",
+            modelThinkAloud: "",
+          }),
+        })),
+    },
+    scorePatternDrill: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            correct: false,
+            correctPattern: "",
+            explanation: "⚠️ AI scoring requires the online version.",
+            keySignals: [],
+            score: 0,
+            speedRating: "",
+          }),
+        })),
+    },
+    generateRemediationPlan: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            plan: [],
+            weeklyMilestones: [],
+            estimatedReadinessGain:
+              "⚠️ AI planning requires the online version.",
+          }),
+        })),
+    },
+    personaStressTestStart: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            challenges: [
+              "⚠️ AI Persona Stress Test requires the online version.",
+            ],
+          }),
+        })),
+    },
+    personaStressTestRespond: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            score: 0,
+            feedback: "⚠️ AI scoring requires the online version.",
+          }),
+        })),
+    },
+    personaStressTestScore: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: "⚠️ AI debrief requires the online version.",
+        })),
+    },
+    quantifyImpact: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            scoreOriginal: 0,
+            scoreStrengthened: 0,
+            weakClaims: [],
+            coaching: "⚠️ AI coaching requires the online version.",
+            strengthenedStory: "",
+          }),
+        })),
+    },
+    generateReadinessReport: {
+      useMutation: () =>
+        makeMutation(() => ({
+          content: JSON.stringify({
+            score: 0,
+            verdict: "no-go",
+            report:
+              "⚠️ AI Readiness Report requires the online version at the Manus app.",
+          }),
+        })),
+    },
   },
 
   // ── collab (no-op in standalone) ─────────────────────────────────────────

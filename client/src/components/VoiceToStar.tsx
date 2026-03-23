@@ -29,7 +29,7 @@ interface StarResult {
 interface ScoreResult {
   specificity: number;
   impactClarity: number;
-  icLevel: string;
+  level: string;
   coachingNote: string;
   strengths: string;
   improvements: string;
@@ -491,21 +491,21 @@ export default function VoiceToStar() {
                 </div>
                 <div className="p-3 rounded-lg bg-secondary flex flex-col items-center justify-center gap-1">
                   <div className="text-2xl font-bold text-foreground">
-                    {scoreResult.icLevel}
+                    {scoreResult.level}
                   </div>
                   <div className="text-xs text-muted-foreground">
                     Signal Level
                   </div>
                   <div
                     className={`badge text-xs ${
-                      scoreResult.icLevel === "IC7"
+                      scoreResult.level === "L7"
                         ? "badge-green"
-                        : scoreResult.icLevel === "IC6"
+                        : scoreResult.level === "L6"
                           ? "badge-blue"
                           : "badge-amber"
                     }`}
                   >
-                    {scoreResult.icLevel}
+                    {scoreResult.level}
                   </div>
                 </div>
               </div>

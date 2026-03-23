@@ -15,6 +15,8 @@ import TopNav, { CountdownBar } from "@/components/TopNav";
 import HeroSection from "@/components/HeroSection";
 import CommunityBanner from "@/components/CommunityBanner";
 import OnboardingModal from "@/components/OnboardingModal";
+import { StartHereOnboarding } from "@/components/StartHereOnboarding";
+import { GeneralFeedback } from "@/components/GeneralFeedback";
 import NotificationBanner from "@/components/NotificationBanner";
 import GlobalSearch from "@/components/GlobalSearch";
 import {
@@ -420,11 +422,16 @@ export default function Home() {
         </footer>
       )}
 
-      {/* Onboarding modal */}
+      {/* Start Here Onboarding Flow */}
       {!onboardingDismissed && (
-        <OnboardingModal onDismiss={() => setOnboardingDismissed(true)} />
+        <StartHereOnboarding
+          onDismiss={() => setOnboardingDismissed(true)}
+          onNavigate={setActiveTabWithUrl}
+        />
       )}
 
+      {/* General Feedback floating button */}
+      <GeneralFeedback />
       {/* Notification banner */}
       <NotificationBanner />
 

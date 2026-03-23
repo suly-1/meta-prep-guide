@@ -201,7 +201,7 @@ export function useReadinessGoal() {
 export interface SimulatorSession {
   id: string;
   date: string; // ISO date YYYY-MM-DD
-  icTarget: "IC5" | "IC6" | "IC7";
+  icTarget: "L5" | "L6" | "L7";
   codingProblem: string;
   codingNotes: string;
   bq1Question: string;
@@ -214,7 +214,7 @@ export interface SimulatorSession {
   overallScore: number;
   codingScore: number;
   behavioralScore: number;
-  icLevelAssessment: string;
+  levelAssessment: string;
   codingAssessment: string;
   behavioralAssessment: string;
   topStrengths: string[];
@@ -344,7 +344,7 @@ export interface AIReviewRecord {
   difficulty: string;
   date: string; // ISO
   score: number; // 0-5
-  icLevel: string; // IC5/IC6/IC7
+  level: string; // L5/L6/L7
   verdict: string;
   correctness: number;
   complexity: number;

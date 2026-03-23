@@ -52,7 +52,7 @@ const BADGE_DEFS = [
   {
     id: "ic7_ready",
     emoji: "⭐",
-    label: "IC7 Ready",
+    label: "L7 Ready",
     desc: "Master all 14 patterns",
     check: (p: number, _m: number, _s: number) => p >= PATTERNS.length,
   },
@@ -168,9 +168,8 @@ export default function HeroSection({ onTabChange }: HeroSectionProps) {
               Engineering Interview Prep
             </h1>
             <p className="text-sm text-muted-foreground">
-              IC4 (SWE) · IC5 (Senior) · IC6 (Staff) · IC7 (Senior Staff) —
-              Coding · System Design · Behavioral · Independent Community
-              Resource
+              L4 (SWE) · L5 (Senior) · L6 (Staff) · L7 (Senior Staff) — Coding ·
+              System Design · Behavioral · Independent Community Resource
             </p>
           </div>
           {/* Streak hero badge */}

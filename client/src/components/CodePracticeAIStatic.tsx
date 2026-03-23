@@ -108,7 +108,7 @@ export function AISolutionReviewer({ problem, code, language }: Props) {
         difficulty: problem.difficulty,
         date: new Date().toISOString(),
         score: 3,
-        icLevel: "IC6",
+        level: "L6",
         verdict: text.slice(0, 80),
         correctness: 3,
         complexity: 3,
@@ -141,7 +141,7 @@ export function AISolutionReviewer({ problem, code, language }: Props) {
             AI Solution Reviewer
           </span>
           <span className="text-xs text-muted-foreground">
-            IC6/IC7 rubric scoring
+            L6/L7 rubric scoring
           </span>
         </div>
         {open ? (

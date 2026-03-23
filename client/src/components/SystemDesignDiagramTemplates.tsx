@@ -246,7 +246,7 @@ function buildNewsFeedTemplate(): object {
     makeLabel(
       40,
       20,
-      "📰 News Feed System Design (FAANG IC6/IC7)",
+      "📰 News Feed System Design (FAANG L6/L7)",
       "#8b5cf6",
       20,
       true
@@ -428,7 +428,7 @@ function buildNewsFeedTemplate(): object {
     makeLabel(
       40,
       640,
-      "📌 IC7 Signals: Hybrid fan-out (push for normal users, pull for celebrities >1M followers)",
+      "📌 L7 Signals: Hybrid fan-out (push for normal users, pull for celebrities >1M followers)",
       "#f59e0b",
       12
     )
@@ -471,7 +471,7 @@ function buildMessengerTemplate(): object {
     makeLabel(
       40,
       20,
-      "💬 Messenger / Chat System Design (FAANG IC6/IC7)",
+      "💬 Messenger / Chat System Design (FAANG L6/L7)",
       "#06b6d4",
       20,
       true
@@ -646,7 +646,7 @@ function buildMessengerTemplate(): object {
     makeLabel(
       40,
       620,
-      "📌 IC7 Signals: Message ordering guarantees (Kafka partition by conv_id). Exactly-once delivery with idempotency keys.",
+      "📌 L7 Signals: Message ordering guarantees (Kafka partition by conv_id). Exactly-once delivery with idempotency keys.",
       "#f59e0b",
       12
     )
@@ -698,7 +698,7 @@ function buildInstagramTemplate(): object {
     makeLabel(
       40,
       20,
-      "📸 Instagram / Photo Sharing System Design (FAANG IC6/IC7)",
+      "📸 Instagram / Photo Sharing System Design (FAANG L6/L7)",
       "#ec4899",
       20,
       true
@@ -942,7 +942,7 @@ function buildInstagramTemplate(): object {
     makeLabel(
       40,
       610,
-      "📌 IC7 Signals: Photo upload uses pre-signed S3 URLs (client uploads directly, bypasses servers). Async media processing via Lambda.",
+      "📌 L7 Signals: Photo upload uses pre-signed S3 URLs (client uploads directly, bypasses servers). Async media processing via Lambda.",
       "#f59e0b",
       12
     )
@@ -1248,7 +1248,7 @@ export function SystemDesignDiagramTemplates() {
               excalidraw.com
             </a>{" "}
             and use <strong className="text-foreground">File → Open</strong> (or
-            drag &amp; drop) to load the diagram. Each template includes IC7
+            drag &amp; drop) to load the diagram. Each template includes L7
             coaching notes and architecture annotations.
           </div>
 
@@ -1315,8 +1315,8 @@ export function SystemDesignDiagramTemplates() {
           </div>
 
           <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/10 text-xs text-muted-foreground">
-            <span className="text-amber-400 font-bold">💡 IC7 Tip: </span>
-            Each diagram includes coaching notes at the bottom highlighting IC7
+            <span className="text-amber-400 font-bold">💡 L7 Tip: </span>
+            Each diagram includes coaching notes at the bottom highlighting L7
             differentiation signals. During your interview, use Excalidraw to
             draw live — practice navigating these diagrams fluently.
           </div>

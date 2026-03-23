@@ -13,7 +13,7 @@ export const ctciRouter = router({
         bq1Answer: z.string().optional(),
         bq2Question: z.string(),
         bq2Answer: z.string().optional(),
-        icTarget: z.enum(["IC5", "IC6", "IC7"]).default("IC6"),
+        icTarget: z.enum(["L5", "L6", "L7"]).default("L6"),
         totalTimeUsed: z.number(), // seconds
       })
     )
@@ -42,7 +42,7 @@ Respond ONLY with valid JSON:
   "codingScore": <1-5>,
   "behavioralAssessment": "<2-3 sentences on behavioral performance>",
   "behavioralScore": <1-5>,
-  "icLevelAssessment": "<1-2 sentences on whether they demonstrated ${icTarget} scope>",
+  "levelAssessment": "<1-2 sentences on whether they demonstrated ${icTarget} scope>",
   "topStrengths": ["<strength 1>", "<strength 2>"],
   "criticalGaps": ["<gap 1>", "<gap 2>"],
   "nextSteps": ["<action 1>", "<action 2>", "<action 3>"]
@@ -87,7 +87,7 @@ Generate the debrief JSON.`;
                 codingScore: { type: "integer" },
                 behavioralAssessment: { type: "string" },
                 behavioralScore: { type: "integer" },
-                icLevelAssessment: { type: "string" },
+                levelAssessment: { type: "string" },
                 topStrengths: { type: "array", items: { type: "string" } },
                 criticalGaps: { type: "array", items: { type: "string" } },
                 nextSteps: { type: "array", items: { type: "string" } },
@@ -99,7 +99,7 @@ Generate the debrief JSON.`;
                 "codingScore",
                 "behavioralAssessment",
                 "behavioralScore",
-                "icLevelAssessment",
+                "levelAssessment",
                 "topStrengths",
                 "criticalGaps",
                 "nextSteps",
@@ -122,7 +122,7 @@ Generate the debrief JSON.`;
           codingScore: Math.min(5, Math.max(1, p.codingScore ?? 3)),
           behavioralAssessment: p.behavioralAssessment ?? "",
           behavioralScore: Math.min(5, Math.max(1, p.behavioralScore ?? 3)),
-          icLevelAssessment: p.icLevelAssessment ?? "",
+          levelAssessment: p.levelAssessment ?? "",
           topStrengths: p.topStrengths ?? [],
           criticalGaps: p.criticalGaps ?? [],
           nextSteps: p.nextSteps ?? [],
@@ -135,7 +135,7 @@ Generate the debrief JSON.`;
           codingScore: 3,
           behavioralAssessment: "Could not generate assessment.",
           behavioralScore: 3,
-          icLevelAssessment: "Could not generate assessment.",
+          levelAssessment: "Could not generate assessment.",
           topStrengths: [],
           criticalGaps: [],
           nextSteps: ["Retry the debrief."],
@@ -148,7 +148,7 @@ Generate the debrief JSON.`;
       z.object({
         question: z.string().min(1),
         answer: z.string().min(1),
-        icTarget: z.enum(["IC5", "IC6", "IC7"]).default("IC6"),
+        icTarget: z.enum(["L5", "L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
@@ -164,7 +164,7 @@ Respond ONLY with valid JSON in this exact shape:
 {
   "specificity": <1-5>,
   "impact": <1-5>,
-  "icLevelFit": <1-5>,
+  "levelFit": <1-5>,
   "overall": <1-5>,
   "strengths": ["<one sentence>", "<one sentence>"],
   "improvements": ["<one sentence>", "<one sentence>"]
@@ -191,7 +191,7 @@ ${answer.slice(0, 2000)}`;
               properties: {
                 specificity: { type: "integer" },
                 impact: { type: "integer" },
-                icLevelFit: { type: "integer" },
+                levelFit: { type: "integer" },
                 overall: { type: "integer" },
                 strengths: { type: "array", items: { type: "string" } },
                 improvements: { type: "array", items: { type: "string" } },
@@ -199,7 +199,7 @@ ${answer.slice(0, 2000)}`;
               required: [
                 "specificity",
                 "impact",
-                "icLevelFit",
+                "levelFit",
                 "overall",
                 "strengths",
                 "improvements",
@@ -218,7 +218,7 @@ ${answer.slice(0, 2000)}`;
         return {
           specificity: Math.min(5, Math.max(1, parsed.specificity ?? 3)),
           impact: Math.min(5, Math.max(1, parsed.impact ?? 3)),
-          icLevelFit: Math.min(5, Math.max(1, parsed.icLevelFit ?? 3)),
+          levelFit: Math.min(5, Math.max(1, parsed.levelFit ?? 3)),
           overall: Math.min(5, Math.max(1, parsed.overall ?? 3)),
           strengths: parsed.strengths ?? [],
           improvements: parsed.improvements ?? [],
@@ -227,7 +227,7 @@ ${answer.slice(0, 2000)}`;
         return {
           specificity: 3,
           impact: 3,
-          icLevelFit: 3,
+          levelFit: 3,
           overall: 3,
           strengths: [],
           improvements: ["Could not parse AI response."],
@@ -290,7 +290,7 @@ I'm stuck. Give me a ${hintLevel} hint.`;
     .input(
       z.object({
         durationMins: z.enum(["30", "60", "90"]),
-        icTarget: z.enum(["IC5", "IC6", "IC7"]).default("IC6"),
+        icTarget: z.enum(["L5", "L6", "L7"]).default("L6"),
         readinessPct: z.number().min(0).max(100),
         srDuePatterns: z.array(z.string()),
         srDueBehavioral: z.array(z.string()),

@@ -1,5 +1,5 @@
 // Design: Bold Engineering Dashboard — Overview Tab
-// Features: IC6/IC7 comparison cards, readiness dashboard, pattern heatmap,
+// Features: L6/L7 comparison cards, readiness dashboard, pattern heatmap,
 // weak-spot dashboard, interview countdown, STAR story bank, recruiter card
 // with peer comparison, progress export, interview day checklist
 import { useState, useEffect } from "react";
@@ -68,6 +68,7 @@ import {
 } from "@/components/DayOfMode";
 import { WeakPatternHeatmap } from "@/components/WeakPatternHeatmap";
 import { WeakSpotStudyPlan } from "@/components/WeakSpotStudyPlan";
+import { InterviewReadinessReport } from "@/components/InterviewReadinessReport";
 
 // ── Disclaimer Status Badge ──────────────────────────────────────────────────
 function DisclaimerStatusBadge() {
@@ -110,7 +111,7 @@ function getDaysUntil(dateStr: string): number {
   return Math.ceil((target.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
 }
 
-//// ── IC6/IC7 Level Cards ────────────────────────────────────────────
+//// ── L6/L7 Level Cards ────────────────────────────────────────────
 function LevelCards() {
   const [open, setOpen] = useState(false);
   return (
@@ -120,7 +121,7 @@ function LevelCards() {
         className="w-full flex items-center justify-between group"
       >
         <div className="section-title mb-0 pb-0 border-0 group-hover:text-foreground transition-colors">
-          IC4 · IC5 · IC6 · IC7 — What FAANG Expects by Level
+          L4 · L5 · L6 · L7 — What FAANG Expects by Level
         </div>
         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <span>{open ? "Collapse" : "Expand reference"}</span>
@@ -130,11 +131,11 @@ function LevelCards() {
       {open && (
         <div className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            {/* IC6 */}
+            {/* L6 */}
             <div className="prep-card p-5 border-blue-500/20">
               <div className="flex items-center gap-2 mb-3">
                 <span className="badge badge-blue text-sm px-3 py-1">
-                  IC6 — Staff Engineer (FAANG)
+                  L6 — Staff Engineer (FAANG)
                 </span>
               </div>
               <div className="space-y-3 text-sm">
@@ -165,11 +166,11 @@ function LevelCards() {
                 ))}
               </div>
             </div>
-            {/* IC7 */}
+            {/* L7 */}
             <div className="prep-card p-5 border-purple-500/20">
               <div className="flex items-center gap-2 mb-3">
                 <span className="badge badge-purple text-sm px-3 py-1">
-                  IC7 — Senior Staff Engineer (FAANG)
+                  L7 — Senior Staff Engineer (FAANG)
                 </span>
               </div>
               <div className="space-y-3 text-sm">
@@ -211,10 +212,10 @@ function LevelCards() {
                       Dimension
                     </th>
                     <th className="text-left p-3 text-xs font-semibold text-blue-400">
-                      IC6
+                      L6
                     </th>
                     <th className="text-left p-3 text-xs font-semibold text-purple-400">
-                      IC7
+                      L7
                     </th>
                   </tr>
                 </thead>
@@ -398,7 +399,7 @@ function loadSDHistory() {
     return JSON.parse(
       localStorage.getItem("sd_mock_history_v1") ?? "[]"
     ) as Array<{
-      scorecard: { overallScore: number; icLevel: string };
+      scorecard: { overallScore: number; level: string };
       date: string;
     }>;
   } catch {
@@ -410,7 +411,7 @@ function loadBehHistory() {
     return JSON.parse(
       localStorage.getItem("beh_mock_history_v1") ?? "[]"
     ) as Array<{
-      scorecard: { overallScore: number; icLevel: string };
+      scorecard: { overallScore: number; level: string };
       date: string;
     }>;
   } catch {
@@ -418,9 +419,9 @@ function loadBehHistory() {
   }
 }
 
-function icLevelToNum(level: string): number {
-  if (level === "IC7") return 3;
-  if (level === "IC6") return 2;
+function levelToNum(level: string): number {
+  if (level === "L7") return 3;
+  if (level === "L6") return 2;
   return 1;
 }
 
@@ -451,10 +452,10 @@ function ReadinessDashboard() {
       behHistory.length
     : 0;
   const latestSDLevel = sdHistory.length
-    ? sdHistory[sdHistory.length - 1].scorecard.icLevel
+    ? sdHistory[sdHistory.length - 1].scorecard.level
     : null;
   const latestXFNLevel = behHistory.length
-    ? behHistory[behHistory.length - 1].scorecard.icLevel
+    ? behHistory[behHistory.length - 1].scorecard.level
     : null;
 
   // Combined IC readiness score (weighted): coding 40%, behavioral 30%, sys design 20%, xfn 10%
@@ -483,18 +484,18 @@ function ReadinessDashboard() {
 
   // IC level signal: majority vote from available mock sessions
   const icSignals: number[] = [];
-  if (latestSDLevel) icSignals.push(icLevelToNum(latestSDLevel));
-  if (latestXFNLevel) icSignals.push(icLevelToNum(latestXFNLevel));
+  if (latestSDLevel) icSignals.push(levelToNum(latestSDLevel));
+  if (latestXFNLevel) icSignals.push(levelToNum(latestXFNLevel));
   const avgICNum = icSignals.length
     ? icSignals.reduce((a, b) => a + b, 0) / icSignals.length
     : 0;
   const icSignal =
     avgICNum >= 2.5
-      ? "IC7"
+      ? "L7"
       : avgICNum >= 1.5
-        ? "IC6"
+        ? "L6"
         : icSignals.length > 0
-          ? "IC5"
+          ? "L5"
           : null;
 
   const weakPatterns = PATTERNS.filter(p => {
@@ -544,7 +545,7 @@ function ReadinessDashboard() {
       },
       {
         pct: 100,
-        label: "IC7 Ready",
+        label: "L7 Ready",
         emoji: "🏆",
         tweet:
           "🏆 I've hit 100% readiness on my Meta {level} prep! Time to crush the interview. #MetaInterview #SoftwareEngineering",
@@ -554,7 +555,7 @@ function ReadinessDashboard() {
     const shown: number[] = JSON.parse(localStorage.getItem(BADGE_KEY) ?? "[]");
     BADGE_MILESTONES.forEach(m => {
       if (overallPct >= m.pct && !shown.includes(m.pct)) {
-        const levelLabel = icSignal ?? "IC6/IC7";
+        const levelLabel = icSignal ?? "L6/L7";
         const tweetText = m.tweet.replace("{level}", levelLabel);
         toast(
           <div className="flex flex-col gap-2">
@@ -609,7 +610,7 @@ function ReadinessDashboard() {
             </span>
             {icSignal && (
               <div
-                className={`text-xs font-bold mt-0.5 ${icSignal === "IC7" ? "text-violet-400" : icSignal === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                className={`text-xs font-bold mt-0.5 ${icSignal === "L7" ? "text-violet-400" : icSignal === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
               >
                 Signal: {icSignal}
               </div>
@@ -2139,7 +2140,7 @@ function StudySessionPlanner() {
   const [hintAnalytics] = useHintAnalytics();
   const [interviewDate] = useInterviewDate();
   const [duration, setDuration] = useState<"30" | "60" | "90">("60");
-  const [icTarget, setIcTarget] = useState<"IC5" | "IC6" | "IC7">("IC6");
+  const [icTarget, setIcTarget] = useState<"L5" | "L6" | "L7">("L6");
 
   // Auto-restore today's plan if one exists
   const todayStr = new Date().toISOString().split("T")[0];
@@ -2290,7 +2291,7 @@ function StudySessionPlanner() {
             ))}
           </div>
           <div className="flex gap-1">
-            {(["IC5", "IC6", "IC7"] as const).map(ic => (
+            {(["L5", "L6", "L7"] as const).map(ic => (
               <button
                 key={ic}
                 onClick={() => setIcTarget(ic)}
@@ -2700,7 +2701,7 @@ const STREAK_MILESTONES: Record<number, string> = {
   7: "You're in the top 20% of prep consistency!",
   14: "Two weeks straight — elite-level discipline!",
   30: "30-day streak! You're in the top 5% of candidates.",
-  60: "60 days of daily prep. IC7 mindset unlocked. 🏆",
+  60: "60 days of daily prep. L7 mindset unlocked. 🏆",
   100: "100-day streak. You're legendary. 🎖️",
 };
 
@@ -2896,11 +2897,25 @@ function QuickActionsRow() {
     </div>
   );
 }
+import { SevenDaySprintPlan } from "@/components/SevenDaySprintPlan";
+import { ProgressAnalyticsDashboard } from "@/components/ProgressAnalyticsDashboard";
+import { ScoreSyncBanner } from "@/components/ScoreSyncBanner";
+
 export default function OverviewTab() {
   const [interviewDate] = useInterviewDate();
   const daysLeft = interviewDate ? getDaysUntil(interviewDate) : null;
   return (
     <div className="space-y-6">
+      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <InterviewReadinessReport />
+      <div id="seven-day-sprint">
+        <SevenDaySprintPlan />
+      </div>
+      <div id="progress-analytics">
+        <ProgressAnalyticsDashboard />
+      </div>
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
+      <ScoreSyncBanner />
       <QuickActionsRow />
       <OnboardingChecklist />
       {daysLeft !== null && <UrgencyModeBanner daysLeft={daysLeft} />}
@@ -2932,6 +2947,7 @@ export default function OverviewTab() {
       <div className="flex justify-start">
         <ProgressExport />
       </div>
+      {/* InterviewReadinessReport moved to top */}
       <DisclaimerStatusBadge />
     </div>
   );

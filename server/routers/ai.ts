@@ -35,7 +35,7 @@ export const aiRouter = router({
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta engineering interviewer conducting a Technical Retrospective round for an IC6/IC7 candidate. 
+            content: `You are a senior Meta engineering interviewer conducting a Technical Retrospective round for an L6/L7 candidate. 
 Your job is to probe deeply into the candidate's project to assess: technical depth, ownership, trade-off reasoning, incident handling, and lessons learned.
 Generate exactly 3 sharp, probing follow-up questions that a real Meta interviewer would ask. 
 Each question should target a potential weakness or unexplored area in the project description.
@@ -109,7 +109,7 @@ Keep each question under 50 words. Be direct and challenging — not generic.`,
             content: `You are a senior Meta Staff Engineer (E7) conducting a System Design interview for an ${input.level} candidate.
 The question is: "${input.questionTitle}" (key topics: ${input.tags.join(", ")}).
 Evaluate the candidate's answers across all interview phases and return a structured JSON scorecard.
-Be rigorous but fair — IC6 answers should show solid fundamentals and scalability thinking; IC7 answers should show proactive constraint identification, operational concerns, and business impact reasoning.`,
+Be rigorous but fair — L6 answers should show solid fundamentals and scalability thinking; L7 answers should show proactive constraint identification, operational concerns, and business impact reasoning.`,
           },
           {
             role: "user",
@@ -145,10 +145,10 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
                   description:
                     "Communication and trade-off reasoning score 1-5",
                 },
-                icLevel: {
+                level: {
                   type: "string",
                   description:
-                    "IC5, IC6, or IC7 — the level this performance signals",
+                    "L5, L6, or L7 — the level this performance signals",
                 },
                 strengths: {
                   type: "array",
@@ -181,7 +181,7 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
                 "architectureScore",
                 "scalabilityScore",
                 "communicationScore",
-                "icLevel",
+                "level",
                 "strengths",
                 "improvements",
                 "followUpQuestions",
@@ -206,7 +206,7 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
         architectureScore: number;
         scalabilityScore: number;
         communicationScore: number;
-        icLevel: string;
+        level: string;
         strengths: string[];
         improvements: string[];
         followUpQuestions: string[];
@@ -227,14 +227,14 @@ Be rigorous but fair — IC6 answers should show solid fundamentals and scalabil
         complexity: z.string().max(500),
         edgeCases: z.string().max(1000),
         followUp: z.string().max(1000),
-        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+        icMode: z.enum(["L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
       const icRubric =
-        input.icMode === "IC7"
-          ? `IC7 (Senior Staff) rubric: Expect optimal time/space complexity — not just a correct solution. Penalise brute-force approaches even if correct. Require proactive enumeration of ≥4 edge cases without prompting. Follow-up optimisations must be proposed unprompted. Code structure should be production-quality. Evaluate whether the candidate would have passed a real Meta IC7 bar.`
-          : `IC6 (Staff) rubric: Expect a clean, correct solution with proper complexity analysis. 2-3 edge cases identified is sufficient. Minor inefficiencies are acceptable if the candidate explains trade-offs. Clear communication of approach is required. A working solution with O(n log n) where O(n) exists is borderline — note it but do not fail the candidate.`;
+        input.icMode === "L7"
+          ? `L7 (Senior Staff) rubric: Expect optimal time/space complexity — not just a correct solution. Penalise brute-force approaches even if correct. Require proactive enumeration of ≥4 edge cases without prompting. Follow-up optimisations must be proposed unprompted. Code structure should be production-quality. Evaluate whether the candidate would have passed a real Meta L7 bar.`
+          : `L6 (Staff) rubric: Expect a clean, correct solution with proper complexity analysis. 2-3 edge cases identified is sufficient. Minor inefficiencies are acceptable if the candidate explains trade-offs. Clear communication of approach is required. A working solution with O(n log n) where O(n) exists is borderline — note it but do not fail the candidate.`;
       const transcript = [
         `Pattern: ${input.patternName}`,
         `Problem: ${input.problemTitle} (${input.difficulty})`,
@@ -255,7 +255,7 @@ Evaluate the candidate's approach, pseudocode, complexity analysis, edge case ha
 
 ${icRubric}
 
-Return a structured JSON scorecard. The icLevel field should reflect what IC level the performance actually signals (IC5, IC6, or IC7), not necessarily the target level.`,
+Return a structured JSON scorecard. The level field should reflect what IC level the performance actually signals (L5, L6, or L7), not necessarily the target level.`,
           },
           {
             role: "user",
@@ -291,10 +291,10 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
                   description:
                     "Thinking out loud, explaining approach score 1-5",
                 },
-                icLevel: {
+                level: {
                   type: "string",
                   description:
-                    "IC5, IC6, or IC7 — the level this performance signals",
+                    "L5, L6, or L7 — the level this performance signals",
                 },
                 strengths: {
                   type: "array",
@@ -332,7 +332,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
                 "complexityScore",
                 "codeQualityScore",
                 "communicationScore",
-                "icLevel",
+                "level",
                 "strengths",
                 "improvements",
                 "optimalSolutionHint",
@@ -358,7 +358,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
         complexityScore: number;
         codeQualityScore: number;
         communicationScore: number;
-        icLevel: string;
+        level: string;
         strengths: string[];
         improvements: string[];
         optimalSolutionHint: string;
@@ -381,7 +381,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
           )
           .min(1)
           .max(3),
-        icMode: z.enum(["IC6", "IC7"]).default("IC7"),
+        icMode: z.enum(["L6", "L7"]).default("L7"),
       })
     )
     .mutation(async ({ input }) => {
@@ -393,15 +393,15 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
         .join("\n\n");
 
       const icRubric =
-        input.icMode === "IC7"
-          ? `IC7 (Senior Staff) rubric — evaluate for: (1) Long-term strategic XFN partnerships spanning multiple teams or orgs, (2) Proactive org-level alignment before problems arise, (3) Driving cross-org initiatives with measurable org-wide impact, (4) Multiplying team effectiveness through influence without authority, (5) Navigating ambiguity at org scale. IC7 answers must show strategic thinking beyond tactical execution. Penalize answers that only show project-level impact without org-level influence or strategic foresight.`
-          : `IC6 (Staff) rubric — evaluate for: (1) Effective project-level XFN collaboration across 2-3 teams, (2) Clear communication and conflict resolution at team level, (3) Driving alignment on shared project goals, (4) Stakeholder management within a project scope, (5) Delivering results through cross-functional work. IC6 answers should show strong execution and collaboration skills. Give credit for clear STAR structure with concrete, measurable outcomes.`;
+        input.icMode === "L7"
+          ? `L7 (Senior Staff) rubric — evaluate for: (1) Long-term strategic XFN partnerships spanning multiple teams or orgs, (2) Proactive org-level alignment before problems arise, (3) Driving cross-org initiatives with measurable org-wide impact, (4) Multiplying team effectiveness through influence without authority, (5) Navigating ambiguity at org scale. L7 answers must show strategic thinking beyond tactical execution. Penalize answers that only show project-level impact without org-level influence or strategic foresight.`
+          : `L6 (Staff) rubric — evaluate for: (1) Effective project-level XFN collaboration across 2-3 teams, (2) Clear communication and conflict resolution at team level, (3) Driving alignment on shared project goals, (4) Stakeholder management within a project scope, (5) Delivering results through cross-functional work. L6 answers should show strong execution and collaboration skills. Give credit for clear STAR structure with concrete, measurable outcomes.`;
 
       const response = await invokeLLM({
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta engineering manager conducting an XFN Partnership interview round for a ${input.icMode} candidate.\nEvaluate the candidate's answers to 3 XFN behavioral questions and return a structured JSON scorecard.\nFocus on: collaboration quality, conflict resolution, alignment strategies, stakeholder management, and IC-level signal.\n\n${icRubric}\n\nBe rigorous but constructive. The icLevel field in your response should reflect what IC level the performance actually signals (IC5, IC6, or IC7), not necessarily the target level.`,
+            content: `You are a senior Meta engineering manager conducting an XFN Partnership interview round for a ${input.icMode} candidate.\nEvaluate the candidate's answers to 3 XFN behavioral questions and return a structured JSON scorecard.\nFocus on: collaboration quality, conflict resolution, alignment strategies, stakeholder management, and IC-level signal.\n\n${icRubric}\n\nBe rigorous but constructive. The level field in your response should reflect what IC level the performance actually signals (L5, L6, or L7), not necessarily the target level.`,
           },
           {
             role: "user",
@@ -436,10 +436,10 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
                   type: "number",
                   description: "Communication clarity and influence score 1-5",
                 },
-                icLevel: {
+                level: {
                   type: "string",
                   description:
-                    "IC5, IC6, or IC7 — the level this performance signals",
+                    "L5, L6, or L7 — the level this performance signals",
                 },
                 strengths: {
                   type: "array",
@@ -472,7 +472,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
                 "conflictScore",
                 "alignmentScore",
                 "communicationScore",
-                "icLevel",
+                "level",
                 "strengths",
                 "improvements",
                 "followUpQuestions",
@@ -497,7 +497,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
         conflictScore: number;
         alignmentScore: number;
         communicationScore: number;
-        icLevel: string;
+        level: string;
         strengths: string[];
         improvements: string[];
         followUpQuestions: string[];
@@ -529,7 +529,7 @@ Return a structured JSON scorecard. The icLevel field should reflect what IC lev
         `XFN Behavioral Round: Overall ${input.xfnScore.toFixed(1)}/5 (${input.xfnIcLevel})`,
         ...(input.behavioralScore !== undefined
           ? [
-              `Behavioral STAR Round: Overall ${input.behavioralScore.toFixed(1)}/5 (${input.behavioralIcLevel ?? "IC6"})`,
+              `Behavioral STAR Round: Overall ${input.behavioralScore.toFixed(1)}/5 (${input.behavioralIcLevel ?? "L6"})`,
             ]
           : []),
       ].join("\n");
@@ -560,10 +560,10 @@ Be direct and honest — this is what a real debrief would look like.`,
                   type: "number",
                   description: "Weighted overall score 1-5",
                 },
-                icLevelVerdict: {
+                levelVerdict: {
                   type: "string",
                   description:
-                    "IC5, IC6, or IC7 — the overall hiring level signal",
+                    "L5, L6, or L7 — the overall hiring level signal",
                 },
                 hiringRecommendation: {
                   type: "string",
@@ -615,7 +615,7 @@ Be direct and honest — this is what a real debrief would look like.`,
               },
               required: [
                 "overallScore",
-                "icLevelVerdict",
+                "levelVerdict",
                 "hiringRecommendation",
                 "codingCoaching",
                 "sysDesignCoaching",
@@ -640,7 +640,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           : JSON.stringify(rawContent);
       const parsed = JSON.parse(content) as {
         overallScore: number;
-        icLevelVerdict: string;
+        levelVerdict: string;
         hiringRecommendation: string;
         codingCoaching: string;
         sysDesignCoaching: string;
@@ -654,20 +654,20 @@ Be direct and honest — this is what a real debrief would look like.`,
       return parsed;
     }),
 
-  // Explain a coding pattern at IC6 or IC7 level
+  // Explain a coding pattern at L6 or L7 level
   explainPattern: publicProcedure
     .input(
       z.object({
         patternId: z.string().max(60),
         patternName: z.string().max(100),
-        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+        icMode: z.enum(["L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
       const levelNote =
-        input.icMode === "IC7"
-          ? "Target IC7 (Senior Staff Engineer). Emphasise trade-offs, edge cases, and when NOT to use this pattern. Include complexity analysis and real-world Meta-scale examples."
-          : "Target IC6 (Staff Engineer). Cover the core intuition, canonical template, and 2-3 representative LeetCode problems.";
+        input.icMode === "L7"
+          ? "Target L7 (Senior Staff Engineer). Emphasise trade-offs, edge cases, and when NOT to use this pattern. Include complexity analysis and real-world Meta-scale examples."
+          : "Target L6 (Staff Engineer). Cover the core intuition, canonical template, and 2-3 representative LeetCode problems.";
       const response = await invokeLLM({
         messages: [
           {
@@ -704,11 +704,11 @@ Be direct and honest — this is what a real debrief would look like.`,
           {
             role: "system",
             content:
-              "You are a senior Meta Staff/Principal Engineer conducting a system design interview. Score the candidate's walkthrough against the IC6/IC7 rubric. Be specific, constructive, and cite exact quotes from their transcript. Respond in Markdown.",
+              "You are a senior Meta Staff/Principal Engineer conducting a system design interview. Score the candidate's walkthrough against the L6/L7 rubric. Be specific, constructive, and cite exact quotes from their transcript. Respond in Markdown.",
           },
           {
             role: "user",
-            content: `Problem: ${input.problem}\n\nCandidate's walkthrough:\n${input.transcript}\n\nProvide: 1) Overall IC level signal (IC5/IC6/IC7) with one-line verdict. 2) Strengths (2-3 specific things done well). 3) Gaps (2-3 specific things missing or weak). 4) IC7 differentiators they missed. 5) One concrete suggestion to improve the weakest section. Keep total response under 400 words.`,
+            content: `Problem: ${input.problem}\n\nCandidate's walkthrough:\n${input.transcript}\n\nProvide: 1) Overall IC level signal (L5/L6/L7) with one-line verdict. 2) Strengths (2-3 specific things done well). 3) Gaps (2-3 specific things missing or weak). 4) L7 differentiators they missed. 5) One concrete suggestion to improve the weakest section. Keep total response under 400 words.`,
           },
         ],
       });
@@ -744,7 +744,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Scenario: ${input.scenarioTitle}\nContext: ${input.context}\nQuestion: ${input.question}\nChosen: ${input.chosenOption} — ${input.chosenDesc}\nJustification: ${input.justification}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence), "coaching": string (one concrete improvement), "ic7Signal": string (what IC7 answer would add) }`,
+            content: `Scenario: ${input.scenarioTitle}\nContext: ${input.context}\nQuestion: ${input.question}\nChosen: ${input.chosenOption} — ${input.chosenDesc}\nJustification: ${input.justification}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence), "coaching": string (one concrete improvement), "ic7Signal": string (what L7 answer would add) }`,
           },
         ],
         response_format: {
@@ -791,7 +791,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Design description:\n${input.design}\n\nIdentify up to 5 anti-patterns. Return JSON: { "antiPatterns": [ { "name": string, "severity": "Critical"|"High"|"Medium", "explanation": string, "fix": string } ], "overallSignal": string, "icLevel": "IC5"|"IC6"|"IC7" }`,
+            content: `Design description:\n${input.design}\n\nIdentify up to 5 anti-patterns. Return JSON: { "antiPatterns": [ { "name": string, "severity": "Critical"|"High"|"Medium", "explanation": string, "fix": string } ], "overallSignal": string, "level": "L5"|"L6"|"L7" }`,
           },
         ],
         response_format: {
@@ -817,9 +817,9 @@ Be direct and honest — this is what a real debrief would look like.`,
                   },
                 },
                 overallSignal: { type: "string" },
-                icLevel: { type: "string" },
+                level: { type: "string" },
               },
-              required: ["antiPatterns", "overallSignal", "icLevel"],
+              required: ["antiPatterns", "overallSignal", "level"],
               additionalProperties: false,
             },
           },
@@ -837,7 +837,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           fix: string;
         }>;
         overallSignal: string;
-        icLevel: string;
+        level: string;
       };
     }),
 
@@ -847,7 +847,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       z.object({
         problem: z.string().max(200),
         design: z.string().max(4000),
-        icMode: z.enum(["IC6", "IC7"]),
+        icMode: z.enum(["L6", "L7"]),
       })
     )
     .mutation(async ({ input }) => {
@@ -912,7 +912,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     .input(
       z.object({
         problem: z.string().max(200),
-        icMode: z.enum(["IC6", "IC7"]),
+        icMode: z.enum(["L6", "L7"]),
         transcript: z.string().max(6000),
       })
     )
@@ -925,7 +925,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Problem: ${input.problem}\n\nQ&A Transcript:\n${input.transcript}\n\nProvide: 1) Overall defense score (1-5) with verdict. 2) Best answer (cite it). 3) Weakest answer and what was missing. 4) IC7 signal: what would a principal engineer have said differently? Keep under 350 words.`,
+            content: `Problem: ${input.problem}\n\nQ&A Transcript:\n${input.transcript}\n\nProvide: 1) Overall defense score (1-5) with verdict. 2) Best answer (cite it). 3) Weakest answer and what was missing. 4) L7 signal: what would a principal engineer have said differently? Keep under 350 words.`,
           },
         ],
       });
@@ -968,7 +968,7 @@ Be direct and honest — this is what a real debrief would look like.`,
 
   // ── Code Practice AI ─────────────────────────────────────────────────────
 
-  // 1. AI Solution Reviewer — score code against IC6/IC7 rubric
+  // 1. AI Solution Reviewer — score code against L6/L7 rubric
   reviewSolution: publicProcedure
     .input(
       z.object({
@@ -977,14 +977,14 @@ Be direct and honest — this is what a real debrief would look like.`,
         topic: z.string().max(60),
         code: z.string().max(6000),
         language: z.string().max(20),
-        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+        icMode: z.enum(["L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
       const icRubric =
-        input.icMode === "IC7"
-          ? "IC7 (Senior Staff): Require optimal complexity, ≥4 edge cases unprompted, production-quality code structure, and proactive follow-up optimizations."
-          : "IC6 (Staff): Expect clean correct solution, proper complexity analysis, 2-3 edge cases, clear communication. Minor inefficiencies OK if trade-offs explained.";
+        input.icMode === "L7"
+          ? "L7 (Senior Staff): Require optimal complexity, ≥4 edge cases unprompted, production-quality code structure, and proactive follow-up optimizations."
+          : "L6 (Staff): Expect clean correct solution, proper complexity analysis, 2-3 edge cases, clear communication. Minor inefficiencies OK if trade-offs explained.";
       const response = await invokeLLM({
         messages: [
           {
@@ -993,7 +993,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nLanguage: ${input.language}\n\nCode:\n${input.code}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence, e.g. 'This signals IC6 — clean solution but missed the O(n) optimization'), "correctness": number (1-5), "complexity": number (1-5), "edgeCases": number (1-5), "codeQuality": number (1-5), "icLevel": "IC5"|"IC6"|"IC7", "strengths": [string, string], "coaching": string (one concrete improvement), "optimalComplexity": string (e.g. 'O(n) time, O(1) space') }`,
+            content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nLanguage: ${input.language}\n\nCode:\n${input.code}\n\nReturn JSON: { "score": number (1.0-5.0), "verdict": string (one sentence, e.g. 'This signals L6 — clean solution but missed the O(n) optimization'), "correctness": number (1-5), "complexity": number (1-5), "edgeCases": number (1-5), "codeQuality": number (1-5), "level": "L5"|"L6"|"L7", "strengths": [string, string], "coaching": string (one concrete improvement), "optimalComplexity": string (e.g. 'O(n) time, O(1) space') }`,
           },
         ],
         response_format: {
@@ -1010,7 +1010,7 @@ Be direct and honest — this is what a real debrief would look like.`,
                 complexity: { type: "number" },
                 edgeCases: { type: "number" },
                 codeQuality: { type: "number" },
-                icLevel: { type: "string" },
+                level: { type: "string" },
                 strengths: {
                   type: "array",
                   items: { type: "string" },
@@ -1027,7 +1027,7 @@ Be direct and honest — this is what a real debrief would look like.`,
                 "complexity",
                 "edgeCases",
                 "codeQuality",
-                "icLevel",
+                "level",
                 "strengths",
                 "coaching",
                 "optimalComplexity",
@@ -1048,7 +1048,7 @@ Be direct and honest — this is what a real debrief would look like.`,
         complexity: number;
         edgeCases: number;
         codeQuality: number;
-        icLevel: string;
+        level: string;
         strengths: string[];
         coaching: string;
         optimalComplexity: string;
@@ -1103,7 +1103,7 @@ Be direct and honest — this is what a real debrief would look like.`,
         difficulty: z.string().max(10),
         topic: z.string().max(60),
         code: z.string().max(6000),
-        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+        icMode: z.enum(["L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
@@ -1115,7 +1115,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nSolution:\n${input.code}\n\nReturn JSON: { "questions": [ { "question": string, "intent": string (why you're asking), "icLevel": "IC6"|"IC7" (which level this question targets) } ] }`,
+            content: `Problem: ${input.problemTitle} (${input.difficulty}, ${input.topic})\nSolution:\n${input.code}\n\nReturn JSON: { "questions": [ { "question": string, "intent": string (why you're asking), "level": "L6"|"L7" (which level this question targets) } ] }`,
           },
         ],
         response_format: {
@@ -1133,9 +1133,9 @@ Be direct and honest — this is what a real debrief would look like.`,
                     properties: {
                       question: { type: "string" },
                       intent: { type: "string" },
-                      icLevel: { type: "string" },
+                      level: { type: "string" },
                     },
-                    required: ["question", "intent", "icLevel"],
+                    required: ["question", "intent", "level"],
                     additionalProperties: false,
                   },
                   minItems: 2,
@@ -1153,7 +1153,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       const parsed =
         typeof rawContent === "string" ? JSON.parse(rawContent) : rawContent;
       return parsed as {
-        questions: Array<{ question: string; intent: string; icLevel: string }>;
+        questions: Array<{ question: string; intent: string; level: string }>;
       };
     }),
 
@@ -1282,7 +1282,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       };
     }),
 
-  // 6. IC7 Optimization Challenge — challenge candidate to improve their solution
+  // 6. L7 Optimization Challenge — challenge candidate to improve their solution
   ic7OptimizationChallenge: publicProcedure
     .input(
       z.object({
@@ -1301,11 +1301,11 @@ Be direct and honest — this is what a real debrief would look like.`,
           {
             role: "system",
             content:
-              "You are a senior Meta Principal Engineer (IC7) challenging a candidate to optimize their solution. Be direct and Socratic — ask questions, don't give answers. Return JSON only.",
+              "You are a senior Meta Principal Engineer (L7) challenging a candidate to optimize their solution. Be direct and Socratic — ask questions, don't give answers. Return JSON only.",
           },
           {
             role: "user",
-            content: `Problem: ${input.problemTitle} (${input.topic})\nLanguage: ${input.language}\nCurrent solution complexity: ${input.currentComplexity}\nTarget complexity: ${input.targetComplexity}\n\nCode:\n${input.code}\n\nReturn JSON: { "challenge": string (the IC7 challenge statement, e.g. 'Your O(n log n) solution is correct. Can you get to O(n)?'), "probeQuestion": string (one Socratic question to guide them without giving the answer), ${input.hint ? '"hint": string (a concrete directional hint — what to change, not how),' : '"hint": null,'} "ic7Insight": string (what an IC7 engineer would immediately see that the current solution misses) }`,
+            content: `Problem: ${input.problemTitle} (${input.topic})\nLanguage: ${input.language}\nCurrent solution complexity: ${input.currentComplexity}\nTarget complexity: ${input.targetComplexity}\n\nCode:\n${input.code}\n\nReturn JSON: { "challenge": string (the L7 challenge statement, e.g. 'Your O(n log n) solution is correct. Can you get to O(n)?'), "probeQuestion": string (one Socratic question to guide them without giving the answer), ${input.hint ? '"hint": string (a concrete directional hint — what to change, not how),' : '"hint": null,'} "ic7Insight": string (what an L7 engineer would immediately see that the current solution misses) }`,
           },
         ],
         response_format: {
@@ -1345,7 +1345,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       z.object({
         audioUrl: z.string(),
         questionText: z.string(),
-        icMode: z.enum(["IC6", "IC7"]).default("IC6"),
+        icMode: z.enum(["L6", "L7"]).default("L6"),
       })
     )
     .mutation(async ({ input }) => {
@@ -1373,7 +1373,7 @@ Be direct and honest — this is what a real debrief would look like.`,
           },
           {
             role: "user",
-            content: `Question: "${input.questionText}"\n\nCandidate's spoken answer (transcribed):\n"${transcript}"\n\nEvaluate against the ${input.icMode} rubric and return JSON: { "situation": number (0-5), "task": number (0-5), "action": number (0-5), "result": number (0-5), "overallScore": number (0-5, one decimal), "icLevel": string (IC5/IC6/IC7), "verdict": string (one-line assessment), "strengths": [string] (2-3 specific strengths), "gaps": [string] (2-3 specific gaps), "coaching": string (most important improvement for next attempt), "starStructure": string (brief note on STAR format usage) }`,
+            content: `Question: "${input.questionText}"\n\nCandidate's spoken answer (transcribed):\n"${transcript}"\n\nEvaluate against the ${input.icMode} rubric and return JSON: { "situation": number (0-5), "task": number (0-5), "action": number (0-5), "result": number (0-5), "overallScore": number (0-5, one decimal), "level": string (L5/L6/L7), "verdict": string (one-line assessment), "strengths": [string] (2-3 specific strengths), "gaps": [string] (2-3 specific gaps), "coaching": string (most important improvement for next attempt), "starStructure": string (brief note on STAR format usage) }`,
           },
         ],
         response_format: {
@@ -1389,7 +1389,7 @@ Be direct and honest — this is what a real debrief would look like.`,
                 action: { type: "number" },
                 result: { type: "number" },
                 overallScore: { type: "number" },
-                icLevel: { type: "string" },
+                level: { type: "string" },
                 verdict: { type: "string" },
                 strengths: { type: "array", items: { type: "string" } },
                 gaps: { type: "array", items: { type: "string" } },
@@ -1402,7 +1402,7 @@ Be direct and honest — this is what a real debrief would look like.`,
                 "action",
                 "result",
                 "overallScore",
-                "icLevel",
+                "level",
                 "verdict",
                 "strengths",
                 "gaps",
@@ -1425,7 +1425,7 @@ Be direct and honest — this is what a real debrief would look like.`,
         action: number;
         result: number;
         overallScore: number;
-        icLevel: string;
+        level: string;
         verdict: string;
         strengths: string[];
         gaps: string[];
@@ -1443,7 +1443,7 @@ Be direct and honest — this is what a real debrief would look like.`,
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta Staff Engineer (IC7) conducting a system design interview. Review the candidate's design summary and respond as a real Meta interviewer would. Return ONLY valid JSON with this exact structure: { "verdict": string, "failurePatterns": string[], "rubricScores": { "Scope & Success Metrics": string, "Request Flow & Hot Path": string, "Data Model & Storage": string, "Architecture & Boundaries": string, "Scale & Bottlenecks": string, "Reliability & Operability": string, "Trade-offs & Judgment": string, "Collaboration & Communication": string }, "feedback": string }. Each rubric score must be exactly one of: "Strong", "Adequate", or "Weak". Verdict must be one of: "IC7 Strong Hire", "IC6 Hire", "IC6 Borderline", "Below IC6 - No Hire".`,
+            content: `You are a senior Meta Staff Engineer (L7) conducting a system design interview. Review the candidate's design summary and respond as a real Meta interviewer would. Return ONLY valid JSON with this exact structure: { "verdict": string, "failurePatterns": string[], "rubricScores": { "Scope & Success Metrics": string, "Request Flow & Hot Path": string, "Data Model & Storage": string, "Architecture & Boundaries": string, "Scale & Bottlenecks": string, "Reliability & Operability": string, "Trade-offs & Judgment": string, "Collaboration & Communication": string }, "feedback": string }. Each rubric score must be exactly one of: "Strong", "Adequate", or "Weak". Verdict must be one of: "L7 Strong Hire", "L6 Hire", "L6 Borderline", "Below L6 - No Hire".`,
           },
           {
             role: "user",
@@ -1505,5 +1505,625 @@ Be direct and honest — this is what a real debrief would look like.`,
             ? rawContent
             : JSON.stringify(rawContent),
       };
+    }),
+
+  // ── Feature #1: AI Interviewer Interrupt Mode ─────────────────────────────
+  interruptModeStart: publicProcedure
+    .input(
+      z.object({
+        topic: z.string(),
+        approach: z.string(),
+        interruptStyle: z.enum([
+          "clarifying",
+          "pivot",
+          "deep_dive",
+          "challenge",
+          "time_pressure",
+        ]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a senior Meta interviewer. Your interrupt style is: ${input.interruptStyle}. Generate exactly 3 realistic interruptions a Meta interviewer would make. Return JSON: {"interruptions": ["...", "...", "..."]}`,
+          },
+          {
+            role: "user",
+            content: `Topic: ${input.topic}\nApproach: ${input.approach}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "interruptions",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                interruptions: { type: "array", items: { type: "string" } },
+              },
+              required: ["interruptions"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  interruptModeScore: publicProcedure
+    .input(
+      z.object({
+        topic: z.string(),
+        approach: z.string(),
+        interruption: z.string(),
+        response: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta senior engineer scoring a candidate's response to an interviewer interruption. Score 1-5. Return JSON: {"score": 4, "feedback": "...", "betterResponse": "..."}`,
+          },
+          {
+            role: "user",
+            content: `Topic: ${input.topic}\nApproach: ${input.approach}\nInterruption: ${input.interruption}\nResponse: ${input.response}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "interrupt_score",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                feedback: { type: "string" },
+                betterResponse: { type: "string" },
+              },
+              required: ["score", "feedback", "betterResponse"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #2: Back-of-Envelope Calculator ───────────────────────────────
+  scoreBoECalculation: publicProcedure
+    .input(
+      z.object({
+        problem: z.string(),
+        calculation: z.string(),
+        result: z.string(),
+        unit: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta staff engineer reviewing a back-of-envelope estimation. Return JSON: {"score": 4, "orderOfMagnitude": "correct", "feedback": "...", "keyAssumptions": ["..."], "designImplication": "..."}`,
+          },
+          {
+            role: "user",
+            content: `Problem: ${input.problem}\nCalculation: ${input.calculation}\nResult: ${input.result} ${input.unit}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "boe_score",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                orderOfMagnitude: { type: "string" },
+                feedback: { type: "string" },
+                keyAssumptions: { type: "array", items: { type: "string" } },
+                designImplication: { type: "string" },
+              },
+              required: [
+                "score",
+                "orderOfMagnitude",
+                "feedback",
+                "keyAssumptions",
+                "designImplication",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #3: Tear Down My Design ──────────────────────────────────────
+  tearDownDesign: publicProcedure
+    .input(
+      z.object({
+        problem: z.string(),
+        design: z.string(),
+        targetLevel: z.enum(["L4", "L5", "L6", "L7"]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a hostile but fair Meta staff engineer reviewing a system design. Find every flaw, edge case, and missing consideration. Return JSON: {"overallScore": 6, "verdict": "...", "criticalFlaws": [{"flaw": "...", "severity": "critical", "fix": "..."}], "minorIssues": ["..."], "strengths": ["..."], "prioritizedFixes": ["1. ...", "2. ..."]}`,
+          },
+          {
+            role: "user",
+            content: `Problem: ${input.problem}\nDesign: ${input.design}\nTarget level: ${input.targetLevel}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "tear_down",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                overallScore: { type: "number" },
+                verdict: { type: "string" },
+                criticalFlaws: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      flaw: { type: "string" },
+                      severity: { type: "string" },
+                      fix: { type: "string" },
+                    },
+                    required: ["flaw", "severity", "fix"],
+                    additionalProperties: false,
+                  },
+                },
+                minorIssues: { type: "array", items: { type: "string" } },
+                strengths: { type: "array", items: { type: "string" } },
+                prioritizedFixes: { type: "array", items: { type: "string" } },
+              },
+              required: [
+                "overallScore",
+                "verdict",
+                "criticalFlaws",
+                "minorIssues",
+                "strengths",
+                "prioritizedFixes",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #4: Think Out Loud Coach ─────────────────────────────────────
+  scoreThinkOutLoud: publicProcedure
+    .input(z.object({ problem: z.string(), transcript: z.string() }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interviewer evaluating a candidate's think-out-loud process. Score 5 dimensions: Problem Clarification, Approach Articulation, Complexity Awareness, Edge Cases, Communication. Return JSON: {"overallScore": 7, "dimensions": [{"name": "Problem Clarification", "score": 4, "feedback": "..."}, {"name": "Approach Articulation", "score": 3, "feedback": "..."}, {"name": "Complexity Awareness", "score": 4, "feedback": "..."}, {"name": "Edge Cases", "score": 3, "feedback": "..."}, {"name": "Communication", "score": 4, "feedback": "..."}], "topTip": "...", "modelThinkAloud": "..."}`,
+          },
+          {
+            role: "user",
+            content: `Problem: ${input.problem}\nTranscript: ${input.transcript}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "think_out_loud",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                overallScore: { type: "number" },
+                dimensions: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      score: { type: "number" },
+                      feedback: { type: "string" },
+                    },
+                    required: ["name", "score", "feedback"],
+                    additionalProperties: false,
+                  },
+                },
+                topTip: { type: "string" },
+                modelThinkAloud: { type: "string" },
+              },
+              required: [
+                "overallScore",
+                "dimensions",
+                "topTip",
+                "modelThinkAloud",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #5: Pattern Speed Drill ──────────────────────────────────────
+  scorePatternDrill: publicProcedure
+    .input(
+      z.object({
+        problem: z.string(),
+        guessedPattern: z.string(),
+        timeSeconds: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interviewer. A candidate guessed a coding pattern in ${input.timeSeconds}s. Evaluate correctness. speedRating: fast (<15s), good (15-30s), slow (30-60s), too_slow (>60s). Return JSON: {"correct": true, "correctPattern": "Two Pointers", "explanation": "...", "keySignals": ["..."], "score": 5, "speedRating": "fast"}`,
+          },
+          {
+            role: "user",
+            content: `Problem: ${input.problem}\nGuessed: ${input.guessedPattern}\nTime: ${input.timeSeconds}s`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "pattern_drill",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                correct: { type: "boolean" },
+                correctPattern: { type: "string" },
+                explanation: { type: "string" },
+                keySignals: { type: "array", items: { type: "string" } },
+                score: { type: "number" },
+                speedRating: { type: "string" },
+              },
+              required: [
+                "correct",
+                "correctPattern",
+                "explanation",
+                "keySignals",
+                "score",
+                "speedRating",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #6: Weak Pattern Remediation Plan ────────────────────────────
+  generateRemediationPlan: publicProcedure
+    .input(
+      z.object({
+        weakPatterns: z.array(
+          z.object({ id: z.string(), name: z.string(), rating: z.number() })
+        ),
+        daysAvailable: z.number(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach. Create a day-by-day remediation plan for weak patterns. Return JSON: {"plan": [{"day": 1, "pattern": "Two Pointers", "focus": "...", "problems": ["..."], "goal": "..."}], "weeklyMilestones": ["..."], "estimatedReadinessGain": "..."}`,
+          },
+          {
+            role: "user",
+            content: `Weak patterns: ${JSON.stringify(input.weakPatterns)}\nDays: ${input.daysAvailable}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "remediation_plan",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                plan: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      day: { type: "number" },
+                      pattern: { type: "string" },
+                      focus: { type: "string" },
+                      problems: { type: "array", items: { type: "string" } },
+                      goal: { type: "string" },
+                    },
+                    required: ["day", "pattern", "focus", "problems", "goal"],
+                    additionalProperties: false,
+                  },
+                },
+                weeklyMilestones: { type: "array", items: { type: "string" } },
+                estimatedReadinessGain: { type: "string" },
+              },
+              required: ["plan", "weeklyMilestones", "estimatedReadinessGain"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #8: Persona Stress Test ──────────────────────────────────────
+  personaStressTestStart: publicProcedure
+    .input(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+        persona: z.string(),
+        personaDescription: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are playing "${input.persona}": ${input.personaDescription}. Generate 3 follow-up challenges in character. Return JSON: {"challenges": ["...", "...", "..."]}`,
+          },
+          {
+            role: "user",
+            content: `Question: ${input.question}\nAnswer: ${input.answer}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "persona_challenges",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                challenges: { type: "array", items: { type: "string" } },
+              },
+              required: ["challenges"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  personaStressTestRespond: publicProcedure
+    .input(
+      z.object({
+        question: z.string(),
+        initialAnswer: z.string(),
+        persona: z.string(),
+        challenge: z.string(),
+        response: z.string(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const res = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Score a candidate's response to a behavioral follow-up challenge 1-5. Return JSON: {"score": 4, "feedback": "..."}`,
+          },
+          {
+            role: "user",
+            content: `Question: ${input.question}\nInitial: ${input.initialAnswer}\nPersona: ${input.persona}\nChallenge: ${input.challenge}\nResponse: ${input.response}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "challenge_score",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                feedback: { type: "string" },
+              },
+              required: ["score", "feedback"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = res?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  personaStressTestScore: publicProcedure
+    .input(
+      z.object({
+        question: z.string(),
+        initialAnswer: z.string(),
+        persona: z.string(),
+        exchanges: z.array(
+          z.object({
+            challenge: z.string(),
+            response: z.string(),
+            score: z.number(),
+          })
+        ),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const avgScore =
+        input.exchanges.reduce((a, e) => a + e.score, 0) /
+        input.exchanges.length;
+      const res = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `Write a 3-4 sentence debrief for a behavioral stress test. Avg score: ${avgScore.toFixed(1)}/5. Cover: resilience, strongest moment, biggest gap, one tip. Return plain markdown.`,
+          },
+          {
+            role: "user",
+            content: `Question: ${input.question}\nPersona: ${input.persona}\nExchanges: ${JSON.stringify(input.exchanges)}`,
+          },
+        ],
+      });
+      const raw = res?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #9: Impact Quantification Coach ───────────────────────────────
+  quantifyImpact: publicProcedure
+    .input(z.object({ story: z.string() }))
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta L6 interview coach. Analyze the STAR story: find vague claims, suggest metrics, rewrite at L6 standard. Return JSON: {"scoreOriginal": 4, "scoreStrengthened": 9, "weakClaims": [{"original": "...", "suggestion": "..."}], "coaching": "...", "strengthenedStory": "..."}`,
+          },
+          { role: "user", content: input.story },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "quantify_impact",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                scoreOriginal: { type: "number" },
+                scoreStrengthened: { type: "number" },
+                weakClaims: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      original: { type: "string" },
+                      suggestion: { type: "string" },
+                    },
+                    required: ["original", "suggestion"],
+                    additionalProperties: false,
+                  },
+                },
+                coaching: { type: "string" },
+                strengthenedStory: { type: "string" },
+              },
+              required: [
+                "scoreOriginal",
+                "scoreStrengthened",
+                "weakClaims",
+                "coaching",
+                "strengthenedStory",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── Feature #10: Interview Readiness Report ───────────────────────────────
+  generateReadinessReport: publicProcedure
+    .input(
+      z.object({
+        patterns: z.array(
+          z.object({ id: z.string(), name: z.string(), rating: z.number() })
+        ),
+        behavioralQuestions: z.array(
+          z.object({
+            id: z.string(),
+            q: z.string(),
+            area: z.string(),
+            rating: z.number(),
+            hasStory: z.boolean(),
+          })
+        ),
+        metaValues: z.array(z.object({ name: z.string() })),
+        stats: z.object({
+          masteredPatterns: z.number(),
+          weakPatterns: z.number(),
+          totalPatterns: z.number(),
+          avgPatternScore: z.number(),
+          readyBQ: z.number(),
+          totalBQ: z.number(),
+          avgBQScore: z.number(),
+          storiesWritten: z.number(),
+          valuesCovered: z.number(),
+          totalValues: z.number(),
+        }),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach. Generate a comprehensive readiness report. Score 0-100, verdict: "go" (>=75), "almost" (55-74), "no-go" (<55). Include: executive summary, coding readiness, behavioral readiness, critical gaps, 7-day action plan, final recommendation. Return JSON: {"score": 72, "verdict": "almost", "report": "## Executive Summary\n..."}`,
+          },
+          { role: "user", content: JSON.stringify(input) },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "readiness_report",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                score: { type: "number" },
+                verdict: { type: "string" },
+                report: { type: "string" },
+              },
+              required: ["score", "verdict", "report"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
     }),
 });

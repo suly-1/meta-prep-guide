@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Copy, Check, Share2 } from "lucide-react";
 
-const SHARE_MESSAGE = `Found this independent community study resource online — it's not affiliated with Meta and covers general SWE interview patterns for IC4–IC7 levels at FAANG companies. Totally optional, always refer to the official prep materials your recruiter sent. Sharing just as a supplement.
+const SHARE_MESSAGE = `Found this independent community study resource online — it's not affiliated with Meta and covers general SWE interview patterns for L4–L7 levels at FAANG companies. Totally optional, always refer to the official prep materials your recruiter sent. Sharing just as a supplement.
 
 🔗 https://www.metaguide.blog`;
 

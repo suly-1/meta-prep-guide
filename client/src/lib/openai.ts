@@ -69,7 +69,7 @@ export async function reviewCode(
   return callOpenAI([
     {
       role: "system",
-      content: `You are a Meta senior engineer conducting a code review for an IC6/IC7 interview. 
+      content: `You are a Meta senior engineer conducting a code review for an L6/L7 interview. 
 Evaluate the solution on: correctness, time/space complexity, code quality, edge cases, and FAANG-level signals (scalability, clean abstractions).
 Format your response with these sections:
 ## Overall Score: X/10
@@ -77,7 +77,7 @@ Format your response with these sections:
 ## Complexity Analysis  
 ## Code Quality
 ## Edge Cases
-## IC6/IC7 Signal
+## L6/L7 Signal
 ## What to Improve`,
     },
     {
@@ -120,7 +120,7 @@ export async function scoreSTAR(
   return callOpenAI([
     {
       role: "system",
-      content: `You are a Meta recruiter scoring a behavioral answer using the STAR framework for IC6/IC7 level.
+      content: `You are a Meta recruiter scoring a behavioral answer using the STAR framework for L6/L7 level.
 Score each dimension 1-5 and give specific feedback.
 Format:
 ## STAR Score: X/20
@@ -128,7 +128,7 @@ Format:
 **Task** (X/5): ...
 **Action** (X/5): ...
 **Result** (X/5): ...
-## IC Level Signal: IC4 / IC5 / IC6 / IC7
+## IC Level Signal: L4 / L5 / L6 / L7
 ## Key Strengths
 ## What to Add`,
     },

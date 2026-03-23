@@ -1,12 +1,12 @@
 /**
  * Code Practice AI Panel
  * 6 AI-powered features for the Code Practice tab:
- * 1. AI Solution Reviewer — IC6/IC7 rubric scoring
+ * 1. AI Solution Reviewer — L6/L7 rubric scoring
  * 2. 3-Level Hint System — progressive hints
  * 3. Follow-Up Question Generator — interviewer follow-ups
  * 4. Complexity Analyzer — actual vs optimal
  * 5. Pattern Recognition Trainer — hide label, score guess
- * 6. IC7 Optimization Challenge — push to optimal
+ * 6. L7 Optimization Challenge — push to optimal
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -85,13 +85,13 @@ function ScoreBar({
 // ── IC Level badge ────────────────────────────────────────────────────────────
 function ICBadge({ level }: { level: string }) {
   const colors: Record<string, string> = {
-    IC5: "bg-slate-500/20 border-slate-500/40 text-slate-300",
-    IC6: "bg-blue-500/20 border-blue-500/40 text-blue-300",
-    IC7: "bg-purple-500/20 border-purple-500/40 text-purple-300",
+    L5: "bg-slate-500/20 border-slate-500/40 text-slate-300",
+    L6: "bg-blue-500/20 border-blue-500/40 text-blue-300",
+    L7: "bg-purple-500/20 border-purple-500/40 text-purple-300",
   };
   return (
     <span
-      className={`px-2 py-0.5 rounded-full border text-xs font-bold ${colors[level] ?? colors.IC6}`}
+      className={`px-2 py-0.5 rounded-full border text-xs font-bold ${colors[level] ?? colors.L6}`}
     >
       {level}
     </span>
@@ -121,9 +121,9 @@ export function SessionHistoryPanel({ problem }: { problem: Problem }) {
           ? "text-amber-400"
           : "text-red-400";
   const icColors: Record<string, string> = {
-    IC5: "bg-slate-500/20 text-slate-300 border-slate-500/30",
-    IC6: "bg-blue-500/20 text-blue-300 border-blue-500/30",
-    IC7: "bg-purple-500/20 text-purple-300 border-purple-500/30",
+    L5: "bg-slate-500/20 text-slate-300 border-slate-500/30",
+    L6: "bg-blue-500/20 text-blue-300 border-blue-500/30",
+    L7: "bg-purple-500/20 text-purple-300 border-purple-500/30",
   };
 
   return (
@@ -297,9 +297,9 @@ export function SessionHistoryPanel({ problem }: { problem: Problem }) {
                           /5.0
                         </span>
                         <span
-                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${icColors[r.icLevel] ?? icColors.IC6}`}
+                          className={`text-[9px] font-bold px-1.5 py-0.5 rounded border ${icColors[r.level] ?? icColors.L6}`}
                         >
-                          {r.icLevel}
+                          {r.level}
                         </span>
                       </div>
                       <span className="text-[10px] text-muted-foreground">
@@ -362,7 +362,7 @@ export function AISolutionReviewer({
   code,
   language,
 }: CodePracticeAIProps) {
-  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC6");
+  const [icMode, setIcMode] = useState<"L6" | "L7">("L6");
   const [open, setOpen] = useState(false);
   const [, setHistory] = useAIReviewHistory();
   const reviewMutation = trpc.ai.reviewSolution.useMutation({
@@ -376,7 +376,7 @@ export function AISolutionReviewer({
         difficulty: problem.difficulty,
         date: new Date().toISOString(),
         score: data.score,
-        icLevel: data.icLevel,
+        level: data.level,
         verdict: data.verdict,
         correctness: data.correctness,
         complexity: data.complexity,
@@ -427,7 +427,7 @@ export function AISolutionReviewer({
             AI Solution Reviewer
           </span>
           <span className="text-xs text-muted-foreground">
-            IC6/IC7 rubric scoring
+            L6/L7 rubric scoring
           </span>
         </div>
         {open ? (
@@ -442,7 +442,7 @@ export function AISolutionReviewer({
           {/* Controls */}
           <div className="flex items-center gap-3 pt-3">
             <div className="flex gap-1">
-              {(["IC6", "IC7"] as const).map(mode => (
+              {(["L6", "L7"] as const).map(mode => (
                 <button
                   key={mode}
                   onClick={() => setIcMode(mode)}
@@ -482,7 +482,7 @@ export function AISolutionReviewer({
                     </span>
                     <span className="text-xs text-muted-foreground">/5.0</span>
                   </div>
-                  <ICBadge level={r.icLevel} />
+                  <ICBadge level={r.level} />
                 </div>
                 <p className="text-xs text-foreground italic">"{r.verdict}"</p>
               </div>
@@ -704,7 +704,7 @@ export function FollowUpGenerator({
   language: _lang,
 }: CodePracticeAIProps) {
   const [open, setOpen] = useState(false);
-  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC6");
+  const [icMode, setIcMode] = useState<"L6" | "L7">("L6");
   const [expandedIdx, setExpandedIdx] = useState<number | null>(null);
   const followUpMutation = trpc.ai.generateFollowUps.useMutation({
     onError: () =>
@@ -726,8 +726,8 @@ export function FollowUpGenerator({
   };
 
   const icColors: Record<string, string> = {
-    IC6: "text-blue-400 bg-blue-500/10 border-blue-500/20",
-    IC7: "text-purple-400 bg-purple-500/10 border-purple-500/20",
+    L6: "text-blue-400 bg-blue-500/10 border-blue-500/20",
+    L7: "text-purple-400 bg-purple-500/10 border-purple-500/20",
   };
 
   return (
@@ -756,7 +756,7 @@ export function FollowUpGenerator({
         <div className="px-4 pb-4 space-y-3 border-t border-purple-500/10">
           <div className="flex items-center gap-3 pt-3">
             <div className="flex gap-1">
-              {(["IC6", "IC7"] as const).map(mode => (
+              {(["L6", "L7"] as const).map(mode => (
                 <button
                   key={mode}
                   onClick={() => setIcMode(mode)}
@@ -798,9 +798,9 @@ export function FollowUpGenerator({
                   {q.question}
                 </span>
                 <span
-                  className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded border ${icColors[q.icLevel] ?? icColors.IC6}`}
+                  className={`shrink-0 text-[9px] font-bold px-1.5 py-0.5 rounded border ${icColors[q.level] ?? icColors.L6}`}
                 >
-                  {q.icLevel}
+                  {q.level}
                 </span>
               </button>
               {expandedIdx === i && (
@@ -1061,7 +1061,8 @@ export function PatternRecognitionTrainer({
         <div className="px-4 pb-4 space-y-3 border-t border-cyan-500/10">
           <p className="text-xs text-muted-foreground pt-3">
             Before writing any code, identify the algorithmic pattern. This
-            trains the most critical first-2-minute skill in a FAANG-style interview.
+            trains the most critical first-2-minute skill in a FAANG-style
+            interview.
           </p>
 
           {!submitted ? (
@@ -1154,8 +1155,8 @@ export function PatternRecognitionTrainer({
   );
 }
 
-// ── 6. IC7 Optimization Challenge ────────────────────────────────────────────
-export function IC7OptimizationChallenge({
+// ── 6. L7 Optimization Challenge ────────────────────────────────────────────
+export function L7OptimizationChallenge({
   problem,
   code,
   language,
@@ -1194,7 +1195,7 @@ export function IC7OptimizationChallenge({
         <div className="flex items-center gap-2">
           <Zap size={14} className="text-orange-400" />
           <span className="text-sm font-semibold text-foreground">
-            IC7 Optimization Challenge
+            L7 Optimization Challenge
           </span>
           <span className="text-xs text-muted-foreground">
             Push your solution to optimal
@@ -1210,7 +1211,7 @@ export function IC7OptimizationChallenge({
       {open && (
         <div className="px-4 pb-4 space-y-3 border-t border-orange-500/10">
           <p className="text-xs text-muted-foreground pt-3">
-            An IC7 engineer challenges you to optimize. Can you defend your
+            An L7 engineer challenges you to optimize. Can you defend your
             solution and push it further?
           </p>
 
@@ -1246,7 +1247,7 @@ export function IC7OptimizationChallenge({
               {/* Challenge statement */}
               <div className="rounded-lg bg-orange-500/10 border border-orange-500/30 p-3">
                 <div className="text-[10px] font-bold text-orange-400 mb-1">
-                  IC7 CHALLENGE
+                  L7 CHALLENGE
                 </div>
                 <p className="text-xs text-foreground font-medium">
                   "{r.challenge}"
@@ -1263,10 +1264,10 @@ export function IC7OptimizationChallenge({
                 </p>
               </div>
 
-              {/* IC7 insight */}
+              {/* L7 insight */}
               <div className="rounded-lg bg-purple-500/10 border border-purple-500/20 p-3">
                 <div className="text-[10px] font-bold text-purple-400 mb-1">
-                  WHAT IC7 SEES IMMEDIATELY
+                  WHAT L7 SEES IMMEDIATELY
                 </div>
                 <p className="text-xs text-muted-foreground">{r.ic7Insight}</p>
               </div>
@@ -1322,7 +1323,7 @@ export function CodePracticeAIPanel({
       <AISolutionReviewer problem={problem} code={code} language={language} />
       <ComplexityAnalyzer problem={problem} code={code} language={language} />
       <FollowUpGenerator problem={problem} code={code} language={language} />
-      <IC7OptimizationChallenge
+      <L7OptimizationChallenge
         problem={problem}
         code={code}
         language={language}

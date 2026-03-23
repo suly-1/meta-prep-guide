@@ -44,6 +44,9 @@ import { toast } from "sonner";
 import PatternDependencyGraph from "@/components/PatternDependencyGraph";
 import MockInterviewSimulator from "@/components/MockInterviewSimulator";
 import { CodingMockSession } from "@/components/CodingMockSession";
+import { ThinkOutLoudCoach } from "@/components/ThinkOutLoudCoach";
+import { PatternSpeedDrill } from "@/components/PatternSpeedDrill";
+import { WeakPatternRemediationPlan } from "@/components/WeakPatternRemediationPlan";
 
 const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 const DIFF_COLOR: Record<string, string> = {
@@ -2050,7 +2053,7 @@ export default function CodingTab() {
                           explainMutation.mutate({
                             patternId: p.id,
                             patternName: p.name,
-                            icMode: "IC6",
+                            icMode: "L6",
                           });
                         }
                       }}
@@ -2149,7 +2152,7 @@ export default function CodingTab() {
                             explainMutation.mutate({
                               patternId: p.id,
                               patternName: p.name,
-                              icMode: "IC7",
+                              icMode: "L7",
                             })
                           }
                           disabled={explainMutation.isPending}
@@ -2162,7 +2165,7 @@ export default function CodingTab() {
                             explainMutation.mutate({
                               patternId: p.id,
                               patternName: p.name,
-                              icMode: "IC6",
+                              icMode: "L6",
                             })
                           }
                           disabled={explainMutation.isPending}
@@ -2835,123 +2838,137 @@ function CTCITracker() {
   ).length;
 
   return (
-    <div
-      className="prep-card overflow-hidden"
-      style={{
-        border: "2px solid transparent",
-        background:
-          "linear-gradient(var(--background), var(--background)) padding-box, linear-gradient(90deg, #f59e0b, #8b5cf6, #3b82f6, #10b981, #f59e0b) border-box",
-        backgroundSize: "200% 100%",
-        animation: "ctci-border-march 3s linear infinite",
-      }}
-    >
-      {/* Flashing banner */}
-      <div
-        style={{
-          background:
-            "linear-gradient(90deg, #f59e0b22, #8b5cf622, #3b82f622, #10b98122, #f59e0b22)",
-          animation: "ctci-bg-pulse 1.5s ease-in-out infinite alternate",
-        }}
-        className="px-5 pt-4 pb-0"
-      >
-        <div className="flex items-center gap-2 mb-1 flex-wrap">
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate",
-            }}
-            className="text-xl"
-          >
-            🔥
-          </span>
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate 0.1s",
-            }}
-            className="text-xl"
-          >
-            📚
-          </span>
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate 0.2s",
-            }}
-            className="text-xl"
-          >
-            ⚡
-          </span>
-          <span
-            className="font-extrabold text-base"
-            style={{
-              background: "linear-gradient(90deg, #f59e0b, #8b5cf6, #3b82f6)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-              animation: "ctci-gradient-shift 2s linear infinite",
-              backgroundSize: "200% 100%",
-            }}
-          >
-            CRACK THE CODING INTERVIEW
-          </span>
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate 0.3s",
-            }}
-            className="text-xl"
-          >
-            🎯
-          </span>
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate 0.4s",
-            }}
-            className="text-xl"
-          >
-            💎
-          </span>
-          <span
-            style={{
-              animation: "ctci-bounce 0.8s ease-in-out infinite alternate 0.5s",
-            }}
-            className="text-xl"
-          >
-            🚀
-          </span>
-        </div>
-        <div className="flex items-center gap-3 mb-1">
-          <div className="text-xs font-bold" style={{ color: "#a78bfa" }}>
-            — Dinesh Varyani · MUST DO ‼️
-          </div>
-          {ctciStreak.currentStreak > 0 && (
-            <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40">
-              <span
-                className="text-base"
-                style={{
-                  animation: "ctci-bounce 0.8s ease-in-out infinite alternate",
-                }}
-              >
-                🔥
-              </span>
-              <span className="text-xs font-extrabold text-orange-400">
-                {ctciStreak.currentStreak}
-              </span>
-              <span className="text-xs text-orange-300/80">day streak</span>
-              {ctciStreak.longestStreak > ctciStreak.currentStreak && (
-                <span className="text-xs text-muted-foreground ml-1">
-                  · best {ctciStreak.longestStreak}
-                </span>
-              )}
-            </div>
-          )}
-          {ctciStreak.totalSolved > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {ctciStreak.totalSolved} daily solved
-            </span>
-          )}
-        </div>
+    <div className="space-y-0">
+      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ══════════════════════════════ */}
+      <div className="space-y-5 mb-5">
+        <ThinkOutLoudCoach />
+        <PatternSpeedDrill />
+        <WeakPatternRemediationPlan />
       </div>
+      {/* ════════════════════════════════════════════════════════════════════ */}
+      <div
+        className="prep-card overflow-hidden"
+        style={{
+          border: "2px solid transparent",
+          background:
+            "linear-gradient(var(--background), var(--background)) padding-box, linear-gradient(90deg, #f59e0b, #8b5cf6, #3b82f6, #10b981, #f59e0b) border-box",
+          backgroundSize: "200% 100%",
+          animation: "ctci-border-march 3s linear infinite",
+        }}
+      >
+        {/* Flashing banner */}
+        <div
+          style={{
+            background:
+              "linear-gradient(90deg, #f59e0b22, #8b5cf622, #3b82f622, #10b98122, #f59e0b22)",
+            animation: "ctci-bg-pulse 1.5s ease-in-out infinite alternate",
+          }}
+          className="px-5 pt-4 pb-0"
+        >
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <span
+              style={{
+                animation: "ctci-bounce 0.8s ease-in-out infinite alternate",
+              }}
+              className="text-xl"
+            >
+              🔥
+            </span>
+            <span
+              style={{
+                animation:
+                  "ctci-bounce 0.8s ease-in-out infinite alternate 0.1s",
+              }}
+              className="text-xl"
+            >
+              📚
+            </span>
+            <span
+              style={{
+                animation:
+                  "ctci-bounce 0.8s ease-in-out infinite alternate 0.2s",
+              }}
+              className="text-xl"
+            >
+              ⚡
+            </span>
+            <span
+              className="font-extrabold text-base"
+              style={{
+                background: "linear-gradient(90deg, #f59e0b, #8b5cf6, #3b82f6)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                animation: "ctci-gradient-shift 2s linear infinite",
+                backgroundSize: "200% 100%",
+              }}
+            >
+              CRACK THE CODING INTERVIEW
+            </span>
+            <span
+              style={{
+                animation:
+                  "ctci-bounce 0.8s ease-in-out infinite alternate 0.3s",
+              }}
+              className="text-xl"
+            >
+              🎯
+            </span>
+            <span
+              style={{
+                animation:
+                  "ctci-bounce 0.8s ease-in-out infinite alternate 0.4s",
+              }}
+              className="text-xl"
+            >
+              💎
+            </span>
+            <span
+              style={{
+                animation:
+                  "ctci-bounce 0.8s ease-in-out infinite alternate 0.5s",
+              }}
+              className="text-xl"
+            >
+              🚀
+            </span>
+          </div>
+          <div className="flex items-center gap-3 mb-1">
+            <div className="text-xs font-bold" style={{ color: "#a78bfa" }}>
+              — Dinesh Varyani · MUST DO ‼️
+            </div>
+            {ctciStreak.currentStreak > 0 && (
+              <div className="flex items-center gap-1 px-2 py-0.5 rounded-full bg-orange-500/20 border border-orange-500/40">
+                <span
+                  className="text-base"
+                  style={{
+                    animation:
+                      "ctci-bounce 0.8s ease-in-out infinite alternate",
+                  }}
+                >
+                  🔥
+                </span>
+                <span className="text-xs font-extrabold text-orange-400">
+                  {ctciStreak.currentStreak}
+                </span>
+                <span className="text-xs text-orange-300/80">day streak</span>
+                {ctciStreak.longestStreak > ctciStreak.currentStreak && (
+                  <span className="text-xs text-muted-foreground ml-1">
+                    · best {ctciStreak.longestStreak}
+                  </span>
+                )}
+              </div>
+            )}
+            {ctciStreak.totalSolved > 0 && (
+              <span className="text-xs text-muted-foreground">
+                {ctciStreak.totalSolved} daily solved
+              </span>
+            )}
+          </div>
+        </div>
 
-      {/* Keyframes injected inline */}
-      <style>{`
+        {/* Keyframes injected inline */}
+        <style>{`
         @keyframes ctci-border-march {
           0%   { background-position: 0% 0%, 0% 50%; }
           100% { background-position: 0% 0%, 200% 50%; }
@@ -2974,483 +2991,488 @@ function CTCITracker() {
         }
       `}</style>
 
-      <div className="p-5 pt-3">
-        <button
-          onClick={() => setOpen(o => !o)}
-          className="w-full flex items-center justify-between group"
-          style={{ animation: "ctci-flash 2s ease-in-out infinite" }}
-        >
-          <div className="flex items-center gap-2">
-            <BookOpen size={14} className="text-purple-400" />
-            <div className="text-left">
-              <div className="text-sm font-bold text-foreground">
-                500 curated LeetCode problems · FAANG Frequency tags
-              </div>
-              <div className="text-xs text-muted-foreground">
-                {solvedCount}/500 solved · Click to{" "}
-                {open ? "collapse" : "expand"}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="text-xs font-bold text-purple-400">
-              {Math.round((solvedCount / 500) * 100)}%
-            </div>
-            {open ? (
-              <ChevronUp size={16} className="text-muted-foreground" />
-            ) : (
-              <ChevronDown size={16} className="text-muted-foreground" />
-            )}
-          </div>
-        </button>
-
-        {open && (
-          <div className="mt-4 space-y-3">
-            {/* Stats row */}
-            <div className="grid grid-cols-3 gap-2">
-              <div className="p-2.5 rounded-lg bg-secondary text-center">
-                <div className="text-base font-bold text-foreground">
-                  {solvedCount}
+        <div className="p-5 pt-3">
+          <button
+            onClick={() => setOpen(o => !o)}
+            className="w-full flex items-center justify-between group"
+            style={{ animation: "ctci-flash 2s ease-in-out infinite" }}
+          >
+            <div className="flex items-center gap-2">
+              <BookOpen size={14} className="text-purple-400" />
+              <div className="text-left">
+                <div className="text-sm font-bold text-foreground">
+                  500 curated LeetCode problems · FAANG Frequency tags
                 </div>
                 <div className="text-xs text-muted-foreground">
-                  Total Solved
+                  {solvedCount}/500 solved · Click to{" "}
+                  {open ? "collapse" : "expand"}
                 </div>
               </div>
-              <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
-                <div className="text-base font-bold text-red-400">
-                  {highFreqSolved}/{highFreqTotal}
-                </div>
-                <div className="text-xs text-muted-foreground">
-                  🔥 High Freq Solved
-                </div>
-              </div>
-              <div className="p-2.5 rounded-lg bg-secondary text-center">
-                <div className="text-base font-bold text-foreground">
-                  {500 - solvedCount}
-                </div>
-                <div className="text-xs text-muted-foreground">Remaining</div>
-              </div>
             </div>
-
-            {/* Overall progress bar */}
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>Overall progress</span>
-                <span>{Math.round((solvedCount / 500) * 100)}%</span>
+            <div className="flex items-center gap-2">
+              <div className="text-xs font-bold text-purple-400">
+                {Math.round((solvedCount / 500) * 100)}%
               </div>
-              <div className="h-2 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-purple-500 transition-all"
-                  style={{ width: `${(solvedCount / 500) * 100}%` }}
-                />
-              </div>
-            </div>
-
-            {/* High-freq progress bar */}
-            <div>
-              <div className="flex justify-between text-xs text-muted-foreground mb-1">
-                <span>🔥 High FAANG Frequency ({highFreqTotal} problems)</span>
-                <span>
-                  {Math.round((highFreqSolved / highFreqTotal) * 100)}%
-                </span>
-              </div>
-              <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-red-500 transition-all"
-                  style={{
-                    width: `${(highFreqSolved / highFreqTotal) * 100}%`,
-                  }}
-                />
-              </div>
-            </div>
-
-            {/* Filters */}
-            <div className="flex flex-wrap gap-2">
-              <div className="relative flex-1 min-w-36">
-                <Search
-                  size={12}
-                  className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
-                />
-                <input
-                  value={search}
-                  onChange={e => {
-                    setSearch(e.target.value);
-                    setPage(1);
-                  }}
-                  placeholder="Search problems or topics…"
-                  className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-purple-500/50"
-                />
-              </div>
-              <select
-                value={freqFilter}
-                onChange={e =>
-                  handleFilterChange(setFreqFilter)(e.target.value)
-                }
-                className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none"
-              >
-                <option value="All">All Freq</option>
-                <option value="High">🔥 High (Meta)</option>
-                <option value="Medium">⚡ Medium</option>
-                <option value="Low">Low</option>
-              </select>
-              <select
-                value={diffFilter}
-                onChange={e =>
-                  handleFilterChange(setDiffFilter)(e.target.value)
-                }
-                className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none"
-              >
-                <option>All</option>
-                <option>Easy</option>
-                <option>Medium</option>
-                <option>Hard</option>
-              </select>
-              <select
-                value={topicFilter}
-                onChange={e =>
-                  handleFilterChange(setTopicFilter)(e.target.value)
-                }
-                className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none max-w-36"
-              >
-                <option>All</option>
-                {CTCI_ALL_TOPICS.map(t => (
-                  <option key={t}>{t}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Results count */}
-            <div className="text-xs text-muted-foreground">
-              Showing {paginated.length} of {filtered.length} problems
-              {filtered.length < 500 && (
-                <span className="ml-1">(filtered from 500)</span>
+              {open ? (
+                <ChevronUp size={16} className="text-muted-foreground" />
+              ) : (
+                <ChevronDown size={16} className="text-muted-foreground" />
               )}
             </div>
+          </button>
 
-            {/* Daily Challenge Banner */}
-            {dailyChallengeNum &&
-              (() => {
-                const dc = CTCI_QUESTIONS.find(
-                  q => q.num === dailyChallengeNum
-                );
-                if (!dc) return null;
-                return (
-                  <div
-                    className="rounded-xl p-3 border-2 border-amber-500/60"
-                    style={{
-                      background:
-                        "linear-gradient(135deg, #f59e0b18, #8b5cf618)",
-                    }}
-                  >
-                    <div className="flex items-center gap-2 mb-1">
-                      <span
-                        className="text-lg"
-                        style={{
-                          animation:
-                            "ctci-bounce 0.8s ease-in-out infinite alternate",
-                        }}
-                      >
-                        🌟
-                      </span>
-                      <span className="text-xs font-extrabold text-amber-400 uppercase tracking-wide">
-                        Problem of the Day
-                      </span>
-                      <span className="text-xs text-muted-foreground ml-auto">
-                        {new Date().toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs text-muted-foreground font-mono w-7">
-                        {dc.num}.
-                      </span>
-                      <a
-                        href={dc.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="text-sm font-bold text-amber-300 hover:underline flex-1"
-                      >
-                        {dc.name}
-                      </a>
-                      <span
-                        className={`badge ${dc.difficulty === "Easy" ? "badge-green" : dc.difficulty === "Hard" ? "badge-red" : "badge-amber"}`}
-                      >
-                        {dc.difficulty}
-                      </span>
-                      <span className="badge badge-red text-xs">🔥 Meta</span>
-                    </div>
-                    <div className="flex gap-1 mt-1.5 flex-wrap">
-                      {dc.topics.map(t => (
-                        <span key={t} className="badge badge-gray text-xs">
-                          {t}
-                        </span>
-                      ))}
-                    </div>
+          {open && (
+            <div className="mt-4 space-y-3">
+              {/* Stats row */}
+              <div className="grid grid-cols-3 gap-2">
+                <div className="p-2.5 rounded-lg bg-secondary text-center">
+                  <div className="text-base font-bold text-foreground">
+                    {solvedCount}
                   </div>
-                );
-              })()}
+                  <div className="text-xs text-muted-foreground">
+                    Total Solved
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-red-500/10 border border-red-500/20 text-center">
+                  <div className="text-base font-bold text-red-400">
+                    {highFreqSolved}/{highFreqTotal}
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    🔥 High Freq Solved
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-lg bg-secondary text-center">
+                  <div className="text-base font-bold text-foreground">
+                    {500 - solvedCount}
+                  </div>
+                  <div className="text-xs text-muted-foreground">Remaining</div>
+                </div>
+              </div>
 
-            {/* Question list */}
-            <div className="space-y-1">
-              {paginated.map(q => {
-                const isDaily = q.num === dailyChallengeNum;
-                const hasCode = !!editorCode[q.num];
-                return (
-                  <div key={q.num} className="rounded-lg overflow-hidden">
+              {/* Overall progress bar */}
+              <div>
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <span>Overall progress</span>
+                  <span>{Math.round((solvedCount / 500) * 100)}%</span>
+                </div>
+                <div className="h-2 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-purple-500 transition-all"
+                    style={{ width: `${(solvedCount / 500) * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* High-freq progress bar */}
+              <div>
+                <div className="flex justify-between text-xs text-muted-foreground mb-1">
+                  <span>
+                    🔥 High FAANG Frequency ({highFreqTotal} problems)
+                  </span>
+                  <span>
+                    {Math.round((highFreqSolved / highFreqTotal) * 100)}%
+                  </span>
+                </div>
+                <div className="h-1.5 rounded-full bg-secondary overflow-hidden">
+                  <div
+                    className="h-full rounded-full bg-red-500 transition-all"
+                    style={{
+                      width: `${(highFreqSolved / highFreqTotal) * 100}%`,
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-wrap gap-2">
+                <div className="relative flex-1 min-w-36">
+                  <Search
+                    size={12}
+                    className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground"
+                  />
+                  <input
+                    value={search}
+                    onChange={e => {
+                      setSearch(e.target.value);
+                      setPage(1);
+                    }}
+                    placeholder="Search problems or topics…"
+                    className="w-full pl-7 pr-3 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-purple-500/50"
+                  />
+                </div>
+                <select
+                  value={freqFilter}
+                  onChange={e =>
+                    handleFilterChange(setFreqFilter)(e.target.value)
+                  }
+                  className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none"
+                >
+                  <option value="All">All Freq</option>
+                  <option value="High">🔥 High (Meta)</option>
+                  <option value="Medium">⚡ Medium</option>
+                  <option value="Low">Low</option>
+                </select>
+                <select
+                  value={diffFilter}
+                  onChange={e =>
+                    handleFilterChange(setDiffFilter)(e.target.value)
+                  }
+                  className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none"
+                >
+                  <option>All</option>
+                  <option>Easy</option>
+                  <option>Medium</option>
+                  <option>Hard</option>
+                </select>
+                <select
+                  value={topicFilter}
+                  onChange={e =>
+                    handleFilterChange(setTopicFilter)(e.target.value)
+                  }
+                  className="px-2 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none max-w-36"
+                >
+                  <option>All</option>
+                  {CTCI_ALL_TOPICS.map(t => (
+                    <option key={t}>{t}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Results count */}
+              <div className="text-xs text-muted-foreground">
+                Showing {paginated.length} of {filtered.length} problems
+                {filtered.length < 500 && (
+                  <span className="ml-1">(filtered from 500)</span>
+                )}
+              </div>
+
+              {/* Daily Challenge Banner */}
+              {dailyChallengeNum &&
+                (() => {
+                  const dc = CTCI_QUESTIONS.find(
+                    q => q.num === dailyChallengeNum
+                  );
+                  if (!dc) return null;
+                  return (
                     <div
-                      className={`flex items-center gap-3 p-2.5 transition-all ${
-                        isDaily
-                          ? "bg-amber-500/15 border border-amber-500/40"
-                          : solved[q.num]
-                            ? "bg-purple-500/10 border border-purple-500/20"
-                            : "bg-secondary hover:bg-accent"
-                      }`}
+                      className="rounded-xl p-3 border-2 border-amber-500/60"
+                      style={{
+                        background:
+                          "linear-gradient(135deg, #f59e0b18, #8b5cf618)",
+                      }}
                     >
-                      <input
-                        type="checkbox"
-                        checked={!!solved[q.num]}
-                        onChange={() => toggle(q.num)}
-                        className="w-3.5 h-3.5 accent-purple-500 shrink-0 cursor-pointer"
-                      />
-                      <span className="text-xs text-muted-foreground w-7 shrink-0 font-mono">
-                        {q.num}.
-                      </span>
-                      <a
-                        href={q.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className={`text-xs font-medium flex-1 hover:underline ${
-                          solved[q.num]
-                            ? "line-through text-muted-foreground"
-                            : isDaily
-                              ? "text-amber-300 font-bold"
-                              : "text-foreground"
-                        }`}
-                      >
-                        {q.name}
-                      </a>
-                      <div className="flex gap-1 flex-wrap justify-end items-center">
-                        {isDaily && (
-                          <span className="badge badge-amber text-xs">
-                            🌟 Today
-                          </span>
-                        )}
-                        {q.metaFreq === "High" && (
-                          <span className="badge badge-red text-xs">
-                            🔥 Meta
-                          </span>
-                        )}
-                        {q.metaFreq === "Medium" && (
-                          <span className="badge badge-amber text-xs">
-                            ⚡ Meta
-                          </span>
-                        )}
-                        {q.topics.slice(0, 1).map(t => (
-                          <span
-                            key={t}
-                            className="badge badge-gray text-xs hidden sm:inline"
-                          >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span
+                          className="text-lg"
+                          style={{
+                            animation:
+                              "ctci-bounce 0.8s ease-in-out infinite alternate",
+                          }}
+                        >
+                          🌟
+                        </span>
+                        <span className="text-xs font-extrabold text-amber-400 uppercase tracking-wide">
+                          Problem of the Day
+                        </span>
+                        <span className="text-xs text-muted-foreground ml-auto">
+                          {new Date().toLocaleDateString()}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-muted-foreground font-mono w-7">
+                          {dc.num}.
+                        </span>
+                        <a
+                          href={dc.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-sm font-bold text-amber-300 hover:underline flex-1"
+                        >
+                          {dc.name}
+                        </a>
+                        <span
+                          className={`badge ${dc.difficulty === "Easy" ? "badge-green" : dc.difficulty === "Hard" ? "badge-red" : "badge-amber"}`}
+                        >
+                          {dc.difficulty}
+                        </span>
+                        <span className="badge badge-red text-xs">🔥 Meta</span>
+                      </div>
+                      <div className="flex gap-1 mt-1.5 flex-wrap">
+                        {dc.topics.map(t => (
+                          <span key={t} className="badge badge-gray text-xs">
                             {t}
                           </span>
                         ))}
-                        <span
-                          className={`badge ${
-                            q.difficulty === "Easy"
-                              ? "badge-green"
-                              : q.difficulty === "Hard"
-                                ? "badge-red"
-                                : "badge-amber"
-                          }`}
-                        >
-                          {q.difficulty}
-                        </span>
-                        <button
-                          onClick={() =>
-                            setEditorOpen(editorOpen === q.num ? null : q.num)
-                          }
-                          title="Open code editor"
-                          className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
-                            hasCode
-                              ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
-                              : editorOpen === q.num
-                                ? "border-blue-500/40 text-blue-400 bg-blue-500/10"
-                                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
-                          }`}
-                        >
-                          {hasCode ? "📝" : "➕"} Code
-                        </button>
-                        <button
-                          onClick={() =>
-                            setNotesOpen(notesOpen === q.num ? null : q.num)
-                          }
-                          title="Open notes"
-                          className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
-                            notes[q.num]?.trim()
-                              ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
-                              : notesOpen === q.num
-                                ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
-                                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
-                          }`}
-                        >
-                          📌 Notes
-                        </button>
-                        {/* Difficulty Estimator button */}
-                        <button
-                          onClick={() =>
-                            setDiffEstOpen(diffEstOpen === q.num ? null : q.num)
-                          }
-                          title="Rate how hard this felt"
-                          className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
-                            diffEstimates[q.num]
-                              ? "border-pink-500/40 text-pink-400 bg-pink-500/10"
-                              : diffEstOpen === q.num
-                                ? "border-pink-500/40 text-pink-400 bg-pink-500/10"
-                                : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
-                          }`}
-                        >
-                          🤔 Felt?
-                        </button>
                       </div>
                     </div>
-                    {/* Difficulty Estimator panel */}
-                    {diffEstOpen === q.num && (
-                      <div className="border-t border-pink-500/20 bg-pink-500/5 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-pink-400">
-                            🤔 How hard did it feel?
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            Official:{" "}
-                            <span
-                              className={
-                                q.difficulty === "Easy"
-                                  ? "text-emerald-400"
-                                  : q.difficulty === "Hard"
-                                    ? "text-red-400"
-                                    : "text-amber-400"
-                              }
-                            >
-                              {q.difficulty}
+                  );
+                })()}
+
+              {/* Question list */}
+              <div className="space-y-1">
+                {paginated.map(q => {
+                  const isDaily = q.num === dailyChallengeNum;
+                  const hasCode = !!editorCode[q.num];
+                  return (
+                    <div key={q.num} className="rounded-lg overflow-hidden">
+                      <div
+                        className={`flex items-center gap-3 p-2.5 transition-all ${
+                          isDaily
+                            ? "bg-amber-500/15 border border-amber-500/40"
+                            : solved[q.num]
+                              ? "bg-purple-500/10 border border-purple-500/20"
+                              : "bg-secondary hover:bg-accent"
+                        }`}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={!!solved[q.num]}
+                          onChange={() => toggle(q.num)}
+                          className="w-3.5 h-3.5 accent-purple-500 shrink-0 cursor-pointer"
+                        />
+                        <span className="text-xs text-muted-foreground w-7 shrink-0 font-mono">
+                          {q.num}.
+                        </span>
+                        <a
+                          href={q.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className={`text-xs font-medium flex-1 hover:underline ${
+                            solved[q.num]
+                              ? "line-through text-muted-foreground"
+                              : isDaily
+                                ? "text-amber-300 font-bold"
+                                : "text-foreground"
+                          }`}
+                        >
+                          {q.name}
+                        </a>
+                        <div className="flex gap-1 flex-wrap justify-end items-center">
+                          {isDaily && (
+                            <span className="badge badge-amber text-xs">
+                              🌟 Today
                             </span>
+                          )}
+                          {q.metaFreq === "High" && (
+                            <span className="badge badge-red text-xs">
+                              🔥 Meta
+                            </span>
+                          )}
+                          {q.metaFreq === "Medium" && (
+                            <span className="badge badge-amber text-xs">
+                              ⚡ Meta
+                            </span>
+                          )}
+                          {q.topics.slice(0, 1).map(t => (
+                            <span
+                              key={t}
+                              className="badge badge-gray text-xs hidden sm:inline"
+                            >
+                              {t}
+                            </span>
+                          ))}
+                          <span
+                            className={`badge ${
+                              q.difficulty === "Easy"
+                                ? "badge-green"
+                                : q.difficulty === "Hard"
+                                  ? "badge-red"
+                                  : "badge-amber"
+                            }`}
+                          >
+                            {q.difficulty}
                           </span>
+                          <button
+                            onClick={() =>
+                              setEditorOpen(editorOpen === q.num ? null : q.num)
+                            }
+                            title="Open code editor"
+                            className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
+                              hasCode
+                                ? "border-emerald-500/40 text-emerald-400 bg-emerald-500/10"
+                                : editorOpen === q.num
+                                  ? "border-blue-500/40 text-blue-400 bg-blue-500/10"
+                                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            {hasCode ? "📝" : "➕"} Code
+                          </button>
+                          <button
+                            onClick={() =>
+                              setNotesOpen(notesOpen === q.num ? null : q.num)
+                            }
+                            title="Open notes"
+                            className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
+                              notes[q.num]?.trim()
+                                ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                                : notesOpen === q.num
+                                  ? "border-amber-500/40 text-amber-400 bg-amber-500/10"
+                                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            📌 Notes
+                          </button>
+                          {/* Difficulty Estimator button */}
+                          <button
+                            onClick={() =>
+                              setDiffEstOpen(
+                                diffEstOpen === q.num ? null : q.num
+                              )
+                            }
+                            title="Rate how hard this felt"
+                            className={`text-xs px-1.5 py-0.5 rounded border transition-all ${
+                              diffEstimates[q.num]
+                                ? "border-pink-500/40 text-pink-400 bg-pink-500/10"
+                                : diffEstOpen === q.num
+                                  ? "border-pink-500/40 text-pink-400 bg-pink-500/10"
+                                  : "border-border text-muted-foreground hover:text-foreground hover:bg-accent"
+                            }`}
+                          >
+                            🤔 Felt?
+                          </button>
                         </div>
-                        <div className="flex gap-2 flex-wrap">
-                          {(
-                            [
-                              "Easy",
-                              "Medium",
-                              "Hard",
-                              "Very Hard",
-                            ] as SelfDifficulty[]
-                          ).map(level => {
-                            const selected =
-                              diffEstimates[q.num]?.selfRating === level;
-                            const diverges =
-                              selected &&
-                              level !== q.difficulty &&
-                              !(
-                                level === "Very Hard" && q.difficulty === "Hard"
-                              );
-                            return (
-                              <button
-                                key={level}
-                                onClick={() => {
-                                  setDiffEstimates(d => ({
-                                    ...d,
-                                    [q.num]: {
-                                      selfRating: level,
-                                      timestamp: Date.now(),
-                                    },
-                                  }));
-                                  toast.success(
-                                    level === q.difficulty
-                                      ? `✅ Matches official: ${level}`
-                                      : `📊 Self: ${level} vs Official: ${q.difficulty}${diverges ? " — worth extra practice!" : ""}`
-                                  );
-                                }}
-                                className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-all ${
-                                  selected
-                                    ? level === "Easy"
-                                      ? "bg-emerald-500/20 border-emerald-400 text-emerald-300"
-                                      : level === "Medium"
-                                        ? "bg-amber-500/20 border-amber-400 text-amber-300"
-                                        : level === "Hard"
-                                          ? "bg-red-500/20 border-red-400 text-red-300"
-                                          : "bg-rose-500/20 border-rose-400 text-rose-300"
-                                    : "border-border text-muted-foreground hover:bg-accent"
-                                }`}
+                      </div>
+                      {/* Difficulty Estimator panel */}
+                      {diffEstOpen === q.num && (
+                        <div className="border-t border-pink-500/20 bg-pink-500/5 p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-pink-400">
+                              🤔 How hard did it feel?
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Official:{" "}
+                              <span
+                                className={
+                                  q.difficulty === "Easy"
+                                    ? "text-emerald-400"
+                                    : q.difficulty === "Hard"
+                                      ? "text-red-400"
+                                      : "text-amber-400"
+                                }
                               >
-                                {level === "Easy"
-                                  ? "😌"
-                                  : level === "Medium"
-                                    ? "😅"
-                                    : level === "Hard"
-                                      ? "😰"
-                                      : "💀"}{" "}
-                                {level}
-                              </button>
-                            );
-                          })}
-                        </div>
-                        {diffEstimates[q.num] &&
-                          (() => {
-                            const self = diffEstimates[q.num].selfRating;
-                            const official = q.difficulty;
-                            const selfIdx = [
-                              "Easy",
-                              "Medium",
-                              "Hard",
-                              "Very Hard",
-                            ].indexOf(self);
-                            const offIdx = ["Easy", "Medium", "Hard"].indexOf(
-                              official
-                            );
-                            const gap = selfIdx - offIdx;
-                            if (gap === 0)
+                                {q.difficulty}
+                              </span>
+                            </span>
+                          </div>
+                          <div className="flex gap-2 flex-wrap">
+                            {(
+                              [
+                                "Easy",
+                                "Medium",
+                                "Hard",
+                                "Very Hard",
+                              ] as SelfDifficulty[]
+                            ).map(level => {
+                              const selected =
+                                diffEstimates[q.num]?.selfRating === level;
+                              const diverges =
+                                selected &&
+                                level !== q.difficulty &&
+                                !(
+                                  level === "Very Hard" &&
+                                  q.difficulty === "Hard"
+                                );
                               return (
-                                <p className="text-xs text-emerald-400 mt-2">
-                                  ✅ Your perception matches the official
-                                  difficulty — great calibration!
-                                </p>
+                                <button
+                                  key={level}
+                                  onClick={() => {
+                                    setDiffEstimates(d => ({
+                                      ...d,
+                                      [q.num]: {
+                                        selfRating: level,
+                                        timestamp: Date.now(),
+                                      },
+                                    }));
+                                    toast.success(
+                                      level === q.difficulty
+                                        ? `✅ Matches official: ${level}`
+                                        : `📊 Self: ${level} vs Official: ${q.difficulty}${diverges ? " — worth extra practice!" : ""}`
+                                    );
+                                  }}
+                                  className={`text-xs px-2.5 py-1 rounded-full border font-semibold transition-all ${
+                                    selected
+                                      ? level === "Easy"
+                                        ? "bg-emerald-500/20 border-emerald-400 text-emerald-300"
+                                        : level === "Medium"
+                                          ? "bg-amber-500/20 border-amber-400 text-amber-300"
+                                          : level === "Hard"
+                                            ? "bg-red-500/20 border-red-400 text-red-300"
+                                            : "bg-rose-500/20 border-rose-400 text-rose-300"
+                                      : "border-border text-muted-foreground hover:bg-accent"
+                                  }`}
+                                >
+                                  {level === "Easy"
+                                    ? "😌"
+                                    : level === "Medium"
+                                      ? "😅"
+                                      : level === "Hard"
+                                        ? "😰"
+                                        : "💀"}{" "}
+                                  {level}
+                                </button>
                               );
-                            if (gap > 0)
+                            })}
+                          </div>
+                          {diffEstimates[q.num] &&
+                            (() => {
+                              const self = diffEstimates[q.num].selfRating;
+                              const official = q.difficulty;
+                              const selfIdx = [
+                                "Easy",
+                                "Medium",
+                                "Hard",
+                                "Very Hard",
+                              ].indexOf(self);
+                              const offIdx = ["Easy", "Medium", "Hard"].indexOf(
+                                official
+                              );
+                              const gap = selfIdx - offIdx;
+                              if (gap === 0)
+                                return (
+                                  <p className="text-xs text-emerald-400 mt-2">
+                                    ✅ Your perception matches the official
+                                    difficulty — great calibration!
+                                  </p>
+                                );
+                              if (gap > 0)
+                                return (
+                                  <p className="text-xs text-orange-400 mt-2">
+                                    ⚠️ You found this harder than expected.
+                                    Consider more practice on{" "}
+                                    <strong>
+                                      {q.topics.slice(0, 2).join(" + ")}
+                                    </strong>
+                                    .
+                                  </p>
+                                );
                               return (
-                                <p className="text-xs text-orange-400 mt-2">
-                                  ⚠️ You found this harder than expected.
-                                  Consider more practice on{" "}
+                                <p className="text-xs text-blue-400 mt-2">
+                                  💪 You found this easier than expected —
+                                  strong signal on{" "}
                                   <strong>
                                     {q.topics.slice(0, 2).join(" + ")}
                                   </strong>
-                                  .
+                                  !
                                 </p>
                               );
-                            return (
-                              <p className="text-xs text-blue-400 mt-2">
-                                💪 You found this easier than expected — strong
-                                signal on{" "}
-                                <strong>
-                                  {q.topics.slice(0, 2).join(" + ")}
-                                </strong>
-                                !
-                              </p>
-                            );
-                          })()}
-                      </div>
-                    )}
-                    {/* Notes panel */}
-                    {notesOpen === q.num && (
-                      <div className="border-t border-amber-500/20 bg-amber-500/5 p-3">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-bold text-amber-400">
-                            📌 Notes — {q.name}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            Complexity, approach, edge cases
-                          </span>
+                            })()}
                         </div>
-                        <textarea
-                          value={notes[q.num] ?? ""}
-                          onChange={e => saveNote(q.num, e.target.value)}
-                          placeholder={`Time: O(?)  Space: O(?)
+                      )}
+                      {/* Notes panel */}
+                      {notesOpen === q.num && (
+                        <div className="border-t border-amber-500/20 bg-amber-500/5 p-3">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-xs font-bold text-amber-400">
+                              📌 Notes — {q.name}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              Complexity, approach, edge cases
+                            </span>
+                          </div>
+                          <textarea
+                            value={notes[q.num] ?? ""}
+                            onChange={e => saveNote(q.num, e.target.value)}
+                            placeholder={`Time: O(?)  Space: O(?)
 
 Approach:
 - 
@@ -3460,114 +3482,81 @@ Edge cases:
 
 Key insight:
 `}
-                          spellCheck={false}
-                          className="w-full font-mono text-xs text-foreground bg-background border border-amber-500/20 rounded-lg p-2.5 focus:outline-none focus:border-amber-500/50 resize-none leading-relaxed placeholder:text-muted-foreground/50"
-                          rows={8}
-                        />
-                        <div className="text-xs text-muted-foreground mt-1">
-                          💾 Auto-saved · {notes[q.num]?.length ?? 0} chars
+                            spellCheck={false}
+                            className="w-full font-mono text-xs text-foreground bg-background border border-amber-500/20 rounded-lg p-2.5 focus:outline-none focus:border-amber-500/50 resize-none leading-relaxed placeholder:text-muted-foreground/50"
+                            rows={8}
+                          />
+                          <div className="text-xs text-muted-foreground mt-1">
+                            💾 Auto-saved · {notes[q.num]?.length ?? 0} chars
+                          </div>
                         </div>
-                      </div>
-                    )}
-                    {/* Inline code editor */}
-                    {editorOpen === q.num && (
-                      <div className="border-t border-border bg-[#1e1e1e] p-0">
-                        <div className="flex items-center justify-between px-3 py-1.5 bg-[#252526] border-b border-[#3e3e42]">
-                          <span className="text-xs text-[#9cdcfe] font-mono">
-                            {q.name}.js
-                          </span>
-                          <div className="flex gap-2">
-                            <span className="text-xs text-[#6a9955]">
-                              // Write your solution
+                      )}
+                      {/* Inline code editor */}
+                      {editorOpen === q.num && (
+                        <div className="border-t border-border bg-[#1e1e1e] p-0">
+                          <div className="flex items-center justify-between px-3 py-1.5 bg-[#252526] border-b border-[#3e3e42]">
+                            <span className="text-xs text-[#9cdcfe] font-mono">
+                              {q.name}.js
                             </span>
-                            <button
-                              onClick={() => setEditorOpen(null)}
-                              className="text-[#858585] hover:text-white text-xs"
-                            >
-                              × Close
-                            </button>
-                          </div>
-                        </div>
-                        <textarea
-                          value={
-                            editorCode[q.num] ??
-                            `/**\n * ${q.name}\n * Difficulty: ${q.difficulty} | Topics: ${q.topics.join(", ")}\n */\n\nfunction solution() {\n  // Your code here\n  \n}\n`
-                          }
-                          onChange={e => saveCode(q.num, e.target.value)}
-                          spellCheck={false}
-                          className="w-full font-mono text-xs text-[#d4d4d4] bg-[#1e1e1e] p-3 focus:outline-none resize-none leading-relaxed"
-                          rows={12}
-                          style={{
-                            fontFamily:
-                              "'Fira Code', 'Cascadia Code', 'Consolas', monospace",
-                            tabSize: 2,
-                          }}
-                          onKeyDown={e => {
-                            if (e.key === "Tab") {
-                              e.preventDefault();
-                              const el = e.currentTarget;
-                              const start = el.selectionStart;
-                              const end = el.selectionEnd;
-                              const val = el.value;
-                              el.value =
-                                val.substring(0, start) +
-                                "  " +
-                                val.substring(end);
-                              el.selectionStart = el.selectionEnd = start + 2;
-                              saveCode(q.num, el.value);
-                            }
-                          }}
-                        />
-                        <div className="flex items-center justify-between px-3 py-1 bg-[#007acc] text-white">
-                          <span className="text-xs">
-                            💾 Auto-saved to localStorage
-                          </span>
-                          <div className="flex items-center gap-2">
-                            {hasCode && (
-                              <span className="text-xs opacity-80">
-                                {editorCode[q.num]?.split("\n").length ?? 0}{" "}
-                                lines
+                            <div className="flex gap-2">
+                              <span className="text-xs text-[#6a9955]">
+                                // Write your solution
                               </span>
-                            )}
-                            <button
-                              onClick={() => {
-                                setHintOpen(hintOpen === q.num ? null : q.num);
-                                if (hintOpen !== q.num && !hints[q.num]) {
-                                  hintMutation.mutate({
-                                    problemName: q.name,
-                                    problemNum: q.num,
-                                    difficulty: q.difficulty,
-                                    topics: q.topics,
-                                    currentCode: editorCode[q.num],
-                                  });
-                                }
-                              }}
-                              className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 transition-colors font-medium"
-                            >
-                              {hintMutation.isPending && hintOpen === q.num
-                                ? "⏳ Thinking…"
-                                : "💡 Get Hint"}
-                            </button>
+                              <button
+                                onClick={() => setEditorOpen(null)}
+                                className="text-[#858585] hover:text-white text-xs"
+                              >
+                                × Close
+                              </button>
+                            </div>
                           </div>
-                        </div>
-                        {hintOpen === q.num && (
-                          <div className="px-3 py-2.5 bg-[#252526] border-t border-[#3e3e42]">
-                            {hintMutation.isPending && !hints[q.num] ? (
-                              <div className="flex items-center gap-2 text-xs text-[#9cdcfe]">
-                                <span className="animate-spin">⏳</span> Getting
-                                hint from AI…
-                              </div>
-                            ) : hints[q.num] ? (
-                              <div>
-                                <div className="text-xs font-bold text-[#dcdcaa] mb-1">
-                                  💡 Hint
-                                </div>
-                                <div className="text-xs text-[#d4d4d4] leading-relaxed">
-                                  {hints[q.num]}
-                                </div>
-                                <button
-                                  onClick={() => {
-                                    setHints(h => ({ ...h, [q.num]: "" }));
+                          <textarea
+                            value={
+                              editorCode[q.num] ??
+                              `/**\n * ${q.name}\n * Difficulty: ${q.difficulty} | Topics: ${q.topics.join(", ")}\n */\n\nfunction solution() {\n  // Your code here\n  \n}\n`
+                            }
+                            onChange={e => saveCode(q.num, e.target.value)}
+                            spellCheck={false}
+                            className="w-full font-mono text-xs text-[#d4d4d4] bg-[#1e1e1e] p-3 focus:outline-none resize-none leading-relaxed"
+                            rows={12}
+                            style={{
+                              fontFamily:
+                                "'Fira Code', 'Cascadia Code', 'Consolas', monospace",
+                              tabSize: 2,
+                            }}
+                            onKeyDown={e => {
+                              if (e.key === "Tab") {
+                                e.preventDefault();
+                                const el = e.currentTarget;
+                                const start = el.selectionStart;
+                                const end = el.selectionEnd;
+                                const val = el.value;
+                                el.value =
+                                  val.substring(0, start) +
+                                  "  " +
+                                  val.substring(end);
+                                el.selectionStart = el.selectionEnd = start + 2;
+                                saveCode(q.num, el.value);
+                              }
+                            }}
+                          />
+                          <div className="flex items-center justify-between px-3 py-1 bg-[#007acc] text-white">
+                            <span className="text-xs">
+                              💾 Auto-saved to localStorage
+                            </span>
+                            <div className="flex items-center gap-2">
+                              {hasCode && (
+                                <span className="text-xs opacity-80">
+                                  {editorCode[q.num]?.split("\n").length ?? 0}{" "}
+                                  lines
+                                </span>
+                              )}
+                              <button
+                                onClick={() => {
+                                  setHintOpen(
+                                    hintOpen === q.num ? null : q.num
+                                  );
+                                  if (hintOpen !== q.num && !hints[q.num]) {
                                     hintMutation.mutate({
                                       problemName: q.name,
                                       problemNum: q.num,
@@ -3575,89 +3564,125 @@ Key insight:
                                       topics: q.topics,
                                       currentCode: editorCode[q.num],
                                     });
-                                  }}
-                                  className="mt-2 text-xs text-[#858585] hover:text-[#cccccc] transition-colors"
-                                >
-                                  ↺ New hint
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="text-xs text-[#858585]">
-                                Click "Get Hint" to ask the AI for a nudge.
-                              </div>
-                            )}
+                                  }
+                                }}
+                                className="flex items-center gap-1 text-xs px-2 py-0.5 rounded bg-white/20 hover:bg-white/30 transition-colors font-medium"
+                              >
+                                {hintMutation.isPending && hintOpen === q.num
+                                  ? "⏳ Thinking…"
+                                  : "💡 Get Hint"}
+                              </button>
+                            </div>
                           </div>
-                        )}
-                      </div>
-                    )}
+                          {hintOpen === q.num && (
+                            <div className="px-3 py-2.5 bg-[#252526] border-t border-[#3e3e42]">
+                              {hintMutation.isPending && !hints[q.num] ? (
+                                <div className="flex items-center gap-2 text-xs text-[#9cdcfe]">
+                                  <span className="animate-spin">⏳</span>{" "}
+                                  Getting hint from AI…
+                                </div>
+                              ) : hints[q.num] ? (
+                                <div>
+                                  <div className="text-xs font-bold text-[#dcdcaa] mb-1">
+                                    💡 Hint
+                                  </div>
+                                  <div className="text-xs text-[#d4d4d4] leading-relaxed">
+                                    {hints[q.num]}
+                                  </div>
+                                  <button
+                                    onClick={() => {
+                                      setHints(h => ({ ...h, [q.num]: "" }));
+                                      hintMutation.mutate({
+                                        problemName: q.name,
+                                        problemNum: q.num,
+                                        difficulty: q.difficulty,
+                                        topics: q.topics,
+                                        currentCode: editorCode[q.num],
+                                      });
+                                    }}
+                                    className="mt-2 text-xs text-[#858585] hover:text-[#cccccc] transition-colors"
+                                  >
+                                    ↺ New hint
+                                  </button>
+                                </div>
+                              ) : (
+                                <div className="text-xs text-[#858585]">
+                                  Click "Get Hint" to ask the AI for a nudge.
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                {filtered.length === 0 && (
+                  <div className="p-6 text-center text-muted-foreground text-xs">
+                    No problems match your filters.
                   </div>
-                );
-              })}
-              {filtered.length === 0 && (
-                <div className="p-6 text-center text-muted-foreground text-xs">
-                  No problems match your filters.
+                )}
+              </div>
+
+              {/* Pagination */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between">
+                  <button
+                    onClick={() => setPage(p => Math.max(1, p - 1))}
+                    disabled={page === 1}
+                    className="px-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
+                  >
+                    ← Prev
+                  </button>
+                  <div className="text-xs text-muted-foreground">
+                    Page {page} of {totalPages} · {filtered.length} problems
+                  </div>
+                  <button
+                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                    disabled={page === totalPages}
+                    className="px-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
+                  >
+                    Next →
+                  </button>
                 </div>
               )}
-            </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between">
-                <button
-                  onClick={() => setPage(p => Math.max(1, p - 1))}
-                  disabled={page === 1}
-                  className="px-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
-                >
-                  ← Prev
-                </button>
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="text-xs text-muted-foreground">
-                  Page {page} of {totalPages} · {filtered.length} problems
+                  🔥 High = frequently reported in Meta coding rounds (community
+                  data) ·{" "}
+                  <a
+                    href="https://docs.google.com/spreadsheets/d/1pnI8HmSMPcfwrCCu7wYETCXaKDig4VucZDpcjVRuYrE/edit"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-400 hover:underline"
+                  >
+                    Full Spreadsheet
+                  </a>
+                  {" · "}
+                  <a
+                    href="https://www.youtube.com/user/hubberspot"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-purple-400 hover:underline"
+                  >
+                    YouTube
+                  </a>
                 </div>
                 <button
-                  onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                  disabled={page === totalPages}
-                  className="px-3 py-1.5 rounded-lg bg-secondary text-xs text-foreground disabled:opacity-40 hover:bg-accent transition-colors"
+                  onClick={exportNotesMarkdown}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition-all"
                 >
-                  Next →
+                  <Download size={11} /> Export Notes (.md)
                 </button>
               </div>
-            )}
-
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="text-xs text-muted-foreground">
-                🔥 High = frequently reported in Meta coding rounds (community
-                data) ·{" "}
-                <a
-                  href="https://docs.google.com/spreadsheets/d/1pnI8HmSMPcfwrCCu7wYETCXaKDig4VucZDpcjVRuYrE/edit"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-400 hover:underline"
-                >
-                  Full Spreadsheet
-                </a>
-                {" · "}
-                <a
-                  href="https://www.youtube.com/user/hubberspot"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-purple-400 hover:underline"
-                >
-                  YouTube
-                </a>
-              </div>
-              <button
-                onClick={exportNotesMarkdown}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-400 hover:bg-amber-500/20 text-xs font-semibold transition-all"
-              >
-                <Download size={11} /> Export Notes (.md)
-              </button>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Coding Mock Session */}
-        <div id="coding-mock-session" className="mt-6">
-          <CodingMockSession />
+          {/* Coding Mock Session */}
+          <div id="coding-mock-session" className="mt-6">
+            <CodingMockSession />
+          </div>
         </div>
       </div>
     </div>

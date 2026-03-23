@@ -202,7 +202,7 @@ export const collabRouter = router({
           {
             role: "system",
             content: String(
-              `You are a senior Meta Staff Engineer (IC6/IC7) conducting a system design interview. The question is: "${input.questionTitle}". Ask ONE focused follow-up question to probe deeper. Be concise (1-2 sentences). ${input.weakAreas?.length ? `The candidate seems weak on: ${input.weakAreas.join(", ")}. Probe those areas.` : ""} Do not give hints or answers. Only ask a question.`
+              `You are a senior Meta Staff Engineer (L6/L7) conducting a system design interview. The question is: "${input.questionTitle}". Ask ONE focused follow-up question to probe deeper. Be concise (1-2 sentences). ${input.weakAreas?.length ? `The candidate seems weak on: ${input.weakAreas.join(", ")}. Probe those areas.` : ""} Do not give hints or answers. Only ask a question.`
             ),
           },
           ...history,
@@ -238,7 +238,7 @@ export const collabRouter = router({
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta Staff Engineer evaluating a system design interview. Provide structured feedback in exactly this JSON format: { "overallScore": <1-5 number>, "requirementsScore": <1-5>, "architectureScore": <1-5>, "scalabilityScore": <1-5>, "communicationScore": <1-5>, "strengths": ["...", "..."], "improvements": ["...", "..."], "icLevel": "IC5|IC6|IC7", "summary": "2-3 sentence coaching note" }`,
+            content: `You are a senior Meta Staff Engineer evaluating a system design interview. Provide structured feedback in exactly this JSON format: { "overallScore": <1-5 number>, "requirementsScore": <1-5>, "architectureScore": <1-5>, "scalabilityScore": <1-5>, "communicationScore": <1-5>, "strengths": ["...", "..."], "improvements": ["...", "..."], "level": "L5|L6|L7", "summary": "2-3 sentence coaching note" }`,
           },
           {
             role: "user",
@@ -260,7 +260,7 @@ export const collabRouter = router({
                 communicationScore: { type: "number" },
                 strengths: { type: "array", items: { type: "string" } },
                 improvements: { type: "array", items: { type: "string" } },
-                icLevel: { type: "string" },
+                level: { type: "string" },
                 summary: { type: "string" },
               },
               required: [
@@ -271,7 +271,7 @@ export const collabRouter = router({
                 "communicationScore",
                 "strengths",
                 "improvements",
-                "icLevel",
+                "level",
                 "summary",
               ],
               additionalProperties: false,
@@ -294,7 +294,7 @@ export const collabRouter = router({
           communicationScore: 3,
           strengths: ["Attempted the problem"],
           improvements: ["More detail needed"],
-          icLevel: "IC5",
+          level: "L5",
           summary: "Keep practicing system design fundamentals.",
         };
       }
@@ -313,7 +313,7 @@ export const collabRouter = router({
         messages: [
           {
             role: "system",
-            content: `You are a Meta senior engineering manager evaluating a behavioral interview answer. Score it and return JSON in exactly this format: { "specificityScore": <1-5>, "impactScore": <1-5>, "icLevel": "IC5|IC6|IC7", "coachingNote": "1 paragraph coaching note", "starBreakdown": { "situation": "...", "task": "...", "action": "...", "result": "..." } }`,
+            content: `You are a Meta senior engineering manager evaluating a behavioral interview answer. Score it and return JSON in exactly this format: { "specificityScore": <1-5>, "impactScore": <1-5>, "level": "L5|L6|L7", "coachingNote": "1 paragraph coaching note", "starBreakdown": { "situation": "...", "task": "...", "action": "...", "result": "..." } }`,
           },
           {
             role: "user",
@@ -330,7 +330,7 @@ export const collabRouter = router({
               properties: {
                 specificityScore: { type: "number" },
                 impactScore: { type: "number" },
-                icLevel: { type: "string" },
+                level: { type: "string" },
                 coachingNote: { type: "string" },
                 starBreakdown: {
                   type: "object",
@@ -347,7 +347,7 @@ export const collabRouter = router({
               required: [
                 "specificityScore",
                 "impactScore",
-                "icLevel",
+                "level",
                 "coachingNote",
                 "starBreakdown",
               ],
@@ -366,7 +366,7 @@ export const collabRouter = router({
         return {
           specificityScore: 3,
           impactScore: 3,
-          icLevel: "IC5",
+          level: "L5",
           coachingNote: "Add more specific metrics and quantify your impact.",
           starBreakdown: { situation: "", task: "", action: "", result: "" },
         };
@@ -463,7 +463,7 @@ export const collabRouter = router({
         messages: [
           {
             role: "system",
-            content: `You are a senior Meta interviewer evaluating a STAR behavioral answer for an IC6/IC7 role. Score on three axes (1-5) and give a coaching note. Return JSON only.`,
+            content: `You are a senior Meta interviewer evaluating a STAR behavioral answer for an L6/L7 role. Score on three axes (1-5) and give a coaching note. Return JSON only.`,
           },
           {
             role: "user",
@@ -491,10 +491,9 @@ Score this answer.`,
                   description:
                     "1-5: how clearly the impact/result is communicated",
                 },
-                icLevel: {
+                level: {
                   type: "string",
-                  description:
-                    "IC5, IC6, or IC7 — the level this answer signals",
+                  description: "L5, L6, or L7 — the level this answer signals",
                 },
                 coachingNote: {
                   type: "string",
@@ -512,7 +511,7 @@ Score this answer.`,
               required: [
                 "specificity",
                 "impactClarity",
-                "icLevel",
+                "level",
                 "coachingNote",
                 "strengths",
                 "improvements",
@@ -531,7 +530,7 @@ Score this answer.`,
         return {
           specificity: 3,
           impactClarity: 3,
-          icLevel: "IC6",
+          level: "L6",
           coachingNote: "Unable to score at this time.",
           strengths: "",
           improvements: "",

@@ -25,6 +25,9 @@ import {
 import { SystemDesignDiagramTemplates } from "@/components/SystemDesignDiagramTemplates";
 import SystemDesignFailureAnalysis from "@/components/SystemDesignFailureAnalysis";
 import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
+import { AIInterviewerInterruptMode } from "@/components/AIInterviewerInterruptMode";
+import { BackOfEnvelopeCalculator } from "@/components/BackOfEnvelopeCalculator";
+import { TearDownMyDesign } from "@/components/TearDownMyDesign";
 import {
   GuidedDesignWalkthrough,
   TradeoffDecisionSimulator,
@@ -92,7 +95,7 @@ const FRAMEWORK_STEPS = [
   },
 ];
 
-const IC7_SIGNALS = [
+const L7_SIGNALS = [
   "Proactively identifies constraints the interviewer hasn't mentioned",
   "Discusses operational concerns: deployment, rollback, observability",
   "Quantifies trade-offs with numbers, not just words",
@@ -261,6 +264,11 @@ export default function SystemDesignTab() {
 
   return (
     <div className="space-y-5">
+      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <AIInterviewerInterruptMode />
+      <BackOfEnvelopeCalculator />
+      <TearDownMyDesign />
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
       {/* Quick Actions sticky row */}
       <div className="sticky top-0 z-20 -mx-4 px-4 py-2.5 bg-background/90 backdrop-blur-sm border-b border-border flex items-center gap-3">
         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden sm:block">
@@ -374,7 +382,7 @@ export default function SystemDesignTab() {
                 </span>
               </div>
               <div className="text-xs text-slate-300 font-medium">
-                🎯 IC6/IC7 Targeted · ML + Backend + Full Stack · All 3 Tracks ·
+                🎯 L6/L7 Targeted · ML + Backend + Full Stack · All 3 Tracks ·
                 Updated 2026
               </div>
             </div>
@@ -404,7 +412,7 @@ export default function SystemDesignTab() {
             }}
           >
             ⚡ Can you answer all 6 ML questions + 6 SWE questions cold? 💀 Most
-            IC5s can't. IC6/IC7 candidates who pass have practised every single
+            L5s can't. L6/L7 candidates who pass have practised every single
             one. 🔥
           </div>
         </div>
@@ -539,19 +547,19 @@ export default function SystemDesignTab() {
                   {[
                     [
                       "🤖 ML System Design",
-                      "IC6 (E6), IC7 (E7)",
+                      "L6 (E6), L7 (E7)",
                       "ML System Design (45 min)",
                       "Ranking, Recommendations, Ads, Feature Engineering, Model Deployment",
                     ],
                     [
                       "⚙️ Back End / System Generalist",
-                      "IC5–IC7",
+                      "L5–L7",
                       "Systems Design (45 min)",
                       "Distributed systems, Scalability, Availability, Sharding, Caching",
                     ],
                     [
                       "🖥️ Full Stack / Product Generalist",
-                      "IC5–IC7",
+                      "L5–L7",
                       "Product Architecture (45 min)",
                       "API design, Data models, Client-server, Protocols, Usability",
                     ],
@@ -704,13 +712,13 @@ export default function SystemDesignTab() {
             </div>
           </details>
 
-          {/* IC6 vs IC7 Pass/Fail */}
+          {/* L6 vs L7 Pass/Fail */}
           <details className="group">
             <summary className="flex items-center justify-between cursor-pointer list-none p-3 rounded-lg hover:bg-white/5 transition-colors">
               <div className="flex items-center gap-2">
                 <span className="text-lg">⚖️</span>
                 <span className="text-sm font-bold text-white">
-                  IC4/IC5/IC6/IC7 — What Separates Pass from Fail 💀
+                  L4/L5/L6/L7 — What Separates Pass from Fail 💀
                 </span>
                 <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-500/20 text-red-300 border border-red-500/30">
                   CRITICAL
@@ -1065,13 +1073,13 @@ export default function SystemDesignTab() {
         </div>
       </div>
 
-      {/* IC7 signals */}
+      {/* L7 signals */}
       <div className="prep-card p-5 border-purple-500/20">
         <div className="section-title text-purple-400">
-          IC7 Differentiation Signals
+          L7 Differentiation Signals
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-          {IC7_SIGNALS.map((s, i) => (
+          {L7_SIGNALS.map((s, i) => (
             <div
               key={i}
               className="flex items-start gap-2 text-xs text-muted-foreground"
@@ -1756,8 +1764,8 @@ export default function SystemDesignTab() {
             className="px-3 py-1.5 rounded-lg bg-secondary border border-border text-xs text-foreground focus:outline-none"
           >
             <option value="All">All Levels</option>
-            <option value="IC6+">IC6+</option>
-            <option value="IC7+">IC7+</option>
+            <option value="L6+">L6+</option>
+            <option value="L7+">L7+</option>
           </select>
         </div>
         <div className="divide-y divide-border">
@@ -1769,7 +1777,7 @@ export default function SystemDesignTab() {
                     {q.title}
                   </span>
                   <span
-                    className={`badge ${q.level === "IC7+" ? "badge-purple" : "badge-blue"}`}
+                    className={`badge ${q.level === "L7+" ? "badge-purple" : "badge-blue"}`}
                   >
                     {q.level}
                   </span>
@@ -1889,7 +1897,7 @@ export default function SystemDesignTab() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Walk through any problem using Meta's 5-step framework. Get AI
-            coaching on your IC6/IC7 signal.
+            coaching on your L6/L7 signal.
           </p>
         </div>
         <div className="p-4">
@@ -1912,7 +1920,7 @@ export default function SystemDesignTab() {
             </span>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Pick a strategy, justify it, get IC6/IC7 scoring. 5 real Meta-scale
+            Pick a strategy, justify it, get L6/L7 scoring. 5 real Meta-scale
             scenarios.
           </p>
         </div>
@@ -1937,7 +1945,7 @@ export default function SystemDesignTab() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             TAO, Memcache, Scuba, ZippyDB, Laser, Tupperware, Haystack, Presto —
-            with IC7 interview signals.
+            with L7 interview signals.
           </p>
         </div>
         <div className="p-4">
@@ -1982,7 +1990,7 @@ export default function SystemDesignTab() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Paste your design. AI scans for SPOFs, missing async processing, no
-            consistency model, and other IC6 failure patterns.
+            consistency model, and other L6 failure patterns.
           </p>
         </div>
         <div className="p-4">
@@ -2074,7 +2082,7 @@ export default function SystemDesignTab() {
           </div>
           <p className="text-xs text-muted-foreground mt-1">
             Paste your technical design. AI rewrites it in PM-friendly language
-            — practicing the IC7 communication skill.
+            — practicing the L7 communication skill.
           </p>
         </div>
         <div className="p-4">
@@ -2727,6 +2735,7 @@ function SystemDesignFlashCards() {
           </div>
         )}
       </div>
+      {/* High impact features moved to top of page */}
     </div>
   );
 }

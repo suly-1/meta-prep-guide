@@ -816,7 +816,7 @@ const CALIBRATION_QUESTIONS = [
   {
     id: "q7",
     area: "Behavioral",
-    text: "How confident are you in demonstrating IC6/IC7-level scope and impact in your stories?",
+    text: "How confident are you in demonstrating L6/L7-level scope and impact in your stories?",
   },
   {
     id: "q8",

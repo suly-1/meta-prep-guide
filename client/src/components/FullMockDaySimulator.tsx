@@ -30,13 +30,13 @@ type Phase = "idle" | "running" | "between" | "scoring" | "done";
 interface RoundResult {
   round: Round;
   overallScore: number;
-  icLevel: string;
+  level: string;
   label: string;
 }
 
 interface FullScorecard {
   overallScore: number;
-  icLevelVerdict: string;
+  levelVerdict: string;
   hiringRecommendation: string;
   codingCoaching: string;
   sysDesignCoaching: string;
@@ -199,7 +199,7 @@ function MiniRound({
       "Open with a crisp Situation (1-2 sentences)",
       "State your specific Task/ownership",
       "Detail 3+ concrete Actions you took",
-      "Quantify the Result — numbers matter at IC7",
+      "Quantify the Result — numbers matter at L7",
     ],
   };
 
@@ -341,7 +341,7 @@ const FULL_MOCK_HISTORY_KEY = "full_mock_day_history_v1";
 function loadFullMockHistory(): Array<{
   date: string;
   overallScore: number;
-  icLevelVerdict: string;
+  levelVerdict: string;
   hiringRecommendation: string;
 }> {
   try {
@@ -427,7 +427,7 @@ export function FullMockDaySimulator() {
           result = {
             round,
             overallScore: res.overallScore,
-            icLevel: res.icLevel,
+            level: res.level,
             label: pattern.name,
           };
         } else if (round === "sysdesign") {
@@ -446,7 +446,7 @@ export function FullMockDaySimulator() {
             ).find(q => questions.sysdesign.startsWith(q.title)) ?? sdQ;
           const res = await sysDesignScoreMutation.mutateAsync({
             questionTitle: matchedQ.title,
-            level: matchedQ.level ?? "IC6",
+            level: matchedQ.level ?? "L6",
             tags: matchedQ.tags ?? [],
             phases: [
               { phase: "Requirements", answer: answer.slice(0, 400) },
@@ -460,7 +460,7 @@ export function FullMockDaySimulator() {
           result = {
             round,
             overallScore: res.overallScore,
-            icLevel: res.icLevel,
+            level: res.level,
             label: matchedQ.title,
           };
         } else {
@@ -473,12 +473,12 @@ export function FullMockDaySimulator() {
           result = {
             round,
             overallScore: res.overallScore,
-            icLevel: res.icLevel,
+            level: res.level,
             label,
           };
         }
       } catch {
-        result = { round, overallScore: 3, icLevel: "IC6", label: round };
+        result = { round, overallScore: 3, level: "L6", label: round };
       }
 
       const newResults = [...roundResults, result];
@@ -497,15 +497,15 @@ export function FullMockDaySimulator() {
           const bqR = newResults.find(r => r.round === "behavioral");
           const sc = await fullScorecardMutation.mutateAsync({
             codingScore: codingR.overallScore,
-            codingIcLevel: codingR.icLevel,
+            codingIcLevel: codingR.level,
             codingPattern: codingR.label,
             sysDesignScore: sdR.overallScore,
-            sysDesignIcLevel: sdR.icLevel,
+            sysDesignIcLevel: sdR.level,
             sysDesignQuestion: sdR.label,
             xfnScore: xfnR.overallScore,
-            xfnIcLevel: xfnR.icLevel,
+            xfnIcLevel: xfnR.level,
             behavioralScore: bqR?.overallScore ?? 3,
-            behavioralIcLevel: bqR?.icLevel ?? "IC6",
+            behavioralIcLevel: bqR?.level ?? "L6",
           });
           setScorecard(sc);
           try {
@@ -513,7 +513,7 @@ export function FullMockDaySimulator() {
             history.push({
               date: new Date().toISOString().split("T")[0],
               overallScore: sc.overallScore,
-              icLevelVerdict: sc.icLevelVerdict,
+              levelVerdict: sc.levelVerdict,
               hiringRecommendation: sc.hiringRecommendation,
             });
             localStorage.setItem(
@@ -586,7 +586,7 @@ export function FullMockDaySimulator() {
           {lastMock && phase === "idle" && (
             <span className="text-[11px] px-2.5 py-1 rounded-full bg-slate-800/80 border border-slate-600/50 text-slate-300 font-medium whitespace-nowrap">
               Last mock: {lastMock.date.slice(5).replace("-", "/")} ·{" "}
-              {lastMock.overallScore.toFixed(1)}/5 {lastMock.icLevelVerdict}
+              {lastMock.overallScore.toFixed(1)}/5 {lastMock.levelVerdict}
             </span>
           )}
           {phase === "done" && scorecard && (
@@ -627,7 +627,7 @@ export function FullMockDaySimulator() {
               </div>
               <p className="text-xs text-muted-foreground text-center">
                 Simulates a full FAANG-style interview loop. Each round is
-                independently scored, then the AI generates a composite IC6/IC7
+                independently scored, then the AI generates a composite L6/L7
                 promotion decision and a personalised 2-week remediation plan.
               </p>
               <button
@@ -709,7 +709,7 @@ export function FullMockDaySimulator() {
                       <span className="text-xs text-muted-foreground">/5</span>
                     </div>
                     <div className="text-xs font-semibold text-purple-400">
-                      {r.icLevel}
+                      {r.level}
                     </div>
                   </div>
                 ))}
@@ -736,7 +736,7 @@ export function FullMockDaySimulator() {
                         IC Level
                       </div>
                       <div className="text-xl font-bold text-purple-400">
-                        {scorecard.icLevelVerdict}
+                        {scorecard.levelVerdict}
                       </div>
                     </div>
                     <div className="text-right">

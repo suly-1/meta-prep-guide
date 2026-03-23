@@ -14,7 +14,7 @@ vi.mock("./_core/llm", () => ({
             conflictScore: 3,
             alignmentScore: 4,
             communicationScore: 4,
-            icLevel: "IC6",
+            level: "L6",
             strengths: ["Clear STAR structure", "Concrete outcomes"],
             improvements: ["Add org-level impact", "More strategic framing"],
             followUpQuestions: [
@@ -22,7 +22,7 @@ vi.mock("./_core/llm", () => ({
               "What would you do differently?",
               "How did you scale this?",
             ],
-            summary: "Strong IC6-level collaboration with clear examples.",
+            summary: "Strong L6-level collaboration with clear examples.",
           }),
         },
       },
@@ -39,7 +39,7 @@ function createCtx(): TrpcContext {
 }
 
 describe("ai.xfnMockScorecard", () => {
-  it("returns a scorecard for IC6 mode", async () => {
+  it("returns a scorecard for L6 mode", async () => {
     const caller = appRouter.createCaller(createCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
@@ -59,14 +59,14 @@ describe("ai.xfnMockScorecard", () => {
             "Regular check-ins, clear docs, and follow-through on commitments.",
         },
       ],
-      icMode: "IC6",
+      icMode: "L6",
     });
     expect(result).toHaveProperty("overallScore");
     expect(result).toHaveProperty("collaborationScore");
     expect(result).toHaveProperty("conflictScore");
     expect(result).toHaveProperty("alignmentScore");
     expect(result).toHaveProperty("communicationScore");
-    expect(result).toHaveProperty("icLevel");
+    expect(result).toHaveProperty("level");
     expect(result).toHaveProperty("strengths");
     expect(result).toHaveProperty("improvements");
     expect(result).toHaveProperty("followUpQuestions");
@@ -76,7 +76,7 @@ describe("ai.xfnMockScorecard", () => {
     expect(Array.isArray(result.followUpQuestions)).toBe(true);
   });
 
-  it("returns a scorecard for IC7 mode", async () => {
+  it("returns a scorecard for L7 mode", async () => {
     const caller = appRouter.createCaller(createCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
@@ -93,16 +93,16 @@ describe("ai.xfnMockScorecard", () => {
           answer: "I partnered with a sister org to create a shared platform.",
         },
       ],
-      icMode: "IC7",
+      icMode: "L7",
     });
     expect(result).toHaveProperty("overallScore");
-    expect(result).toHaveProperty("icLevel");
+    expect(result).toHaveProperty("level");
     expect(typeof result.overallScore).toBe("number");
     expect(result.overallScore).toBeGreaterThanOrEqual(1);
     expect(result.overallScore).toBeLessThanOrEqual(5);
   });
 
-  it("defaults to IC7 mode when icMode is not specified", async () => {
+  it("defaults to L7 mode when icMode is not specified", async () => {
     const caller = appRouter.createCaller(createCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
@@ -111,7 +111,7 @@ describe("ai.xfnMockScorecard", () => {
           answer: "I worked with multiple teams.",
         },
       ],
-      // icMode defaults to "IC7"
+      // icMode defaults to "L7"
     });
     expect(result).toHaveProperty("overallScore");
     expect(result).toHaveProperty("summary");
@@ -120,7 +120,7 @@ describe("ai.xfnMockScorecard", () => {
   it("rejects empty rounds array", async () => {
     const caller = appRouter.createCaller(createCtx());
     await expect(
-      caller.ai.xfnMockScorecard({ rounds: [], icMode: "IC6" })
+      caller.ai.xfnMockScorecard({ rounds: [], icMode: "L6" })
     ).rejects.toThrow();
   });
 });

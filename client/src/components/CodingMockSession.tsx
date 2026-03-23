@@ -24,7 +24,7 @@ type ScorecardResult = {
   complexityScore: number;
   codeQualityScore: number;
   communicationScore: number;
-  icLevel: string;
+  level: string;
   strengths: string[];
   improvements: string[];
   optimalSolutionHint: string;
@@ -266,7 +266,7 @@ function CodingHistoryPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {new Date(entryA.date).toLocaleDateString()} ·{" "}
-                {entryA.scorecard.icLevel}
+                {entryA.scorecard.level}
               </div>
             </div>
             <div className="text-center p-2 rounded-lg bg-secondary">
@@ -276,7 +276,7 @@ function CodingHistoryPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {new Date(entryB.date).toLocaleDateString()} ·{" "}
-                {entryB.scorecard.icLevel}
+                {entryB.scorecard.level}
               </div>
             </div>
           </div>
@@ -318,9 +318,9 @@ function CodingHistoryPanel({ onClose }: { onClose: () => void }) {
                     {entry.scorecard.overallScore.toFixed(1)}/5
                   </span>
                   <span
-                    className={`text-xs font-bold ${entry.scorecard.icLevel === "IC7" ? "text-violet-400" : entry.scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                    className={`text-xs font-bold ${entry.scorecard.level === "L7" ? "text-violet-400" : entry.scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
                   >
-                    {entry.scorecard.icLevel}
+                    {entry.scorecard.level}
                   </span>
                 </div>
               </div>
@@ -472,7 +472,7 @@ export function CodingMockSession() {
   const [scorecard, setScorecard] = useState<ScorecardResult | null>(null);
   const [showHint, setShowHint] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
-  const [icMode, setIcMode] = useState<"IC6" | "IC7">("IC6");
+  const [icMode, setIcMode] = useState<"L6" | "L7">("L6");
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const historyCount = loadHistory().length;
 
@@ -634,37 +634,39 @@ export function CodingMockSession() {
                 </div>
               ))}
             </div>
-            {/* IC6 / IC7 difficulty toggle */}
+            {/* L6 / L7 difficulty toggle */}
             <div className="space-y-1.5">
               <div className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">
                 Difficulty Level
               </div>
               <div className="grid grid-cols-2 gap-2">
-                {(["IC6", "IC7"] as const).map(level => (
+                {(["L6", "L7"] as const).map(level => (
                   <button
                     key={level}
                     onClick={() => setIcMode(level)}
                     className={`py-2 rounded-lg text-xs font-bold border transition-all ${
                       icMode === level
-                        ? level === "IC7"
+                        ? level === "L7"
                           ? "bg-violet-500/20 border-violet-500/40 text-violet-400"
                           : "bg-blue-500/20 border-blue-500/40 text-blue-400"
                         : "bg-secondary border-border text-muted-foreground hover:border-muted-foreground"
                     }`}
                   >
-                    {level === "IC6" ? "IC6 — Staff Engineer" : "IC7 — Senior Staff Engineer"}
+                    {level === "L6"
+                      ? "L6 — Staff Engineer"
+                      : "L7 — Senior Staff Engineer"}
                     {icMode === level && (
                       <span className="ml-1.5 text-[9px] opacity-70">
-                        {level === "IC7" ? "(stricter)" : "(standard)"}
+                        {level === "L7" ? "(stricter)" : "(standard)"}
                       </span>
                     )}
                   </button>
                 ))}
               </div>
               <div className="text-[10px] text-muted-foreground">
-                {icMode === "IC7"
-                  ? "IC7: optimal complexity required, ≥4 edge cases, unprompted follow-ups."
-                  : "IC6: clean correct solution, 2–3 edge cases, clear communication."}
+                {icMode === "L7"
+                  ? "L7: optimal complexity required, ≥4 edge cases, unprompted follow-ups."
+                  : "L6: clean correct solution, 2–3 edge cases, clear communication."}
               </div>
             </div>
             <div className="text-xs text-muted-foreground leading-relaxed">
@@ -675,7 +677,7 @@ export function CodingMockSession() {
             <button
               onClick={() => setView("picker")}
               className={`w-full py-2.5 rounded-xl text-sm font-bold transition-all ${
-                icMode === "IC7"
+                icMode === "L7"
                   ? "bg-violet-500/20 border border-violet-500/30 text-violet-400 hover:bg-violet-500/30"
                   : "bg-blue-500/20 border border-blue-500/30 text-blue-400 hover:bg-blue-500/30"
               }`}
@@ -831,7 +833,7 @@ export function CodingMockSession() {
             </span>
             <span
               className={`px-2 py-0.5 rounded-full text-[10px] font-bold border ${
-                icMode === "IC7"
+                icMode === "L7"
                   ? "bg-violet-500/20 border-violet-500/40 text-violet-400"
                   : "bg-blue-500/20 border-blue-500/40 text-blue-400"
               }`}
@@ -1098,9 +1100,9 @@ export function CodingMockSession() {
                 IC Level Signal
               </div>
               <div
-                className={`text-lg font-black ${scorecard.icLevel === "IC7" ? "text-violet-400" : scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                className={`text-lg font-black ${scorecard.level === "L7" ? "text-violet-400" : scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
               >
-                {scorecard.icLevel}
+                {scorecard.level}
               </div>
             </div>
 

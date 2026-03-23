@@ -36,7 +36,7 @@ function getBadges(
   if (streakDays >= 7) badges.push("On Fire 🔥");
   if (patternsMastered >= 10) badges.push("Half-Way There");
   if (mockSessions >= 5) badges.push("Mock Veteran");
-  if (patternsMastered >= 20) badges.push("IC7 Ready ⭐");
+  if (patternsMastered >= 20) badges.push("L7 Ready ⭐");
   return badges;
 }
 

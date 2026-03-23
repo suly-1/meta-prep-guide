@@ -523,7 +523,7 @@ function AIInterviewerPanel({
         durationMinutes: Math.round(transcript.length * 0.5),
       });
       onAIMessage(
-        `📋 **Feedback (${res.icLevel}):** ${res.summary} Strengths: ${res.strengths.join(", ")}. Improve: ${res.improvements.join(", ")}.`
+        `📋 **Feedback (${res.level}):** ${res.summary} Strengths: ${res.strengths.join(", ")}. Improve: ${res.improvements.join(", ")}.`
       );
     } catch {
       toast.error("AI unavailable");

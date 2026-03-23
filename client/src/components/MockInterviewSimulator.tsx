@@ -29,7 +29,7 @@ import {
 type Phase = "setup" | "coding" | "bq1" | "bq2" | "debrief";
 
 interface SessionState {
-  icTarget: "IC5" | "IC6" | "IC7";
+  icTarget: "L5" | "L6" | "L7";
   codingProblem: string;
   codingNotes: string;
   codingTimeUsed: number;
@@ -194,7 +194,7 @@ export default function MockInterviewSimulator() {
   }, [timeLeft, running, stopTimer]);
 
   // ── Setup ──────────────────────────────────────────────────────────────
-  const startSession = (icTarget: "IC5" | "IC6" | "IC7") => {
+  const startSession = (icTarget: "L5" | "L6" | "L7") => {
     const codingPattern = pickRandom(PATTERNS);
     const bqs = [...BEHAVIORAL_QUESTIONS]
       .sort(() => Math.random() - 0.5)
@@ -270,7 +270,7 @@ export default function MockInterviewSimulator() {
         overallScore: d.overallScore,
         codingScore: d.codingScore,
         behavioralScore: d.behavioralScore,
-        icLevelAssessment: d.icLevelAssessment,
+        levelAssessment: d.levelAssessment,
         codingAssessment: d.codingAssessment,
         behavioralAssessment: d.behavioralAssessment,
         topStrengths: d.topStrengths,
@@ -386,20 +386,20 @@ export default function MockInterviewSimulator() {
                     Select your target level:
                   </div>
                   <div className="flex gap-3">
-                    {(["IC5", "IC6", "IC7"] as const).map(ic => (
+                    {(["L5", "L6", "L7"] as const).map(ic => (
                       <button
                         key={ic}
                         onClick={() => startSession(ic)}
                         className="flex-1 py-3 rounded-xl border border-border bg-secondary hover:bg-blue-600/20 hover:border-blue-500/50 text-sm font-bold text-foreground transition-all group"
                       >
                         <div className="text-lg mb-0.5">
-                          {ic === "IC5" ? "🌱" : ic === "IC6" ? "🔥" : "⚡"}
+                          {ic === "L5" ? "🌱" : ic === "L6" ? "🔥" : "⚡"}
                         </div>
                         <div>{ic}</div>
                         <div className="text-xs text-muted-foreground group-hover:text-blue-300 mt-0.5">
-                          {ic === "IC5"
+                          {ic === "L5"
                             ? "Senior SWE"
-                            : ic === "IC6"
+                            : ic === "L6"
                               ? "Staff SWE"
                               : "Sr. Staff SWE"}
                         </div>
@@ -504,7 +504,7 @@ export default function MockInterviewSimulator() {
                                   <span className="font-bold text-blue-400">
                                     IC Assessment:{" "}
                                   </span>
-                                  {s.icLevelAssessment}
+                                  {s.levelAssessment}
                                 </div>
                                 {s.nextSteps.length > 0 && (
                                   <div>
@@ -710,7 +710,7 @@ export default function MockInterviewSimulator() {
                         IC-Level Assessment ({session?.icTarget})
                       </div>
                       <div className="text-xs text-foreground leading-relaxed">
-                        {debrief.icLevelAssessment}
+                        {debrief.levelAssessment}
                       </div>
                     </div>
 

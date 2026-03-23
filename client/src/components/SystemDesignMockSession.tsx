@@ -47,7 +47,7 @@ type ScorecardResult = {
   architectureScore: number;
   scalabilityScore: number;
   communicationScore: number;
-  icLevel: string;
+  level: string;
   strengths: string[];
   improvements: string[];
   followUpQuestions: string[];
@@ -245,7 +245,7 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {new Date(entryA.date).toLocaleDateString()} ·{" "}
-                {entryA.scorecard.icLevel}
+                {entryA.scorecard.level}
               </div>
             </div>
             <div className="text-center p-2 rounded-lg bg-secondary">
@@ -255,7 +255,7 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
               </div>
               <div className="text-[10px] text-muted-foreground">
                 {new Date(entryB.date).toLocaleDateString()} ·{" "}
-                {entryB.scorecard.icLevel}
+                {entryB.scorecard.level}
               </div>
             </div>
           </div>
@@ -295,9 +295,9 @@ function HistoryPanel({ onClose }: { onClose: () => void }) {
                     {entry.scorecard.overallScore.toFixed(1)}/5
                   </span>
                   <span
-                    className={`text-xs font-bold ${entry.scorecard.icLevel === "IC7" ? "text-violet-400" : entry.scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                    className={`text-xs font-bold ${entry.scorecard.level === "L7" ? "text-violet-400" : entry.scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
                   >
-                    {entry.scorecard.icLevel}
+                    {entry.scorecard.level}
                   </span>
                 </div>
               </div>
@@ -428,9 +428,7 @@ export function SystemDesignMockSession() {
   const [view, setView] = useState<
     "entry" | "picker" | "idle" | "running" | "done" | "history"
   >("entry");
-  const [levelFilter, setLevelFilter] = useState<"All" | "IC6+" | "IC7+">(
-    "All"
-  );
+  const [levelFilter, setLevelFilter] = useState<"All" | "L6+" | "L7+">("All");
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
   const [step, setStep] = useState(0);
   const [timeLeft, setTimeLeft] = useState(MOCK_PHASES[0].time);
@@ -615,7 +613,7 @@ export function SystemDesignMockSession() {
 
         {/* Level filter */}
         <div className="flex gap-2">
-          {(["All", "IC6+", "IC7+"] as const).map(lvl => (
+          {(["All", "L6+", "L7+"] as const).map(lvl => (
             <button
               key={lvl}
               onClick={() => setLevelFilter(lvl)}
@@ -824,9 +822,9 @@ export function SystemDesignMockSession() {
                   IC Level
                 </div>
                 <div
-                  className={`text-xl font-black ${scorecard.icLevel === "IC7" ? "text-violet-400" : scorecard.icLevel === "IC6" ? "text-blue-400" : "text-muted-foreground"}`}
+                  className={`text-xl font-black ${scorecard.level === "L7" ? "text-violet-400" : scorecard.level === "L6" ? "text-blue-400" : "text-muted-foreground"}`}
                 >
-                  {scorecard.icLevel}
+                  {scorecard.level}
                 </div>
               </div>
             </div>

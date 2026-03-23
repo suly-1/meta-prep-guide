@@ -172,8 +172,8 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
               — just engineers sharing what they learned the hard way.
             </p>
             <p>
-              Always pair it with whatever your recruiter sends you. Interview
-              formats evolve, and their guidance is the source of truth.
+              Always pair it with any official guidance you receive. Interview
+              formats evolve, and that guidance is the source of truth.
             </p>
           </div>
 
@@ -197,8 +197,12 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
             </p>
             <p className="text-xs text-zinc-400 leading-relaxed">
               Openly available at{" "}
-              <span className="text-blue-400">www.metaguide.blog</span> — built
-              and shared by engineers, for engineers.
+              <span className="text-blue-400">
+                {typeof window !== "undefined"
+                  ? window.location.hostname
+                  : "www.metaguide.blog"}
+              </span>{" "}
+              — built and shared by engineers, for engineers.
             </p>
           </div>
 

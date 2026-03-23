@@ -738,7 +738,7 @@ export default function TopNav({
               Staff Eng Prep
             </span>
             <span className="badge badge-blue hidden md:inline-flex">
-              IC4–IC7
+              L4–L7
             </span>
           </div>
 
