@@ -635,3 +635,8 @@
 - [x] Fix standalone build crash - add sprintPlan/feedback/userScores mocks to trpc.standalone.ts
 - [x] SMTP email delivery setup (Gmail, verified via nodemailer.verify())
 - [x] Feedback triage status column (new/in_progress/done/dismissed) in DB + admin dashboard
+
+## Phase 6 (Mar 23, 2026)
+
+- [x] Add triage status counts to weekly digest email (New/In Progress/Done/Dismissed summary)
+- [x] Instant email notification on new feedback submission (general + sprint plan)

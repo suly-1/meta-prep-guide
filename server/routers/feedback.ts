@@ -1,7 +1,8 @@
 /**
  * Feedback Router
  * Handles general site feedback and sprint-plan-specific suggestions.
- * Stores feedback in DB and notifies the owner via Manus notification.
+ * Stores feedback in DB, sends an instant email alert to the admin,
+ * and also notifies the owner via Manus notification as fallback.
  */
 import { z } from "zod";
 import { adminProcedure, publicProcedure, router } from "../_core/trpc";
@@ -10,8 +11,101 @@ import { getDb } from "../db";
 import { feedback as feedbackTable } from "../../drizzle/schema";
 import { desc, eq } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { sendWeeklyDigest } from "../weeklyDigest";
+import { sendWeeklyDigest, sendEmail } from "../weeklyDigest";
 
+const DIGEST_EMAIL = process.env.DIGEST_EMAIL ?? "";
+
+// ── Instant alert email ──────────────────────────────────────────────────────
+async function sendInstantAlert(opts: {
+  category: string;
+  feedbackType: string;
+  message: string;
+  page?: string | null;
+  userName?: string | null;
+  rating?: number | null;
+  sprintPlanId?: string | null;
+}) {
+  const isSprintPlan = opts.feedbackType === "sprint_plan";
+  const emoji = isSprintPlan ? "🏃" : "📬";
+  const subject = `${emoji} New ${isSprintPlan ? "Sprint Plan" : "Site"} Feedback — ${opts.category.replace("_", " ").toUpperCase()}`;
+
+  const ratingLine =
+    opts.rating != null
+      ? `<p><strong>Rating:</strong> ${"⭐".repeat(opts.rating)} (${opts.rating}/5)</p>`
+      : "";
+  const sprintLine = opts.sprintPlanId
+    ? `<p><strong>Sprint Plan ID:</strong> ${opts.sprintPlanId}</p>`
+    : "";
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #0d1117; color: #e6edf3; margin: 0; padding: 0; }
+  .container { max-width: 560px; margin: 0 auto; padding: 28px 16px; }
+  .header { border-bottom: 1px solid #30363d; padding-bottom: 16px; margin-bottom: 20px; }
+  .title { font-size: 18px; font-weight: 700; color: #58a6ff; margin: 0 0 4px; }
+  .subtitle { font-size: 11px; color: #8b949e; margin: 0; }
+  .meta { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 12px 14px; margin-bottom: 14px; font-size: 12px; line-height: 1.8; }
+  .meta strong { color: #e6edf3; }
+  .message-box { background: #161b22; border-left: 3px solid #58a6ff; border-radius: 0 8px 8px 0; padding: 12px 14px; font-size: 14px; line-height: 1.6; color: #e6edf3; white-space: pre-wrap; word-break: break-word; }
+  .badge { display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 11px; font-weight: 600; background: rgba(88,166,255,0.15); color: #58a6ff; }
+  .footer { border-top: 1px solid #30363d; padding-top: 14px; margin-top: 20px; font-size: 11px; color: #8b949e; text-align: center; }
+  a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <p class="title">${emoji} New Feedback Received</p>
+    <p class="subtitle">${new Date().toLocaleString()}</p>
+  </div>
+  <div class="meta">
+    <p><strong>Type:</strong> <span class="badge">${opts.feedbackType.replace("_", " ")}</span></p>
+    <p><strong>Category:</strong> ${opts.category.replace("_", " ")}</p>
+    <p><strong>Page:</strong> ${opts.page ?? "unknown"}</p>
+    <p><strong>User:</strong> ${opts.userName ?? "Anonymous"}</p>
+    ${ratingLine}
+    ${sprintLine}
+  </div>
+  <div class="message-box">${opts.message.replace(/</g, "&lt;").replace(/>/g, "&gt;")}</div>
+  <div class="footer">
+    <a href="https://www.metaguide.blog/admin/feedback">View in Dashboard →</a>
+  </div>
+</div>
+</body>
+</html>`;
+
+  const text = [
+    `New ${isSprintPlan ? "Sprint Plan" : "Site"} Feedback`,
+    `Category: ${opts.category}`,
+    `Page: ${opts.page ?? "unknown"}`,
+    `User: ${opts.userName ?? "Anonymous"}`,
+    opts.rating != null ? `Rating: ${opts.rating}/5` : "",
+    ``,
+    opts.message,
+    ``,
+    `View: https://www.metaguide.blog/admin/feedback`,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  if (DIGEST_EMAIL) {
+    try {
+      await sendEmail({ to: DIGEST_EMAIL, subject, html, text });
+      return;
+    } catch {
+      // fall through to Manus notification
+    }
+  }
+
+  // Fallback: Manus notification
+  await notifyOwner({ title: subject, content: text }).catch(() => null);
+}
+
+// ── Router ───────────────────────────────────────────────────────────────────
 export const feedbackRouter = router({
   /** Submit general site feedback */
   submitGeneral: publicProcedure
@@ -36,17 +130,13 @@ export const feedbackRouter = router({
         metadata: { userAgent: input.userAgent ?? null },
       });
 
-      // Notify owner
-      await notifyOwner({
-        title: `📬 New Site Feedback: ${input.category.replace("_", " ").toUpperCase()}`,
-        content: [
-          `**Category:** ${input.category}`,
-          `**Page:** ${input.page ?? "unknown"}`,
-          `**User:** ${ctx.user?.name ?? "Anonymous"}`,
-          ``,
-          `**Message:**`,
-          input.message,
-        ].join("\n"),
+      // Fire instant alert (non-blocking)
+      sendInstantAlert({
+        category: input.category,
+        feedbackType: "general",
+        message: input.message,
+        page: input.page,
+        userName: ctx.user?.name ?? null,
       }).catch(() => null);
 
       return { success: true };
@@ -86,23 +176,15 @@ export const feedbackRouter = router({
         },
       });
 
-      await notifyOwner({
-        title: `🏃 Sprint Plan Feedback — ${input.rating}/5 stars`,
-        content: [
-          `**Rating:** ${"⭐".repeat(input.rating)}`,
-          `**User:** ${ctx.user?.name ?? "Anonymous"}`,
-          `**Sprint Plan ID:** ${input.sprintPlanId ?? "N/A"}`,
-          ``,
-          `**Overall Feedback:**`,
-          input.message,
-          ...(input.dayFeedback && input.dayFeedback.length > 0
-            ? [
-                ``,
-                `**Per-Day Comments:**`,
-                ...input.dayFeedback.map(d => `Day ${d.day}: ${d.comment}`),
-              ]
-            : []),
-        ].join("\n"),
+      // Fire instant alert (non-blocking)
+      sendInstantAlert({
+        category: "feature_request",
+        feedbackType: "sprint_plan",
+        message: input.message,
+        page: "7-day-sprint",
+        userName: ctx.user?.name ?? null,
+        rating: input.rating,
+        sprintPlanId: input.sprintPlanId ?? null,
       }).catch(() => null);
 
       return { success: true };
