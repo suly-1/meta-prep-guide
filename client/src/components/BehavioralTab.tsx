@@ -35,6 +35,7 @@ import { trpc } from "@/lib/trpc";
 import { BehavioralMockSession } from "@/components/BehavioralMockSession";
 import { StoryCoverageMatrix } from "@/components/StoryCoverageMatrix";
 import { InterviewerPersonaStressTest } from "@/components/InterviewerPersonaStressTest";
+import { FeatureHeatmapRow } from "@/components/FeatureHeatmapRow";
 import { ImpactQuantificationCoach } from "@/components/ImpactQuantificationCoach";
 
 const AREAS = [
@@ -3064,6 +3065,13 @@ export default function BehavioralTab() {
   return (
     <div className="space-y-5">
       {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <FeatureHeatmapRow
+        featureKeys={[
+          "story_coverage_matrix",
+          "interviewer_persona_stress",
+          "adversarial_review",
+        ]}
+      />
       <StoryCoverageMatrix />
       <InterviewerPersonaStressTest />
       <ImpactQuantificationCoach />

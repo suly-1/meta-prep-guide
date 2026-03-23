@@ -47,6 +47,7 @@ import { CodingMockSession } from "@/components/CodingMockSession";
 import { ThinkOutLoudCoach } from "@/components/ThinkOutLoudCoach";
 import { PatternSpeedDrill } from "@/components/PatternSpeedDrill";
 import { WeakPatternRemediationPlan } from "@/components/WeakPatternRemediationPlan";
+import { FeatureHeatmapRow } from "@/components/FeatureHeatmapRow";
 
 const DIFF_ORDER: Record<string, number> = { Easy: 0, Medium: 1, Hard: 2 };
 const DIFF_COLOR: Record<string, string> = {
@@ -2840,6 +2841,13 @@ function CTCITracker() {
   return (
     <div className="space-y-0">
       {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ══════════════════════════════ */}
+      <FeatureHeatmapRow
+        featureKeys={[
+          "think_out_loud_coach",
+          "pattern_speed_drill",
+          "weak_pattern_remediation",
+        ]}
+      />
       <div className="space-y-5 mb-5">
         <ThinkOutLoudCoach />
         <PatternSpeedDrill />

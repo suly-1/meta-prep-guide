@@ -116,6 +116,61 @@ export const analyticsRouter = router({
   // ── Admin report queries ───────────────────────────────────────────────────
 
   /** Admin: Get full analytics report for a given number of past days */
+  /** Manually trigger the analytics report email */
+  sendReportNow: adminProcedure.mutation(async () => {
+    const { sendWeeklyAnalytics } = await import("../weeklyAnalytics");
+    await sendWeeklyAnalytics();
+    return { success: true };
+  }),
+
+  /** DAU trend — sessions per day for the past N days */
+  dauTrend: adminProcedure
+    .input(z.object({ days: z.number().int().min(7).max(30).default(7) }))
+    .query(async ({ input }) => {
+      const db = await getDb();
+      if (!db) return { trend: [] };
+      const since = new Date(Date.now() - input.days * 86400_000);
+      const sessions = await db
+        .select()
+        .from(analyticsSessions)
+        .where(gte(analyticsSessions.startedAt, since));
+      // Bucket by calendar date
+      const dayMap: Record<string, number> = {};
+      for (let i = 0; i < input.days; i++) {
+        const d = new Date(Date.now() - i * 86400_000);
+        const key = d.toISOString().slice(0, 10);
+        dayMap[key] = 0;
+      }
+      for (const s of sessions) {
+        const key = new Date(s.startedAt).toISOString().slice(0, 10);
+        if (key in dayMap) dayMap[key]++;
+      }
+      const trend = Object.entries(dayMap)
+        .sort((a, b) => a[0].localeCompare(b[0]))
+        .map(([date, sessions]) => ({ date, sessions }));
+      return { trend };
+    }),
+
+  /** Top feature clicks today (for heatmap badges on main site) */
+  featureClicksToday: publicProcedure.query(async () => {
+    const db = await getDb();
+    if (!db) return { counts: {} };
+    const since = new Date();
+    since.setHours(0, 0, 0, 0);
+    const events = await db
+      .select()
+      .from(analyticsEvents)
+      .where(gte(analyticsEvents.createdAt, since));
+    const counts: Record<string, number> = {};
+    for (const ev of events) {
+      if (ev.eventName.startsWith("feature_click:")) {
+        const name = ev.eventName.replace("feature_click:", "");
+        counts[name] = (counts[name] ?? 0) + 1;
+      }
+    }
+    return { counts };
+  }),
+
   adminReport: adminProcedure
     .input(z.object({ days: z.number().int().min(1).max(90).default(7) }))
     .query(async ({ input }) => {

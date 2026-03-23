@@ -1,7 +1,7 @@
 /**
  * /admin/analytics — Live site analytics dashboard (admin-only)
  * Shows visitor counts, session durations, page views, feature engagement,
- * device/browser breakdown, and Top 3 unactioned feedback items.
+ * device/browser breakdown, DAU trend chart, and Top 3 unactioned feedback.
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -19,6 +19,9 @@ import {
   PieChart,
   Pie,
   Cell,
+  LineChart,
+  Line,
+  CartesianGrid,
 } from "recharts";
 import {
   ArrowLeft,
@@ -30,7 +33,9 @@ import {
   AlertCircle,
   Activity,
   TrendingUp,
+  Send,
 } from "lucide-react";
+import { toast } from "sonner";
 
 const COLORS = ["#58a6ff", "#3fb950", "#d29922", "#f85149", "#bc8cff"];
 
@@ -76,11 +81,27 @@ function KpiCard({
 export default function AdminAnalytics() {
   const { user, loading } = useAuth();
   const [days, setDays] = useState(7);
+  const [dauDays, setDauDays] = useState(7);
 
   const { data, isLoading, refetch } = trpc.analytics.adminReport.useQuery(
     { days },
     { enabled: !!user && (user as { role?: string }).role === "admin" }
   );
+
+  const { data: dauData, isLoading: dauLoading } =
+    trpc.analytics.dauTrend.useQuery(
+      { days: dauDays },
+      { enabled: !!user && (user as { role?: string }).role === "admin" }
+    );
+
+  const sendReport = trpc.analytics.sendReportNow.useMutation({
+    onSuccess: () =>
+      toast.success("Report sent!", {
+        description: "Analytics email delivered.",
+      }),
+    onError: () =>
+      toast.error("Failed to send", { description: "Check server logs." }),
+  });
 
   if (loading) {
     return (
@@ -160,6 +181,20 @@ export default function AdminAnalytics() {
               />
               Refresh
             </Button>
+            {/* Send Report Now */}
+            <Button
+              variant="default"
+              size="sm"
+              className="gap-1 bg-[#238636] hover:bg-[#2ea043] border-0"
+              onClick={() => sendReport.mutate()}
+              disabled={sendReport.isPending}
+            >
+              <Send
+                size={12}
+                className={sendReport.isPending ? "animate-pulse" : ""}
+              />
+              {sendReport.isPending ? "Sending…" : "Send Report Now"}
+            </Button>
           </div>
         </div>
       </div>
@@ -204,6 +239,90 @@ export default function AdminAnalytics() {
                 color="#f85149"
               />
             </div>
+
+            {/* DAU Trend Line Chart */}
+            <Card className="bg-[#161b22] border-[#30363d]">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                    <TrendingUp size={14} className="text-[#3fb950]" />
+                    Daily Active Users (Sessions / Day)
+                  </CardTitle>
+                  <div className="flex gap-1">
+                    {[7, 30].map(d => (
+                      <Button
+                        key={d}
+                        variant={dauDays === d ? "default" : "outline"}
+                        size="sm"
+                        className="text-xs px-2 py-0.5 h-6"
+                        onClick={() => setDauDays(d)}
+                      >
+                        {d}d
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {dauLoading ? (
+                  <div className="h-[160px] flex items-center justify-center text-muted-foreground text-xs">
+                    Loading trend…
+                  </div>
+                ) : (dauData?.trend?.length ?? 0) === 0 ? (
+                  <div className="h-[160px] flex items-center justify-center text-muted-foreground text-xs">
+                    No session data yet for this period.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height={160}>
+                    <LineChart data={dauData?.trend ?? []}>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#21262d"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="date"
+                        tickFormatter={d => {
+                          const dt = new Date(d);
+                          return `${dt.getMonth() + 1}/${dt.getDate()}`;
+                        }}
+                        tick={{ fontSize: 10, fill: "#8b949e" }}
+                        axisLine={false}
+                        tickLine={false}
+                      />
+                      <YAxis
+                        allowDecimals={false}
+                        tick={{ fontSize: 10, fill: "#8b949e" }}
+                        axisLine={false}
+                        tickLine={false}
+                        width={24}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          background: "#21262d",
+                          border: "1px solid #30363d",
+                          borderRadius: 8,
+                          fontSize: 12,
+                        }}
+                        labelFormatter={d => {
+                          const dt = new Date(d as string);
+                          return dt.toLocaleDateString();
+                        }}
+                        formatter={(v: number) => [v, "Sessions"]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="sessions"
+                        stroke="#3fb950"
+                        strokeWidth={2}
+                        dot={{ fill: "#3fb950", r: 3 }}
+                        activeDot={{ r: 5 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Page Views Chart */}
             {data.pageViews.length > 0 && (
@@ -308,7 +427,6 @@ export default function AdminAnalytics() {
                             nameKey="deviceType"
                             cx="50%"
                             cy="50%"
-                            innerRadius={30}
                             outerRadius={50}
                           >
                             {data.deviceBreakdown.map((_, i) => (

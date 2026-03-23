@@ -559,6 +559,48 @@ export const trpc = {
     },
   },
 
+  // ── analytics (no-op in standalone) ───────────────────────────────────
+  analytics: {
+    trackSession: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    updateSession: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    trackPageView: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    trackEvent: { useMutation: () => makeMutation(() => ({ success: true })) },
+    sendReportNow: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    dauTrend: { useQuery: () => ({ data: { trend: [] }, isLoading: false }) },
+    featureClicksToday: {
+      useQuery: () => ({ data: { counts: {} }, isLoading: false }),
+    },
+    adminReport: {
+      useQuery: () => ({
+        data: {
+          sessions: [],
+          pageViews: [],
+          topEvents: [],
+          deviceBreakdown: [],
+          browserBreakdown: [],
+          top3Unactioned: [],
+          summary: {
+            totalSessions: 0,
+            uniqueVisitors: 0,
+            totalPageViews: 0,
+            avgSessionMinutes: 0,
+            totalHours: 0,
+          },
+        },
+        isLoading: false,
+        refetch: () => {},
+      }),
+    },
+  },
+
   // ── system ────────────────────────────────────────────────────────────────
   system: {
     notifyOwner: {

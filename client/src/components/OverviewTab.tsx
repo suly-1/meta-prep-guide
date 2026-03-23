@@ -2900,6 +2900,7 @@ function QuickActionsRow() {
 import { SevenDaySprintPlan } from "@/components/SevenDaySprintPlan";
 import { ProgressAnalyticsDashboard } from "@/components/ProgressAnalyticsDashboard";
 import { ScoreSyncBanner } from "@/components/ScoreSyncBanner";
+import { FeatureHeatmapRow } from "@/components/FeatureHeatmapRow";
 
 export default function OverviewTab() {
   const [interviewDate] = useInterviewDate();
@@ -2907,6 +2908,13 @@ export default function OverviewTab() {
   return (
     <div className="space-y-6">
       {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <FeatureHeatmapRow
+        featureKeys={[
+          "interview_readiness_report",
+          "seven_day_sprint_plan",
+          "progress_analytics",
+        ]}
+      />
       <InterviewReadinessReport />
       <div id="seven-day-sprint">
         <SevenDaySprintPlan />

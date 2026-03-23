@@ -649,3 +649,9 @@
 - [x] Weekly analytics report email (visitors, sessions, hours, top features, device breakdown)
 - [x] Top 3 unactioned feedback items section in weekly digest
 - [x] /admin/analytics page for live in-app stats
+
+## Phase 8 (Mar 23, 2026)
+
+- [x] "Send Report Now" button on /admin/analytics (manual analytics email trigger)
+- [x] DAU 7-day and 30-day line chart on /admin/analytics
+- [x] Feature click heatmap badges ("N users today") on main site top-10 features

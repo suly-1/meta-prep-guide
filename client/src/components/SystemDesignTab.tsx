@@ -28,6 +28,7 @@ import { SectionErrorBoundary } from "@/components/SectionErrorBoundary";
 import { AIInterviewerInterruptMode } from "@/components/AIInterviewerInterruptMode";
 import { BackOfEnvelopeCalculator } from "@/components/BackOfEnvelopeCalculator";
 import { TearDownMyDesign } from "@/components/TearDownMyDesign";
+import { FeatureHeatmapRow } from "@/components/FeatureHeatmapRow";
 import {
   GuidedDesignWalkthrough,
   TradeoffDecisionSimulator,
@@ -265,6 +266,13 @@ export default function SystemDesignTab() {
   return (
     <div className="space-y-5">
       {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      <FeatureHeatmapRow
+        featureKeys={[
+          "ai_interviewer_interrupt",
+          "back_of_envelope",
+          "tear_down_my_design",
+        ]}
+      />
       <AIInterviewerInterruptMode />
       <BackOfEnvelopeCalculator />
       <TearDownMyDesign />
