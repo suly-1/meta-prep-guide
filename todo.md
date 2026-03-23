@@ -640,3 +640,12 @@
 
 - [x] Add triage status counts to weekly digest email (New/In Progress/Done/Dismissed summary)
 - [x] Instant email notification on new feedback submission (general + sprint plan)
+
+## Phase 7 (Mar 23, 2026)
+
+- [x] Analytics DB table (page_views, sessions, events, device info)
+- [x] Client-side analytics tracker (page views, session duration, feature clicks, device)
+- [x] Analytics tRPC router (ingest + admin report query)
+- [x] Weekly analytics report email (visitors, sessions, hours, top features, device breakdown)
+- [x] Top 3 unactioned feedback items section in weekly digest
+- [x] /admin/analytics page for live in-app stats

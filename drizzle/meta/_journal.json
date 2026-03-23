@@ -71,6 +71,13 @@
       "when": 1774298024958,
       "tag": "0009_dry_emma_frost",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "5",
+      "when": 1774299802321,
+      "tag": "0010_shocking_sasquatch",
+      "breakpoints": true
     }
   ]
 }

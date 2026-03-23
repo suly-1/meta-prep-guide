@@ -196,3 +196,44 @@ export const sprintPlans = mysqlTable("sprint_plans", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type SprintPlan = typeof sprintPlans.$inferSelect;
+
+// ── Site Analytics ────────────────────────────────────────────────────────
+// Lightweight first-party analytics: page views, sessions, feature events.
+// No PII stored — userId is optional and device/browser info is aggregated.
+
+export const analyticsPageViews = mysqlTable("analytics_page_views", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  userId: int("userId"), // null = anonymous
+  page: varchar("page", { length: 128 }).notNull(), // e.g. "overview", "coding"
+  referrer: varchar("referrer", { length: 256 }),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AnalyticsPageView = typeof analyticsPageViews.$inferSelect;
+
+export const analyticsSessions = mysqlTable("analytics_sessions", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull().unique(),
+  userId: int("userId"),
+  deviceType: mysqlEnum("deviceType", ["desktop", "tablet", "mobile"]).default(
+    "desktop"
+  ),
+  browser: varchar("browser", { length: 64 }),
+  os: varchar("os", { length: 64 }),
+  country: varchar("country", { length: 64 }),
+  durationSeconds: int("durationSeconds").default(0), // updated on session end
+  startedAt: timestamp("startedAt").defaultNow().notNull(),
+  endedAt: timestamp("endedAt"),
+});
+export type AnalyticsSession = typeof analyticsSessions.$inferSelect;
+
+export const analyticsEvents = mysqlTable("analytics_events", {
+  id: int("id").autoincrement().primaryKey(),
+  sessionId: varchar("sessionId", { length: 64 }).notNull(),
+  userId: int("userId"),
+  eventName: varchar("eventName", { length: 128 }).notNull(), // e.g. "feature_click:sprint_plan"
+  page: varchar("page", { length: 128 }),
+  metadata: json("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;

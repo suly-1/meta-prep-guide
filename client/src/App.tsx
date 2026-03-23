@@ -9,6 +9,7 @@ import CollabRoom from "@/pages/CollabRoom";
 import AdminDisclaimerReport from "@/pages/AdminDisclaimerReport";
 import AdminFeedback from "@/pages/AdminFeedback";
 import AdminStats from "@/pages/AdminStats";
+import AdminAnalytics from "@/pages/AdminAnalytics";
 
 function Router() {
   return (
@@ -18,6 +19,7 @@ function Router() {
       <Route path="/admin/disclaimer" component={AdminDisclaimerReport} />
       <Route path="/admin/feedback" component={AdminFeedback} />
       <Route path="/admin/stats" component={AdminStats} />
+      <Route path="/admin/analytics" component={AdminAnalytics} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
