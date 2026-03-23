@@ -525,3 +525,8 @@
 ## DisclaimerGate Cleanup
 
 - [x] Remove GitHub repo link from community proof box in DisclaimerGate
+
+## DisclaimerGate Copy Update (Option A + Option 1)
+
+- [x] Update badge to Option A (Free community resource / built and shared by engineers)
+- [x] Update checkbox to Option 1 (straightforward, no "found independently" language)

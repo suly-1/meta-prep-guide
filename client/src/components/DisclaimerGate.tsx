@@ -198,12 +198,12 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
           {/* Community resource proof box */}
           <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-4 space-y-1.5">
             <p className="text-xs font-semibold text-blue-400">
-              📢 Public community resource
+              🌐 Free community resource
             </p>
             <p className="text-xs text-zinc-400 leading-relaxed">
               Openly available at{" "}
-              <span className="text-blue-400">www.metaguide.blog</span>. Not
-              distributed by any interviewer, recruiter, or company employee.
+              <span className="text-blue-400">www.metaguide.blog</span> — built
+              and shared by engineers, for engineers.
             </p>
           </div>
 
@@ -230,10 +230,8 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
                   : "text-zinc-400 group-hover:text-zinc-200"
               }`}
             >
-              I'm a job seeker using this for my own prep. I found this guide
-              independently — it wasn't provided to me by any interviewer or
-              company employee. I understand it's a community resource with no
-              guarantees attached.
+              I'm using this guide for my own interview prep and understand it's
+              a free community resource with no guarantees.
             </span>
           </button>
 
