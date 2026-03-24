@@ -85,6 +85,9 @@ export const trpc = {
     logout: {
       useMutation: () => makeMutation(() => {}),
     },
+    isOwner: {
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ isOwner: false }),
+    },
   },
 
   // ── disclaimer ────────────────────────────────────────────────────────────
@@ -559,12 +562,32 @@ export const trpc = {
     },
   },
 
-  // ── analytics (no-op in standalone) ───────────────────────────────────
+  // ── favorites (no-op in standalone) ───────────────────────────────────────────────────────────────────
+  favorites: {
+    list: { useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]) },
+    toggle: { useMutation: () => makeMutation(() => ({ success: true })) },
+    remove: { useMutation: () => makeMutation(() => ({ success: true })) },
+    updateNotes: { useMutation: () => makeMutation(() => ({ success: true })) },
+  },
+
+  // ── progress (no-op in standalone) ───────────────────────────────────────────────────────────────────
+  progress: {
+    list: { useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]) },
+    save: { useMutation: () => makeMutation(() => ({ success: true })) },
+  },
+
+  // ── analytics (no-op in standalone) ───────────────────────────────────────────────────────────────────
   analytics: {
     trackSession: {
       useMutation: () => makeMutation(() => ({ success: true })),
     },
     updateSession: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    startSession: {
+      useMutation: () => makeMutation(() => ({ sessionId: "standalone" })),
+    },
+    endSession: {
       useMutation: () => makeMutation(() => ({ success: true })),
     },
     trackPageView: {
@@ -673,16 +696,17 @@ export const trpc = {
     },
   },
 
-  // ── useUtils (no-op) ──────────────────────────────────────────────────────
+  // ── useUtils (no-op) ────────────────────────────────────────────────────────────────────────────────
   useUtils: () => ({
     disclaimer: { status: { invalidate: () => {} } },
     ratings: { getAll: { invalidate: () => {} } },
     ctciProgress: { get: { invalidate: () => {} } },
     onboarding: { get: { invalidate: () => {} } },
     leaderboard: { getTop: { invalidate: () => {} } },
+    siteAccess: { getDisclaimerEnabled: { invalidate: () => {} } },
   }),
 
-  // ── Provider (passthrough) ────────────────────────────────────────────────
+  // ── Provider (passthrough) ────────────────────────────────────────────────────────────────
   Provider: ({ children }: { children: React.ReactNode }) => children,
   createClient: () => ({}),
 };

@@ -103,6 +103,15 @@ function DisclaimerToggleCard() {
             onCheckedChange={val => setEnabled.mutate({ enabled: val })}
           />
         </div>
+        <div className="mt-3 pt-3 border-t border-border">
+          <a
+            href="/admin/disclaimer"
+            className="text-xs text-blue-400 hover:text-blue-300 hover:underline flex items-center gap-1"
+          >
+            <FileText className="w-3 h-3" />
+            View acknowledgment report →
+          </a>
+        </div>
       </CardContent>
     </Card>
   );

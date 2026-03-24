@@ -360,4 +360,76 @@ export const adminUsersRouter = router({
       }
       return map;
     }),
+
+  /**
+   * Check for users who haven't logged in for 14+ days and send a Manus
+   * notification to the owner listing them. Designed to be called by a
+   * scheduled cron job or manually from the admin panel.
+   */
+  checkInactiveUsers: ownerProcedure.mutation(async () => {
+    const db = await getDb();
+    if (!db) return { notified: false, count: 0 };
+
+    const fourteenDaysAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+
+    // Find all non-blocked users whose last login was > 14 days ago
+    // (or who have never logged in and registered > 14 days ago)
+    const allUsers = await db
+      .select({
+        id: users.id,
+        name: users.name,
+        email: users.email,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .where(eq(users.blocked, 0));
+
+    if (allUsers.length === 0) return { notified: false, count: 0 };
+
+    // Get the most recent login for each user
+    const latestLogins = await db
+      .select({
+        userId: loginEvents.userId,
+        lastLogin: sql<Date>`MAX(${loginEvents.createdAt})`.as("lastLogin"),
+      })
+      .from(loginEvents)
+      .groupBy(loginEvents.userId);
+
+    const latestMap: Record<number, Date> = {};
+    for (const row of latestLogins) {
+      latestMap[row.userId] = row.lastLogin;
+    }
+
+    const inactive = allUsers.filter(u => {
+      const last = latestMap[u.id];
+      if (!last) {
+        // Never logged in — check if account is older than 14 days
+        return u.createdAt && u.createdAt < fourteenDaysAgo;
+      }
+      return last < fourteenDaysAgo;
+    });
+
+    if (inactive.length === 0) return { notified: false, count: 0 };
+
+    const lines = inactive.map(u => {
+      const last = latestMap[u.id];
+      const lastStr = last
+        ? last.toISOString().slice(0, 10)
+        : "never logged in";
+      return `- ${u.name ?? u.email ?? `User #${u.id}`} (last login: ${lastStr})`;
+    });
+
+    await notifyOwner({
+      title: `⚠️ ${inactive.length} inactive user${inactive.length === 1 ? "" : "s"} (14+ days)`,
+      content: [
+        `The following users have not logged in for 14 or more days:`,
+        "",
+        ...lines,
+        "",
+        `Consider following up or blocking inactive accounts before their 60-day window closes.`,
+      ].join("\n"),
+    }).catch(() => {});
+
+    return { notified: true, count: inactive.length };
+  }),
 });

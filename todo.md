@@ -867,3 +867,13 @@
 - [x] AdminAccess: add useUtils invalidation for siteAccess.getDisclaimerEnabled in setDisclaimerEnabled mutation onSuccess
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone (app.D7F2H-dN.js), deploy:github-pages, save checkpoint
+
+## Phase 23 — Inactivity Alert, Disclaimer Link, useUtils Stub (Mar 24, 2026)
+
+- [x] trpc.standalone.ts: add siteAccess.getDisclaimerEnabled to useUtils no-op object
+- [x] trpc.standalone.ts: add auth.isOwner, favorites, progress namespaces + analytics.startSession/endSession stubs
+- [x] Fix corrupted userScores.getAggregateStats and analytics.trackPageView sections in standalone mock
+- [x] Server: checkInactiveUsers ownerProcedure — query users with last login > 14 days ago, send Manus notification
+- [x] UI: /admin/access — add "View acknowledgment report →" link under Disclaimer Gate card
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone (app.D-C5OvW5.js), deploy:github-pages, save checkpoint
