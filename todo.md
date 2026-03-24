@@ -840,3 +840,12 @@
 - [x] UI: /admin/users — block dialog: optional "auto-unblock after N days" input
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone, deploy:github-pages, save checkpoint
+
+## Phase 20 — Auto-unblock Middleware + Admin Nav + Feature Audit (Mar 24, 2026)
+
+- [x] Add blockedUntil auto-unblock check to protectedProcedure in server/\_core/trpc.ts
+- [x] TopNav: owner-only violet ShieldCheck icon → /admin/feedback (visible only when logged in as owner)
+- [x] AdminFeedback header: full hub nav (Stats | Analytics | Access | Users)
+- [x] Fix TopNav smoke tests: wrap with tRPC + QueryClient providers
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone, deploy:github-pages, save checkpoint

@@ -10,8 +10,11 @@ import {
   Music,
   AlignJustify,
   Calendar,
+  ShieldCheck,
 } from "lucide-react";
 import { useState, useRef, useEffect, useCallback } from "react";
+import { trpc } from "@/lib/trpc";
+import { useAuth } from "@/_core/hooks/useAuth";
 import {
   useStreak,
   useInterviewDate,
@@ -723,6 +726,11 @@ export default function TopNav({
   const darkMode = theme === "dark";
   const onToggleDark = toggleTheme ?? (() => {});
   const streak = useStreak();
+  const { user } = useAuth();
+  const { data: ownerData } = trpc.auth.isOwner.useQuery(undefined, {
+    enabled: !!user,
+  });
+  const isOwner = ownerData?.isOwner ?? false;
   const {
     codingDue,
     behavioralDue,
@@ -878,6 +886,16 @@ export default function TopNav({
               <span>{streak.currentStreak}d</span>
             </div>
 
+            {/* Admin Panel — owner only */}
+            {isOwner && (
+              <a
+                href="/admin/feedback"
+                title="Admin Panel"
+                className="w-8 h-8 rounded-md flex items-center justify-center text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 transition-all"
+              >
+                <ShieldCheck size={15} />
+              </a>
+            )}
             {/* Dark mode toggle */}
             <button
               onClick={onToggleDark}

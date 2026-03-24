@@ -56,20 +56,44 @@ vi.mock("@/lib/data", () => ({
 // rendered by TopNav, so they are exercised implicitly.
 import TopNav from "@/components/TopNav";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { trpc } from "@/lib/trpc";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { httpBatchLink } from "@trpc/client";
+import superjson from "superjson";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const noop = () => {};
 
+// Mock useAuth so TopNav doesn't need a real auth context
+vi.mock("@/_core/hooks/useAuth", () => ({
+  useAuth: () => ({ user: null, loading: false, isAuthenticated: false }),
+}));
+
 function renderTopNav(activeTab = "overview") {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  const trpcClient = trpc.createClient({
+    links: [
+      httpBatchLink({
+        url: "http://localhost:3000/api/trpc",
+        transformer: superjson,
+      }),
+    ],
+  });
   return render(
-    <ThemeProvider defaultTheme="dark" switchable>
-      <TopNav
-        activeTab={activeTab}
-        onTabChange={noop}
-        darkMode={false}
-        onToggleDark={noop}
-      />
-    </ThemeProvider>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider defaultTheme="dark" switchable>
+          <TopNav
+            activeTab={activeTab}
+            onTabChange={noop}
+            darkMode={false}
+            onToggleDark={noop}
+          />
+        </ThemeProvider>
+      </QueryClientProvider>
+    </trpc.Provider>
   );
 }
 

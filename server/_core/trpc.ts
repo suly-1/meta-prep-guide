@@ -3,6 +3,9 @@ import { initTRPC, TRPCError } from "@trpc/server";
 import superjson from "superjson";
 import type { TrpcContext } from "./context";
 import { ENV } from "./env";
+import { getDb } from "../db";
+import { users } from "../../drizzle/schema";
+import { eq } from "drizzle-orm";
 
 const t = initTRPC.context<TrpcContext>().create({
   transformer: superjson,
@@ -18,8 +21,39 @@ const requireUser = t.middleware(async opts => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }
 
+  // Auto-unblock: if blockedUntil has passed, lift the block before checking
+  const user = ctx.user as {
+    blocked?: number;
+    blockedUntil?: Date | null;
+    id?: number;
+  };
+
+  if (user.blocked === 1 && user.blockedUntil && user.id) {
+    const expiry = new Date(user.blockedUntil);
+    if (expiry <= new Date()) {
+      // Expiry has passed — auto-unblock in DB (fire-and-forget, non-fatal)
+      try {
+        const db = await getDb();
+        if (db) {
+          await db
+            .update(users)
+            .set({ blocked: 0, blockReason: null, blockedUntil: null })
+            .where(eq(users.id, user.id));
+          console.log(
+            `[Auth] Auto-unblocked user #${user.id} (blockedUntil expired)`
+          );
+          // Treat as unblocked for this request
+          user.blocked = 0;
+        }
+      } catch (err) {
+        console.warn("[Auth] Auto-unblock failed:", err);
+        // Fall through — still enforce the block if DB update failed
+      }
+    }
+  }
+
   // Block access for users flagged by the owner
-  if ((ctx.user as { blocked?: number }).blocked === 1) {
+  if (user.blocked === 1) {
     throw new TRPCError({
       code: "FORBIDDEN",
       message: "ACCESS_REVOKED",
