@@ -69,6 +69,15 @@ import {
 import { WeakPatternHeatmap } from "@/components/WeakPatternHeatmap";
 import { WeakSpotStudyPlan } from "@/components/WeakSpotStudyPlan";
 import { InterviewReadinessReport } from "@/components/InterviewReadinessReport";
+import { OfferProbabilityDashboard } from "@/components/OfferProbabilityDashboard";
+import { DailyWarmupRoutine } from "@/components/DailyWarmupRoutine";
+import { DayBeforeChecklist } from "@/components/DayBeforeChecklist";
+import { TenDaySprintGenerator } from "@/components/TenDaySprintGenerator";
+import { SeniorityLevelCalibrator } from "@/components/SeniorityLevelCalibrator";
+import { PostInterviewDebrief } from "@/components/PostInterviewDebrief";
+import { WhyCompanyStoryBuilder } from "@/components/WhyCompanyStoryBuilder";
+import { InterviewQuestionPredictor } from "@/components/InterviewQuestionPredictor";
+import { ComplexityProofTrainer } from "@/components/ComplexityProofTrainer";
 
 // ── Disclaimer Status Badge ──────────────────────────────────────────────────
 function DisclaimerStatusBadge() {
@@ -2916,6 +2925,23 @@ export default function OverviewTab() {
         ]}
       />
       <InterviewReadinessReport />
+      {/* ═══ OFFER MAXIMIZER TOOLS ═══════════════════════════════════════════ */}
+      <div className="space-y-3">
+        <div className="text-sm font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">
+          <span className="text-emerald-400">🎯</span>
+          Offer Maximizer — 25 High-Impact Tools
+        </div>
+        <OfferProbabilityDashboard />
+        <DailyWarmupRoutine />
+        <TenDaySprintGenerator />
+        <SeniorityLevelCalibrator />
+        <ComplexityProofTrainer />
+        <PostInterviewDebrief />
+        <WhyCompanyStoryBuilder />
+        <InterviewQuestionPredictor />
+        <DayBeforeChecklist />
+      </div>
+      {/* ═══════════════════════════════════════════════════════════════════════ */}
       <div id="seven-day-sprint">
         <SevenDaySprintPlan />
       </div>

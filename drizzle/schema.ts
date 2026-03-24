@@ -239,3 +239,30 @@ export const analyticsEvents = mysqlTable("analytics_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+
+// ── APEX Picks Sets (weekly rotating featured tool recommendations) ──────────
+// Each row is one "set" of picks. The active set for any given week is
+// determined by the weekIndex field (ISO week number) or the isActive flag.
+// Admin can create multiple sets and mark one as active; the system also
+// auto-rotates by week number when no explicit active set is found.
+export const apexPicksSets = mysqlTable("apex_picks_sets", {
+  id: int("id").autoincrement().primaryKey(),
+  weekLabel: varchar("weekLabel", { length: 64 }).notNull(), // e.g. "Week of Mar 24"
+  picks: json("picks").notNull().$type<ApexPick[]>(), // array of pick objects
+  isActive: int("isActive").notNull().default(0), // 1 = manually pinned active
+  weekIndex: int("weekIndex"), // ISO week number (1-52) for auto-rotation
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+  updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
+});
+export type ApexPicksSet = typeof apexPicksSets.$inferSelect;
+
+export interface ApexPick {
+  id: string; // unique slug, e.g. "full-mock-day"
+  title: string;
+  description: string;
+  tab: string; // "overview" | "coding" | "behavioral" | "design" | "collab"
+  section?: string; // optional deep-link section param
+  icon: string; // emoji or icon name
+  badge?: string; // optional badge text, e.g. "New" | "Hot" | "AI"
+  badgeColor?: string; // "blue" | "green" | "amber" | "red" | "purple"
+}

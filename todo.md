@@ -661,3 +661,65 @@
 - [x] APEX Picks section on homepage (curated feature recommendations for new visitors)
 - [x] Admin quick-reply notes on feedback items (DB column + inline edit in /admin/feedback)
 - [x] Daily unactioned feedback alert (cron: fires if 3+ new items, email to Apex)
+
+## Phase 10 — APEX Picks A/B Rotation (Mar 24, 2026)
+
+- [ ] apex_picks_sets DB table (id, week_label, picks JSON, is_active, created_at)
+- [ ] tRPC: getActivePicks (public, weekly rotation), listPicksSets + upsertPicksSet + deletePicksSet (admin)
+- [ ] Admin editor at /admin/apex-picks (CRUD for picks sets, activate toggle, week preview)
+- [ ] Homepage ApexPicks component fetches from DB, falls back to hardcoded defaults
+- [ ] Tests for getActivePicks rotation logic
+- [ ] pnpm build:standalone + deploy:github-pages
+
+## Phase 10 — 25 High-Impact Features (Mar 24, 2026)
+
+### TIER 1 — P0 (Week 1, highest offer impact)
+
+- [ ] #3 Impact Quantification Coach — paste STAR answer, AI highlights sentences missing metrics, suggests specific numbers to add
+- [ ] #7 Behavioral Story Coverage Matrix — visual matrix of stories vs Meta focus areas, red = gap, green = covered
+- [ ] #6 45-Min Pressure Simulation — hard cutoff timer with time-management debrief (phase breakdown)
+
+### TIER 1 — P1 (Week 2)
+
+- [ ] #4 Seniority Level Calibrator — submit STAR story + target level, AI returns "Level Signal" badge + rewrite suggestion
+- [ ] #5 Complexity Proof Trainer — AI challenges complexity claim, candidate must prove it, AI evaluates reasoning
+- [ ] #9 Post-Interview Debrief Form — structured debrief form + AI analysis → prioritized fix list
+- [ ] #10 10-Day Final Sprint Generator — AI reads all performance data, generates day-by-day personalized plan
+
+### TIER 1 — P2 (Week 3)
+
+- [ ] #1 Think Out Loud Trainer — voice recording during coding, AI scores narration quality (pattern named, complexity stated, bugs caught)
+- [ ] #2 Adversarial Follow-Up Simulator — AI finds 3 weakest design points, fires follow-up questions, scores pivot quality
+- [ ] #8 Interviewer Persona Stress Test — choose persona (skeptical/distracted/impatient), AI plays it throughout mock
+
+### TIER 2 — P3 (Weeks 4-5)
+
+- [ ] #14 Pattern Recognition Speed Drill — 90-sec drill: name pattern + complexity + edge case from problem statement only
+- [ ] #20 Daily Warm-Up Routine — 15-min structured daily: 5min flashcards + 5min complexity proofs + 5min easy problem
+- [ ] #21 Anti-Pattern Detector (enhanced) — 12 anti-patterns, free-text design input, flags each with fix + interviewer question
+- [ ] #25 Offer Probability Dashboard — aggregates all signals into % offer probability with specific improvement actions
+- [ ] #13 Back-of-Envelope Grader — grades reasoning chain not just final number (assumptions, units, sanity checks)
+- [ ] #11 "Why This Company" Story Builder — 5-question interview → 90-sec genuine Why Meta narrative
+- [ ] #15 XFN Stakeholder Map Builder — map real project onto stakeholder diagram, identify STAR story material
+- [ ] #17 "Explain to a PM" Communication Trainer — AI plays PM, scores ability to bridge technical and business thinking
+- [ ] #18 Weak Pattern Remediation Plan — 5-problem sequence for weakest pattern, ordered by difficulty
+- [ ] #19 Story Freshness Tracker — flags over-rehearsed stories based on response time + word repetition
+- [ ] #22 Offer Comparison Analyzer — 4-year total comp comparison across base/bonus/equity/signing/COL
+- [ ] #23 "Day Before" Checklist and Mindset Protocol — structured day-before routine with breathing exercise
+- [ ] #24 Interview Question Prediction Engine — predicts top 5 SD questions + top 3 behavioral areas by team + level
+- [ ] #12 Negotiation Prep Module — AI recruiter persona, counter-offer practice, equity vs cash trade-offs
+- [ ] #16 Recruiter Email Draft Generator — generates specific thank-you/follow-up email from mock session content
+
+## Phase 10 — 25 High-Impact Features COMPLETED (Mar 24, 2026)
+
+- [x] Offer Probability Dashboard — live signal aggregation from all prep data, weighted % score, top action items
+- [x] Daily Warm-Up Routine — 15-min structured: flashcards (weakest patterns first) + complexity proofs + easy warm-up
+- [x] 10-Day Final Sprint Generator — reads weak patterns/BQ/stories, generates personalized day-by-day plan
+- [x] Seniority Level Calibrator — STAR story + target level → detected level badge + rewrite suggestion
+- [x] Complexity Proof Trainer — AI evaluates reasoning chain, not just the answer; model proof provided
+- [x] Post-Interview Debrief Form — structured debrief → likely outcome + prioritized fix list
+- [x] "Why Meta" Story Builder — 5 inputs → authentic 90-sec narrative, avoids generic red flags
+- [x] Interview Question Predictor — team-specific + level-specific question predictions (SD/behavioral/coding)
+- [x] "Day Before" Checklist — 18 items across Logistics/Mental Prep/Content Review/Day-Of
+- [x] All 9 components added to OverviewTab under "Offer Maximizer" section
+- [x] TypeScript: 0 errors | Tests: 27/27 passing

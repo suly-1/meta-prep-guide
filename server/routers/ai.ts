@@ -2064,6 +2064,444 @@ Be direct and honest — this is what a real debrief would look like.`,
       return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
     }),
 
+  // ── NEW: Seniority Level Calibrator ─────────────────────────────────────
+  // Evaluates a STAR story against the target level rubric and returns a
+  // "Level Signal" badge (L4-L7) with a specific rewrite suggestion.
+  calibrateSeniorityLevel: publicProcedure
+    .input(
+      z.object({
+        story: z.string().max(3000),
+        targetLevel: z.enum(["L4", "L5", "L6", "L7"]),
+        question: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta senior hiring committee member who evaluates STAR stories for seniority level.
+You assess stories on four dimensions:
+1. Scope of impact (team vs org vs company vs industry)
+2. Ambiguity handled (clear task vs ambiguous problem vs undefined space)
+3. Stakeholder influence (individual contributor vs led team vs influenced org)
+4. Candidate as driver vs contributor
+
+Level rubric:
+- L4: Team-scoped, clear task, individual contributor, minimal ambiguity
+- L5: Cross-team, some ambiguity, led small team or project
+- L6: Org-scoped, significant ambiguity, drove cross-functional initiative, measurable org impact
+- L7: Company/industry-scoped, high ambiguity, shaped strategy, multiplied teams
+
+Return JSON with: detectedLevel (L4/L5/L6/L7), targetLevel match analysis, scopeSignal, ambiguitySignal, influenceSignal, driverSignal (each: "strong"|"weak"|"absent"), rewriteSuggestion (specific 2-3 sentence instruction to elevate the story to target level), and coaching (markdown string with detailed feedback).`,
+          },
+          {
+            role: "user",
+            content: `Target level: ${input.targetLevel}\n\nSTAR Story:\n${input.story}${input.question ? `\n\nInterview question: ${input.question}` : ""}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "seniority_calibration",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                detectedLevel: { type: "string" },
+                scopeSignal: { type: "string" },
+                ambiguitySignal: { type: "string" },
+                influenceSignal: { type: "string" },
+                driverSignal: { type: "string" },
+                rewriteSuggestion: { type: "string" },
+                coaching: { type: "string" },
+              },
+              required: [
+                "detectedLevel",
+                "scopeSignal",
+                "ambiguitySignal",
+                "influenceSignal",
+                "driverSignal",
+                "rewriteSuggestion",
+                "coaching",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── NEW: Complexity Proof Trainer ─────────────────────────────────────────
+  // Challenges the candidate to prove their complexity claim, not just state it.
+  challengeComplexity: publicProcedure
+    .input(
+      z.object({
+        problemTitle: z.string().max(200),
+        solutionDescription: z.string().max(2000),
+        claimedTimeComplexity: z.string().max(50),
+        claimedSpaceComplexity: z.string().max(50),
+        candidateProof: z.string().max(2000),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interviewer who has just heard a candidate claim their solution is ${input.claimedTimeComplexity} time and ${input.claimedSpaceComplexity} space. You need to evaluate their proof.
+
+Evaluate the proof on:
+1. Correctness: Is the claimed complexity actually correct?
+2. Proof quality: Did they identify the dominant term? Did they handle nested loops correctly? Did they account for amortized cost if applicable? Did they include recursion stack space?
+3. Common mistakes: flag any of these if present: forgetting amortized cost, wrong dominant term, ignoring call stack space, conflating average vs worst case, missing the inner loop contribution.
+
+Return JSON with: complexityCorrect (boolean), proofQuality ("strong"|"adequate"|"weak"|"incorrect"), actualTimeComplexity (string), actualSpaceComplexity (string), mistakesFound (array of strings), strengths (array of strings), modelProof (markdown string showing how to prove it correctly), followUpQuestion (a single sharp interviewer follow-up question to probe deeper).`,
+          },
+          {
+            role: "user",
+            content: `Problem: ${input.problemTitle}\nSolution: ${input.solutionDescription}\nClaimed: ${input.claimedTimeComplexity} time, ${input.claimedSpaceComplexity} space\n\nCandidate's proof:\n${input.candidateProof}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "complexity_proof",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                complexityCorrect: { type: "boolean" },
+                proofQuality: { type: "string" },
+                actualTimeComplexity: { type: "string" },
+                actualSpaceComplexity: { type: "string" },
+                mistakesFound: { type: "array", items: { type: "string" } },
+                strengths: { type: "array", items: { type: "string" } },
+                modelProof: { type: "string" },
+                followUpQuestion: { type: "string" },
+              },
+              required: [
+                "complexityCorrect",
+                "proofQuality",
+                "actualTimeComplexity",
+                "actualSpaceComplexity",
+                "mistakesFound",
+                "strengths",
+                "modelProof",
+                "followUpQuestion",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── NEW: Post-Interview Debrief Analyzer ──────────────────────────────────
+  // Takes a structured debrief and returns a prioritized fix list.
+  analyzeDebrief: publicProcedure
+    .input(
+      z.object({
+        roundType: z.enum([
+          "coding",
+          "system_design",
+          "behavioral",
+          "full_loop",
+        ]),
+        questionsAsked: z.string().max(1000),
+        approachTaken: z.string().max(2000),
+        uncertainMoments: z.string().max(1000),
+        interviewerReactions: z.string().max(1000),
+        selfScore: z.number().min(1).max(5),
+        targetLevel: z.string().max(10),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach analyzing a candidate's post-interview debrief. Your job is to identify the most likely failure points and generate a specific, actionable fix list for the next attempt.
+
+Analyze the debrief and return:
+1. likelyOutcome: "strong_hire" | "hire" | "borderline" | "no_hire" based on the signals
+2. topFailurePoints: array of up to 3 specific failure modes identified from the debrief
+3. fixList: array of exactly 3 specific, actionable items to practice before the next attempt (each with a title and a 1-sentence action)
+4. strengths: array of up to 3 things the candidate did well
+5. coaching: markdown string with detailed analysis and next steps
+
+Be direct and honest. Do not sugarcoat. The candidate needs accurate signal to improve.`,
+          },
+          {
+            role: "user",
+            content: `Round: ${input.roundType} | Target: ${input.targetLevel} | Self-score: ${input.selfScore}/5\n\nQuestions asked: ${input.questionsAsked}\nApproach taken: ${input.approachTaken}\nUncertain moments: ${input.uncertainMoments}\nInterviewer reactions: ${input.interviewerReactions}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "debrief_analysis",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                likelyOutcome: { type: "string" },
+                topFailurePoints: { type: "array", items: { type: "string" } },
+                fixList: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      title: { type: "string" },
+                      action: { type: "string" },
+                    },
+                    required: ["title", "action"],
+                    additionalProperties: false,
+                  },
+                },
+                strengths: { type: "array", items: { type: "string" } },
+                coaching: { type: "string" },
+              },
+              required: [
+                "likelyOutcome",
+                "topFailurePoints",
+                "fixList",
+                "strengths",
+                "coaching",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── NEW: 10-Day Final Sprint Generator ────────────────────────────────────
+  // Reads all performance data and generates a personalized day-by-day plan.
+  generateTenDaySprint: publicProcedure
+    .input(
+      z.object({
+        daysUntilInterview: z.number().min(1).max(30),
+        targetLevel: z.string().max(10),
+        weakPatterns: z.array(z.string()).max(10),
+        weakBehavioralAreas: z.array(z.string()).max(10),
+        uncoveredMetaValues: z.array(z.string()).max(10),
+        avgPatternScore: z.number(),
+        avgBehavioralScore: z.number(),
+        mockSessionsCompleted: z.number(),
+        lastMockScore: z.number().optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const days = Math.min(input.daysUntilInterview, 10);
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach building a personalized ${days}-day final sprint plan for a candidate.
+
+Rules:
+- Day ${days} (interview day): ONLY "Day-of routine: review cheat sheet, 1 easy warm-up, breathing exercise, logistics check"
+- Day ${days - 1}: Full mock day (coding + system design + behavioral)
+- Other days: 2-hour focused sessions targeting the candidate's specific weak spots
+- Each day must have: a title, a 2-hour session breakdown (morning/afternoon blocks), and 1 specific goal
+- Prioritize weak patterns and uncovered behavioral areas
+- Include complexity proof practice if avgPatternScore < 3.5
+- Include STAR story rewrites if avgBehavioralScore < 3.5
+- Day 1 should always start with the weakest pattern
+
+Return JSON: { days: [ { day: 1, title: string, morningBlock: string, afternoonBlock: string, goal: string } ] }`,
+          },
+          {
+            role: "user",
+            content: JSON.stringify(input),
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "ten_day_sprint",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                days: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      day: { type: "number" },
+                      title: { type: "string" },
+                      morningBlock: { type: "string" },
+                      afternoonBlock: { type: "string" },
+                      goal: { type: "string" },
+                    },
+                    required: [
+                      "day",
+                      "title",
+                      "morningBlock",
+                      "afternoonBlock",
+                      "goal",
+                    ],
+                    additionalProperties: false,
+                  },
+                },
+              },
+              required: ["days"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── NEW: "Why This Company" Story Builder ─────────────────────────────────
+  buildWhyCompanyStory: publicProcedure
+    .input(
+      z.object({
+        targetCompany: z.string().max(100).default("Meta"),
+        targetTeam: z.string().max(200).optional(),
+        targetLevel: z.string().max(10),
+        motivations: z.string().max(2000), // candidate's raw motivations
+        relevantExperience: z.string().max(2000),
+        specificProducts: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach helping a candidate build a genuine, specific "Why ${input.targetCompany}" narrative for their interview.
+
+The story must:
+- Be 90 seconds when spoken (approximately 200-250 words)
+- Reference specific Meta products, engineering challenges, or cultural values — not generic statements
+- Connect the candidate's background to Meta's specific mission and technical scale
+- Sound authentic, not rehearsed
+- End with a forward-looking statement about what they want to build at Meta
+
+Return JSON: { story: string (the 90-second narrative), keyThemes: string[] (3 themes that make it authentic), whatToAvoid: string[] (3 generic phrases to avoid), followUpPrep: string (how to handle "tell me more" follow-ups) }`,
+          },
+          {
+            role: "user",
+            content: `Target: ${input.targetCompany}${input.targetTeam ? ` / ${input.targetTeam}` : ""} | Level: ${input.targetLevel}\n\nMy motivations: ${input.motivations}\nRelevant experience: ${input.relevantExperience}${input.specificProducts ? `\nProducts I care about: ${input.specificProducts}` : ""}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "why_company_story",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                story: { type: "string" },
+                keyThemes: { type: "array", items: { type: "string" } },
+                whatToAvoid: { type: "array", items: { type: "string" } },
+                followUpPrep: { type: "string" },
+              },
+              required: ["story", "keyThemes", "whatToAvoid", "followUpPrep"],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
+  // ── NEW: Interview Question Prediction Engine ─────────────────────────────
+  predictInterviewQuestions: publicProcedure
+    .input(
+      z.object({
+        targetTeam: z.string().max(200),
+        targetLevel: z.string().max(10),
+        interviewType: z.enum(["coding", "system_design", "behavioral", "all"]),
+      })
+    )
+    .mutation(async ({ input }) => {
+      const response = await invokeLLM({
+        messages: [
+          {
+            role: "system",
+            content: `You are a Meta interview coach with deep knowledge of what each Meta team asks in interviews. Based on the team and level, predict the most likely interview questions.
+
+For system design: predict 5 most likely questions for this team (e.g., Ads team asks about auction systems, ranking pipelines; Infrastructure asks about distributed storage, consensus; Integrity asks about content moderation at scale).
+For behavioral: predict the 3 most likely focus areas and 2 specific questions per area for this team and level.
+For coding: predict the 3 most likely pattern types and 2 example problems per pattern.
+
+Return JSON: { systemDesign: string[], behavioralFocusAreas: [{area: string, questions: string[]}], codingPatterns: [{pattern: string, examples: string[]}], teamInsight: string (1-2 sentences about what this team specifically values) }`,
+          },
+          {
+            role: "user",
+            content: `Team: ${input.targetTeam} | Level: ${input.targetLevel} | Focus: ${input.interviewType}`,
+          },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "question_prediction",
+            strict: true,
+            schema: {
+              type: "object",
+              properties: {
+                systemDesign: { type: "array", items: { type: "string" } },
+                behavioralFocusAreas: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      area: { type: "string" },
+                      questions: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["area", "questions"],
+                    additionalProperties: false,
+                  },
+                },
+                codingPatterns: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      pattern: { type: "string" },
+                      examples: { type: "array", items: { type: "string" } },
+                    },
+                    required: ["pattern", "examples"],
+                    additionalProperties: false,
+                  },
+                },
+                teamInsight: { type: "string" },
+              },
+              required: [
+                "systemDesign",
+                "behavioralFocusAreas",
+                "codingPatterns",
+                "teamInsight",
+              ],
+              additionalProperties: false,
+            },
+          },
+        },
+      });
+      const raw = response?.choices?.[0]?.message?.content;
+      if (!raw) throw new Error("No response");
+      return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
+    }),
+
   // ── Feature #10: Interview Readiness Report ───────────────────────────────
   generateReadinessReport: publicProcedure
     .input(
