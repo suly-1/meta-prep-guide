@@ -111,9 +111,9 @@ describe("TopNav smoke tests", () => {
 
   it("renders all main tab buttons", () => {
     renderTopNav();
-    // Desktop nav tabs — at least Overview and Coding should be present
+    // Desktop nav tabs — at least Overview and Drill Patterns should be present
     expect(screen.getAllByText("Overview").length).toBeGreaterThan(0);
-    expect(screen.getAllByText("Coding").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Drill Patterns").length).toBeGreaterThan(0);
   });
 
   it("marks the active tab with the correct aria state", () => {

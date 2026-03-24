@@ -723,3 +723,14 @@
 - [x] "Day Before" Checklist — 18 items across Logistics/Mental Prep/Content Review/Day-Of
 - [x] All 9 components added to OverviewTab under "Offer Maximizer" section
 - [x] TypeScript: 0 errors | Tests: 27/27 passing
+
+## Phase 11 — Guided Learning Path & UX Polish (Mar 24, 2026)
+
+- [x] Tab progress bars in TopNav (coding/behavioral mastery %, color-coded)
+- [x] Section title typography upgrade (1rem, more breathing room)
+- [x] Base font size bump (14px → 15px for reduced eye strain)
+- [x] Tab labels renamed: Coding → "Drill Patterns", Behavioral → "Tell Stories"
+- [x] Remove all guarantee language, replace with recommendation language
+- [x] GuidedLearningPath component (4-phase wizard: Calibrate → Fix Gaps → Simulate → Final Sprint)
+- [x] Wire GuidedLearningPath to top of OverviewTab above all other sections
+- [ ] pnpm build:standalone + deploy:github-pages

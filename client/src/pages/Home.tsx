@@ -337,7 +337,9 @@ export default function Home() {
         )}
       {/* Main content */}
       <main className={`container ${focusMode ? "py-4" : "py-6"}`}>
-        {activeTab === "overview" && <OverviewTab />}
+        {activeTab === "overview" && (
+          <OverviewTab onTabChange={setActiveTabWithUrl} />
+        )}
         {activeTab === "coding" && <CodingTab />}
         {activeTab === "behavioral" && <BehavioralTab />}
         {activeTab === "design" && <SystemDesignTab />}
@@ -608,13 +610,13 @@ export default function Home() {
 
               <div>
                 <p className="text-foreground font-semibold mb-1">
-                  No guarantees
+                  Recommendations only
                 </p>
                 <p>
                   Interview formats change. This guide reflects community
                   knowledge as of March 2026. Always verify current expectations
-                  with your recruiter. This guide is provided as-is, without
-                  warranty of any kind.
+                  with your recruiter. All content is provided as best-effort
+                  recommendations, not promises of any outcome.
                 </p>
               </div>
 

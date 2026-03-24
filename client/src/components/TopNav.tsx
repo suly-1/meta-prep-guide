@@ -264,6 +264,31 @@ function BadgePopover({ items, onJump, onClose, title }: BadgePopoverProps) {
   );
 }
 
+// ── Tab progress percentages ─────────────────────────────────────────────
+function useTabProgress() {
+  const [patternRatings] = usePatternRatings();
+  const [bqRatings] = useBehavioralRatings();
+
+  // Coding: % of patterns rated ≥ 3
+  const codingPct = Math.round(
+    (PATTERNS.filter(p => (patternRatings[p.id] ?? 0) >= 3).length /
+      PATTERNS.length) *
+      100
+  );
+
+  // Behavioral: % of BQs rated ≥ 3
+  const behavioralPct = Math.round(
+    (BEHAVIORAL_QUESTIONS.filter(q => (bqRatings[q.id] ?? 0) >= 3).length /
+      BEHAVIORAL_QUESTIONS.length) *
+      100
+  );
+
+  // Overview: composite of coding + behavioral
+  const overviewPct = Math.round((codingPct + behavioralPct) / 2);
+
+  return { codingPct, behavioralPct, overviewPct };
+}
+
 // ── Tab badge counters ─────────────────────────────────────────────────────
 function useTabBadgeCounts() {
   const [srDue] = useSpacedRepetition();
@@ -703,23 +728,39 @@ export default function TopNav({
   } = useTabBadgeCounts();
   const [openPopover, setOpenPopover] = useState<string | null>(null);
 
+  const { codingPct, behavioralPct, overviewPct } = useTabProgress();
+
   const TABS = [
     {
       id: "overview",
       label: "Overview",
       due: 0,
+      pct: overviewPct,
       items: [] as { label: string; reason: string }[],
     },
-    { id: "coding", label: "Coding", due: codingDue, items: codingItems },
+    {
+      id: "coding",
+      label: "Drill Patterns",
+      due: codingDue,
+      pct: codingPct,
+      items: codingItems,
+    },
     {
       id: "behavioral",
-      label: "Behavioral",
+      label: "Tell Stories",
       due: behavioralDue,
+      pct: behavioralPct,
       items: behavioralItems,
     },
-    { id: "design", label: "System Design", due: flashCardDue, items: [] },
-    { id: "collab", label: "Collab", due: 0, items: [] },
-    { id: "practice", label: "Practice", due: 0, items: [] },
+    {
+      id: "design",
+      label: "System Design",
+      due: flashCardDue,
+      pct: null,
+      items: [],
+    },
+    { id: "collab", label: "Collab", due: 0, pct: null, items: [] },
+    { id: "practice", label: "Practice", due: 0, pct: null, items: [] },
   ];
 
   return (
@@ -757,7 +798,23 @@ export default function TopNav({
                       : "text-muted-foreground hover:text-foreground hover:bg-secondary"
                   }`}
                 >
-                  {tab.label}
+                  <span className="flex flex-col items-center gap-0.5">
+                    <span>{tab.label}</span>
+                    {tab.pct !== null && tab.pct !== undefined && (
+                      <span className="w-full h-0.5 rounded-full bg-secondary overflow-hidden">
+                        <span
+                          className={`block h-full rounded-full transition-all duration-700 ${
+                            tab.pct >= 80
+                              ? "bg-emerald-500"
+                              : tab.pct >= 40
+                                ? "bg-blue-500"
+                                : "bg-amber-500"
+                          }`}
+                          style={{ width: `${tab.pct}%` }}
+                        />
+                      </span>
+                    )}
+                  </span>
                   {tab.due > 0 && (
                     <span
                       onClick={e => {

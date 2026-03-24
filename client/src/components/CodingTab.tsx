@@ -2438,7 +2438,8 @@ function AIEnabledRoundSection() {
               <strong className="text-foreground">
                 at least 4 checkpoints
               </strong>{" "}
-              is the target; 3 is the minimum threshold but not a guarantee.
+              is the recommended target; 3 is the minimum threshold, but results
+              vary.
             </p>
           </div>
 

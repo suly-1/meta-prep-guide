@@ -185,8 +185,9 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
             <p className="text-xs text-zinc-400 leading-relaxed">
               This is a free community resource provided as-is. The people who
               built it aren't responsible for your interview outcomes or any
-              decisions you make based on it. No warranties, no guarantees —
-              just good faith effort from engineers who've been through it.
+              decisions you make based on it. This is a best-effort resource
+              from engineers who've been through the process — treat it as a
+              recommendation, not a promise.
             </p>
           </div>
 
@@ -230,7 +231,7 @@ export default function DisclaimerGate({ onConfirm, loading = false }: Props) {
               }`}
             >
               I'm using this guide for my own interview prep and understand it's
-              a free community resource with no guarantees.
+              a free community resource with recommendations, not promises.
             </span>
           </button>
 

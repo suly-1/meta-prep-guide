@@ -78,6 +78,7 @@ import { PostInterviewDebrief } from "@/components/PostInterviewDebrief";
 import { WhyCompanyStoryBuilder } from "@/components/WhyCompanyStoryBuilder";
 import { InterviewQuestionPredictor } from "@/components/InterviewQuestionPredictor";
 import { ComplexityProofTrainer } from "@/components/ComplexityProofTrainer";
+import { GuidedLearningPath } from "@/components/GuidedLearningPath";
 
 // ── Disclaimer Status Badge ──────────────────────────────────────────────────
 function DisclaimerStatusBadge() {
@@ -2911,12 +2912,18 @@ import { ProgressAnalyticsDashboard } from "@/components/ProgressAnalyticsDashbo
 import { ScoreSyncBanner } from "@/components/ScoreSyncBanner";
 import { FeatureHeatmapRow } from "@/components/FeatureHeatmapRow";
 
-export default function OverviewTab() {
+interface OverviewTabProps {
+  onTabChange?: (tab: string) => void;
+}
+
+export default function OverviewTab({ onTabChange }: OverviewTabProps = {}) {
   const [interviewDate] = useInterviewDate();
   const daysLeft = interviewDate ? getDaysUntil(interviewDate) : null;
   return (
     <div className="space-y-6">
-      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════ */}
+      {/* ═══ GUIDED LEARNING PATH ══════════════════════════════════════════════════════ */}
+      <GuidedLearningPath onTabChange={onTabChange ?? (() => {})} />
+      {/* ═══ HIGH IMPACT FEATURES — TOP OF PAGE ═══════════════════════════════════════════════════ */}
       <FeatureHeatmapRow
         featureKeys={[
           "interview_readiness_report",
