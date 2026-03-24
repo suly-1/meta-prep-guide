@@ -808,3 +808,16 @@
 - [x] Add Users nav link in AdminFeedback header
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone, deploy:github-pages, save checkpoint
+
+## Phase 18 — Block Hardening + Audit Log + Time-Lock Reset (Mar 24, 2026)
+
+- [x] DB: add `block_reason` text column to users table
+- [x] DB: add `user_events` table (id, actorId, targetId, eventType, metadata, createdAt)
+- [x] Run pnpm db:push to migrate schema
+- [x] Server-side block enforcement in protectedProcedure (throw FORBIDDEN if ctx.user.blocked === 1) — already present
+- [x] Update blockUser mutation: accept optional reason, write to users.blockReason, write audit log row, send owner Manus notification
+- [x] Update unblockUser mutation: write audit log row, send owner notification
+- [x] Update /admin/users UI: reason input dialog on block, show blockReason in user row, audit log panel at bottom
+- [x] Add "Reset Clock" button to /admin/access (sets lockStartDate to today, saves immediately)
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone, deploy:github-pages, save checkpoint

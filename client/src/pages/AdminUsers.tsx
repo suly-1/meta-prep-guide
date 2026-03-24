@@ -1,6 +1,7 @@
 /**
  * AdminUsers — owner-only user management panel
- * Shows all registered users with instant block/unblock toggle.
+ * Shows all registered users with instant block/unblock toggle,
+ * optional block reason, and an audit log of all actions.
  */
 import { useState } from "react";
 import { trpc } from "@/lib/trpc";
@@ -15,18 +16,33 @@ import {
   Crown,
   UserX,
   UserCheck,
+  ClipboardList,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 
+// Matches the shape returned by adminUsers.listUsers
 type UserRow = {
   id: number;
   name: string | null;
   email: string | null;
   role: "user" | "admin";
   blocked: number;
+  blockReason: string | null;
   createdAt: Date;
   lastSignedIn: Date;
-  disclaimerAcknowledgedAt: Date | null;
+};
+
+type AuditRow = {
+  id: number;
+  actorId: number;
+  actorName: string | null;
+  targetId: number;
+  targetName: string | null;
+  eventType: string;
+  metadata: Record<string, unknown> | null;
+  createdAt: Date;
 };
 
 function formatDate(d: Date | null | undefined) {
@@ -38,10 +54,74 @@ function formatDate(d: Date | null | undefined) {
   });
 }
 
+function formatDateTime(d: Date | null | undefined) {
+  if (!d) return "—";
+  return new Date(d).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+/** Modal for entering a block reason before confirming */
+function BlockReasonDialog({
+  userName,
+  onConfirm,
+  onCancel,
+}: {
+  userName: string;
+  onConfirm: (reason: string) => void;
+  onCancel: () => void;
+}) {
+  const [reason, setReason] = useState("");
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <ShieldOff size={16} className="text-red-400" />
+          <h2 className="text-sm font-semibold text-zinc-100">
+            Block {userName}?
+          </h2>
+        </div>
+        <p className="text-xs text-zinc-400">
+          This user will immediately lose access to all features. You can
+          optionally record a reason (visible only to you in this panel).
+        </p>
+        <textarea
+          autoFocus
+          placeholder="Reason (optional, max 500 chars)…"
+          maxLength={500}
+          value={reason}
+          onChange={e => setReason(e.target.value)}
+          rows={3}
+          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500/50 resize-none"
+        />
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(reason.trim())}
+            className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-colors font-medium"
+          >
+            Confirm Block
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminUsers() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
+  const [pendingBlockId, setPendingBlockId] = useState<number | null>(null);
+  const [showAuditLog, setShowAuditLog] = useState(false);
 
   const isOwnerQuery = trpc.auth.isOwner.useQuery(undefined, {
     enabled: !!user,
@@ -55,20 +135,31 @@ export default function AdminUsers() {
     enabled: isOwnerQuery.data?.isOwner === true,
   });
 
+  const { data: auditEvents, refetch: refetchAudit } =
+    trpc.adminUsers.listEvents.useQuery(undefined, {
+      enabled: isOwnerQuery.data?.isOwner === true && showAuditLog,
+    });
+
   const utils = trpc.useUtils();
 
   const blockUser = trpc.adminUsers.blockUser.useMutation({
     onSuccess: (_, vars) => {
       toast.success(`User #${vars.userId} blocked`);
       utils.adminUsers.listUsers.invalidate();
+      utils.adminUsers.listEvents.invalidate();
+      setPendingBlockId(null);
     },
-    onError: err => toast.error(err.message),
+    onError: err => {
+      toast.error(err.message);
+      setPendingBlockId(null);
+    },
   });
 
   const unblockUser = trpc.adminUsers.unblockUser.useMutation({
     onSuccess: (_, vars) => {
       toast.success(`User #${vars.userId} unblocked`);
       utils.adminUsers.listUsers.invalidate();
+      utils.adminUsers.listEvents.invalidate();
     },
     onError: err => toast.error(err.message),
   });
@@ -115,8 +206,27 @@ export default function AdminUsers() {
   const blockedCount = (users ?? []).filter((u: UserRow) => u.blocked).length;
   const totalCount = (users ?? []).length;
 
+  // Find the user whose block dialog is open
+  const pendingUser = pendingBlockId
+    ? (users ?? []).find((u: UserRow) => u.id === pendingBlockId)
+    : null;
+
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
+      {/* Block reason dialog */}
+      {pendingUser && (
+        <BlockReasonDialog
+          userName={pendingUser.name ?? `User #${pendingUser.id}`}
+          onConfirm={reason => {
+            blockUser.mutate({
+              userId: pendingUser.id,
+              reason: reason || undefined,
+            });
+          }}
+          onCancel={() => setPendingBlockId(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="border-b border-zinc-800 bg-zinc-900/50 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -139,6 +249,12 @@ export default function AdminUsers() {
                 {blockedCount} blocked
               </span>
             )}
+            <button
+              onClick={() => refetch()}
+              className="text-zinc-500 hover:text-zinc-300 transition-colors"
+            >
+              Refresh
+            </button>
           </div>
         </div>
       </div>
@@ -151,7 +267,8 @@ export default function AdminUsers() {
             <strong className="text-amber-400">Owner-only panel.</strong> Block
             a user to immediately revoke their access. They will see an "Access
             Revoked" screen and cannot use any feature until unblocked. You
-            cannot block yourself.
+            cannot block yourself. All actions are logged and a Manus inbox
+            notification is sent.
           </span>
         </div>
 
@@ -247,6 +364,12 @@ export default function AdminUsers() {
                             <div className="text-xs text-zinc-500">
                               {u.email ?? `ID #${u.id}`}
                             </div>
+                            {/* Block reason */}
+                            {isBlocked && u.blockReason && (
+                              <div className="text-[10px] text-red-400/70 mt-0.5 max-w-[200px] truncate">
+                                Reason: {u.blockReason}
+                              </div>
+                            )}
                           </div>
                         </div>
                       </td>
@@ -306,7 +429,7 @@ export default function AdminUsers() {
                           </button>
                         ) : (
                           <button
-                            onClick={() => blockUser.mutate({ userId: u.id })}
+                            onClick={() => setPendingBlockId(u.id)}
                             disabled={isPending}
                             className="inline-flex items-center gap-1.5 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
                           >
@@ -322,6 +445,94 @@ export default function AdminUsers() {
             </table>
           </div>
         )}
+
+        {/* Audit Log */}
+        <div className="rounded-xl border border-zinc-800 overflow-hidden">
+          <button
+            onClick={() => setShowAuditLog(v => !v)}
+            className="w-full flex items-center justify-between px-4 py-3 bg-zinc-900 hover:bg-zinc-800/80 transition-colors text-sm"
+          >
+            <div className="flex items-center gap-2 text-zinc-300 font-medium">
+              <ClipboardList size={15} className="text-violet-400" />
+              Admin Audit Log
+              {auditEvents && auditEvents.length > 0 && (
+                <span className="text-xs bg-violet-500/20 text-violet-400 px-1.5 py-0.5 rounded">
+                  {auditEvents.length}
+                </span>
+              )}
+            </div>
+            {showAuditLog ? (
+              <ChevronUp size={14} className="text-zinc-500" />
+            ) : (
+              <ChevronDown size={14} className="text-zinc-500" />
+            )}
+          </button>
+
+          {showAuditLog && (
+            <div className="divide-y divide-zinc-800/50">
+              {!auditEvents || auditEvents.length === 0 ? (
+                <div className="px-4 py-8 text-center text-xs text-zinc-600">
+                  No events recorded yet.
+                </div>
+              ) : (
+                (auditEvents as AuditRow[]).map(ev => {
+                  const isBlock = ev.eventType === "block";
+                  const reason =
+                    ev.metadata &&
+                    typeof ev.metadata === "object" &&
+                    "reason" in ev.metadata
+                      ? String(ev.metadata.reason)
+                      : null;
+                  return (
+                    <div
+                      key={ev.id}
+                      className="px-4 py-3 flex items-start gap-3 hover:bg-zinc-900/40 transition-colors"
+                    >
+                      <div
+                        className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
+                          isBlock
+                            ? "bg-red-500/20 text-red-400"
+                            : "bg-emerald-500/20 text-emerald-400"
+                        }`}
+                      >
+                        {isBlock ? (
+                          <UserX size={11} />
+                        ) : (
+                          <UserCheck size={11} />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs text-zinc-300">
+                          <span className="font-medium text-zinc-100">
+                            {ev.actorName ?? `Actor #${ev.actorId}`}
+                          </span>{" "}
+                          <span
+                            className={
+                              isBlock ? "text-red-400" : "text-emerald-400"
+                            }
+                          >
+                            {isBlock ? "blocked" : "unblocked"}
+                          </span>{" "}
+                          <span className="font-medium text-zinc-100">
+                            {ev.targetName ?? `User #${ev.targetId}`}
+                          </span>
+                        </div>
+                        {reason && (
+                          <div className="text-[10px] text-zinc-500 mt-0.5">
+                            Reason: {reason}
+                          </div>
+                        )}
+                      </div>
+                      <div className="text-[10px] text-zinc-600 shrink-0 whitespace-nowrap">
+                        {formatDateTime(ev.createdAt)}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

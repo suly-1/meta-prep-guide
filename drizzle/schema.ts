@@ -32,6 +32,8 @@ export const users = mysqlTable("users", {
   disclaimerAcknowledgedAt: timestamp("disclaimerAcknowledgedAt"),
   /** When set to true, the user is blocked from accessing the site */
   blocked: int("blocked").default(0).notNull(),
+  /** Optional reason recorded by the owner when blocking a user */
+  blockReason: text("blockReason"),
 });
 
 export type User = typeof users.$inferSelect;
@@ -321,3 +323,21 @@ export const siteSettings = mysqlTable("site_settings", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
 });
 export type SiteSettings = typeof siteSettings.$inferSelect;
+
+// ── User Events (admin audit log) ────────────────────────────────────────────
+// Immutable append-only log of admin actions (block/unblock, role changes, etc.)
+export const userEvents = mysqlTable("user_events", {
+  id: int("id").autoincrement().primaryKey(),
+  /** The admin/owner who performed the action */
+  actorId: int("actorId").notNull(),
+  actorName: varchar("actorName", { length: 128 }),
+  /** The user the action was performed on */
+  targetId: int("targetId").notNull(),
+  targetName: varchar("targetName", { length: 128 }),
+  /** e.g. 'block' | 'unblock' | 'role_change' */
+  eventType: varchar("eventType", { length: 32 }).notNull(),
+  /** Optional extra context (reason, old/new value, etc.) */
+  metadata: json("metadata").$type<Record<string, unknown>>().default({}),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type UserEvent = typeof userEvents.$inferSelect;

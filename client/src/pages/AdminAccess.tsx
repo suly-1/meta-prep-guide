@@ -276,6 +276,35 @@ export default function AdminAccess() {
               </div>
             </div>
 
+            {/* Reset Clock shortcut */}
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="text-xs gap-1.5 border-amber-500/30 text-amber-400 hover:bg-amber-500/10"
+                onClick={() => {
+                  const today = new Date().toISOString().slice(0, 10);
+                  setLockStartDate(today);
+                  setDirty(true);
+                  // Immediately persist
+                  updateMutation.mutate({
+                    manualLockEnabled: manualLock,
+                    lockStartDate: today,
+                    lockDays,
+                    lockMessage: lockMessage || null,
+                  });
+                }}
+                disabled={updateMutation.isPending}
+              >
+                <RefreshCw className="w-3 h-3" />
+                Reset Clock to Today
+              </Button>
+              <span className="text-xs text-muted-foreground">
+                Sets start date to today and saves immediately.
+              </span>
+            </div>
+
             {/* Timer status */}
             {lockStartDate && (
               <div className="rounded-lg bg-muted/40 border border-border p-3 text-sm space-y-1">
