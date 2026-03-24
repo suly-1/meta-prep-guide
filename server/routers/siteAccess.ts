@@ -8,8 +8,9 @@
 import { z } from "zod";
 import { publicProcedure, ownerProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
-import { siteSettings } from "../../drizzle/schema";
-import { eq } from "drizzle-orm";
+import { siteSettings, users } from "../../drizzle/schema";
+import { eq, isNotNull } from "drizzle-orm";
+import { notifyOwner } from "../_core/notification";
 
 /** Fetch or auto-create the singleton settings row (id=1). */
 async function getOrCreateSettings() {
@@ -124,6 +125,44 @@ export const siteAccessRouter = router({
   /** Owner-only — returns the full settings row for the admin panel. */
   getSettings: ownerProcedure.query(async () => {
     return getOrCreateSettings();
+  }),
+
+  /**
+   * Owner-only — Cohort Reset.
+   * Resets the 60-day clock to today, clears all disclaimerAcknowledgedAt,
+   * and sends a Manus inbox notification to the owner.
+   */
+  cohortReset: ownerProcedure.mutation(async ({ ctx }) => {
+    const db = await getDb();
+    if (!db) throw new Error("Database unavailable");
+
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 1. Reset clock
+    await db
+      .update(siteSettings)
+      .set({ lockStartDate: today, manualLockEnabled: 0 })
+      .where(eq(siteSettings.id, 1));
+
+    // 2. Clear all disclaimer acknowledgments
+    await db
+      .update(users)
+      .set({ disclaimerAcknowledgedAt: null })
+      .where(isNotNull(users.disclaimerAcknowledgedAt));
+
+    // 3. Notify owner
+    await notifyOwner({
+      title: "Cohort Reset applied",
+      content: [
+        `**Action:** Cohort Reset`,
+        `**By:** ${ctx.user.name ?? "owner"}`,
+        `**New clock start:** ${today}`,
+        `**Effect:** All disclaimer acknowledgments cleared. 60-day window restarted.`,
+        `**Time:** ${new Date().toISOString()}`,
+      ].join("\n"),
+    }).catch(() => {});
+
+    return { success: true, newStartDate: today };
   }),
 
   /** Owner-only — update any combination of lock settings. */

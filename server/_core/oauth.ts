@@ -36,6 +36,12 @@ export function registerOAuthRoutes(app: Express) {
         lastSignedIn: new Date(),
       });
 
+      // Record login event for activity log (fire-and-forget)
+      const freshUser = await db.getUserByOpenId(userInfo.openId);
+      if (freshUser) {
+        db.recordLoginEvent(freshUser.id).catch(() => {});
+      }
+
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
         expiresInMs: ONE_YEAR_MS,

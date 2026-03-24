@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { InsertUser, users, loginEvents } from "../drizzle/schema";
 import { ENV } from "./_core/env";
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -94,3 +94,14 @@ export async function getUserByOpenId(openId: string) {
 }
 
 // TODO: add feature queries here as your schema grows.
+
+/** Record a login event for the given user (fire-and-forget, non-fatal). */
+export async function recordLoginEvent(userId: number): Promise<void> {
+  const db = await getDb();
+  if (!db) return;
+  try {
+    await db.insert(loginEvents).values({ userId });
+  } catch (err) {
+    console.warn("[Database] Failed to record login event:", err);
+  }
+}

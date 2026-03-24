@@ -38,6 +38,8 @@ import {
   ArrowLeft,
   Eye,
   RefreshCw,
+  Users,
+  AlertTriangle,
 } from "lucide-react";
 
 export default function AdminAccess() {
@@ -80,6 +82,20 @@ export default function AdminAccess() {
       setDirty(false);
     }
   }, [settings]);
+
+  const [showCohortConfirm, setShowCohortConfirm] = useState(false);
+
+  const cohortResetMutation = trpc.siteAccess.cohortReset.useMutation({
+    onSuccess: data => {
+      toast.success(
+        `Cohort reset! Clock restarted from ${data.newStartDate}. All disclaimers cleared.`
+      );
+      setShowCohortConfirm(false);
+      refetch();
+      refetchAccess();
+    },
+    onError: err => toast.error(`Cohort reset failed: ${err.message}`),
+  });
 
   const updateMutation = trpc.siteAccess.updateSettings.useMutation({
     onSuccess: () => {
@@ -416,6 +432,65 @@ export default function AdminAccess() {
                 </>
               )}
             </div>
+          </CardContent>
+        </Card>
+
+        {/* Cohort Reset Card */}
+        <Card className="border-amber-500/30 bg-amber-500/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base flex items-center gap-2">
+              <Users className="w-4 h-4 text-amber-400" />
+              Cohort Reset
+            </CardTitle>
+            <CardDescription>
+              Start a new cohort: resets the 60-day clock to today, clears all
+              disclaimer acknowledgments so returning users must re-read it, and
+              sends you a Manus inbox confirmation.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {!showCohortConfirm ? (
+              <Button
+                variant="outline"
+                className="border-amber-500/40 text-amber-400 hover:bg-amber-500/10 gap-2"
+                onClick={() => setShowCohortConfirm(true)}
+              >
+                <RefreshCw className="w-4 h-4" />
+                Start New Cohort
+              </Button>
+            ) : (
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 rounded-lg bg-amber-500/10 border border-amber-500/30 p-3">
+                  <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-xs text-amber-300">
+                    This will reset the 60-day clock to{" "}
+                    <strong>{new Date().toLocaleDateString()}</strong> and clear
+                    all disclaimer acknowledgments. Users will be prompted to
+                    re-read the disclaimer on their next visit.
+                  </p>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowCohortConfirm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="bg-amber-500 hover:bg-amber-600 text-white gap-2"
+                    onClick={() => cohortResetMutation.mutate()}
+                    disabled={cohortResetMutation.isPending}
+                  >
+                    {cohortResetMutation.isPending ? (
+                      <RefreshCw className="w-3 h-3 animate-spin" />
+                    ) : null}
+                    Confirm Cohort Reset
+                  </Button>
+                </div>
+              </div>
+            )}
           </CardContent>
         </Card>
 

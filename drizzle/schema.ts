@@ -34,6 +34,8 @@ export const users = mysqlTable("users", {
   blocked: int("blocked").default(0).notNull(),
   /** Optional reason recorded by the owner when blocking a user */
   blockReason: text("blockReason"),
+  /** If set, the block auto-expires at this timestamp */
+  blockedUntil: timestamp("blockedUntil"),
 });
 
 export type User = typeof users.$inferSelect;
@@ -341,3 +343,13 @@ export const userEvents = mysqlTable("user_events", {
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });
 export type UserEvent = typeof userEvents.$inferSelect;
+
+// ── Login Events (per-user login history) ────────────────────────────────────
+// Lightweight append-only log of successful logins. Used for the admin
+// login activity view and inactivity detection.
+export const loginEvents = mysqlTable("login_events", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type LoginEvent = typeof loginEvents.$inferSelect;

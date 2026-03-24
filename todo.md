@@ -821,3 +821,22 @@
 - [x] Add "Reset Clock" button to /admin/access (sets lockStartDate to today, saves immediately)
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone, deploy:github-pages, save checkpoint
+
+## Phase 19 — Cohort Reset, Login Activity, Export CSV, Block Expiry, Re-block (Mar 24, 2026)
+
+- [x] DB: add `login_events` table (userId, createdAt) to record each login
+- [x] DB: add `blockedUntil` timestamp column to users table
+- [x] Run migration (direct SQL via mysql2)
+- [x] Server: record login event on every successful OAuth callback
+- [x] Server: cohortReset procedure — reset lockStartDate to today, clear all disclaimerAcknowledgedAt, send Manus notification
+- [x] Server: blockUser mutation — accept optional blockedUntil date (expiryDays input)
+- [x] Server: exportAuditLogCsv procedure — return CSV string of full user_events history
+- [x] Server: reBlockUser procedure (re-apply block from audit log row)
+- [x] Server: getUserLoginHistory procedure — last 5 login timestamps per user
+- [x] UI: Cohort Reset card in /admin/access with amber confirmation dialog
+- [x] UI: /admin/users — login activity (last 5 logins, expandable per user)
+- [x] UI: /admin/users — Export Audit Log CSV download button
+- [x] UI: /admin/users — Re-block shortcut in audit log rows (for unblock events)
+- [x] UI: /admin/users — block dialog: optional "auto-unblock after N days" input
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone, deploy:github-pages, save checkpoint

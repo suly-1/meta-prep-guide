@@ -1,9 +1,13 @@
 /**
  * AdminUsers — owner-only user management panel
- * Shows all registered users with instant block/unblock toggle,
- * optional block reason, and an audit log of all actions.
+ *
+ * Features:
+ * - User table with block/unblock toggle + optional reason + auto-expiry
+ * - Login activity (last 5 logins per user, expandable)
+ * - Expandable audit log with Re-block shortcut on unblock events
+ * - Export Audit Log as CSV download
  */
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -19,10 +23,14 @@ import {
   ClipboardList,
   ChevronDown,
   ChevronUp,
+  Download,
+  Clock,
+  RotateCcw,
 } from "lucide-react";
 import { toast } from "sonner";
 
-// Matches the shape returned by adminUsers.listUsers
+// ── Types ──────────────────────────────────────────────────────────────────
+
 type UserRow = {
   id: number;
   name: string | null;
@@ -30,6 +38,7 @@ type UserRow = {
   role: "user" | "admin";
   blocked: number;
   blockReason: string | null;
+  blockedUntil: Date | null;
   createdAt: Date;
   lastSignedIn: Date;
 };
@@ -44,6 +53,8 @@ type AuditRow = {
   metadata: Record<string, unknown> | null;
   createdAt: Date;
 };
+
+// ── Helpers ────────────────────────────────────────────────────────────────
 
 function formatDate(d: Date | null | undefined) {
   if (!d) return "—";
@@ -64,17 +75,30 @@ function formatDateTime(d: Date | null | undefined) {
   });
 }
 
-/** Modal for entering a block reason before confirming */
-function BlockReasonDialog({
+function downloadCsv(csv: string, filename: string) {
+  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ── Block Dialog ───────────────────────────────────────────────────────────
+
+function BlockDialog({
   userName,
   onConfirm,
   onCancel,
 }: {
   userName: string;
-  onConfirm: (reason: string) => void;
+  onConfirm: (reason: string, expiryDays: number) => void;
   onCancel: () => void;
 }) {
   const [reason, setReason] = useState("");
+  const [expiryDays, setExpiryDays] = useState(0);
+
   return (
     <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
       <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md p-5 space-y-4">
@@ -85,18 +109,51 @@ function BlockReasonDialog({
           </h2>
         </div>
         <p className="text-xs text-zinc-400">
-          This user will immediately lose access to all features. You can
-          optionally record a reason (visible only to you in this panel).
+          This user will immediately lose access. Optionally set an auto-unblock
+          date so you don't have to remember to lift it manually.
         </p>
-        <textarea
-          autoFocus
-          placeholder="Reason (optional, max 500 chars)…"
-          maxLength={500}
-          value={reason}
-          onChange={e => setReason(e.target.value)}
-          rows={3}
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500/50 resize-none"
-        />
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs text-zinc-400 mb-1 block">
+              Reason (optional, max 500 chars)
+            </label>
+            <textarea
+              autoFocus
+              placeholder="e.g. Violated terms of use…"
+              maxLength={500}
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              rows={2}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500/50 resize-none"
+            />
+          </div>
+
+          <div>
+            <label className="text-xs text-zinc-400 mb-1 block">
+              Auto-unblock after (days) — 0 = permanent
+            </label>
+            <input
+              type="number"
+              min={0}
+              max={365}
+              value={expiryDays}
+              onChange={e =>
+                setExpiryDays(Math.max(0, parseInt(e.target.value) || 0))
+              }
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50"
+            />
+            {expiryDays > 0 && (
+              <p className="text-[10px] text-zinc-500 mt-1">
+                Auto-unblocks on{" "}
+                {new Date(
+                  Date.now() + expiryDays * 86_400_000
+                ).toLocaleDateString()}
+              </p>
+            )}
+          </div>
+        </div>
+
         <div className="flex gap-2 justify-end">
           <button
             onClick={onCancel}
@@ -105,7 +162,7 @@ function BlockReasonDialog({
             Cancel
           </button>
           <button
-            onClick={() => onConfirm(reason.trim())}
+            onClick={() => onConfirm(reason.trim(), expiryDays)}
             className="px-3 py-1.5 text-xs bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-colors font-medium"
           >
             Confirm Block
@@ -116,28 +173,47 @@ function BlockReasonDialog({
   );
 }
 
+// ── Main Component ─────────────────────────────────────────────────────────
+
 export default function AdminUsers() {
   const { user, loading: authLoading } = useAuth();
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [pendingBlockId, setPendingBlockId] = useState<number | null>(null);
   const [showAuditLog, setShowAuditLog] = useState(false);
+  const [expandedLoginUserId, setExpandedLoginUserId] = useState<number | null>(
+    null
+  );
 
   const isOwnerQuery = trpc.auth.isOwner.useQuery(undefined, {
     enabled: !!user,
   });
 
-  const {
-    data: users,
-    isLoading,
-    refetch,
-  } = trpc.adminUsers.listUsers.useQuery(undefined, {
-    enabled: isOwnerQuery.data?.isOwner === true,
-  });
+  const { data: usersData, isLoading } = trpc.adminUsers.listUsers.useQuery(
+    undefined,
+    {
+      enabled: isOwnerQuery.data?.isOwner === true,
+    }
+  );
 
   const { data: auditEvents, refetch: refetchAudit } =
     trpc.adminUsers.listEvents.useQuery(undefined, {
       enabled: isOwnerQuery.data?.isOwner === true && showAuditLog,
+    });
+
+  // Fetch login history for all user IDs once we have the user list
+  const allUserIds = useMemo(
+    () => (usersData ?? []).map((u: UserRow) => u.id),
+    [usersData]
+  );
+  const { data: loginHistory } = trpc.adminUsers.getUserLoginHistory.useQuery(
+    { userIds: allUserIds },
+    { enabled: allUserIds.length > 0 && isOwnerQuery.data?.isOwner === true }
+  );
+
+  const { data: csvData, refetch: fetchCsv } =
+    trpc.adminUsers.exportAuditLogCsv.useQuery(undefined, {
+      enabled: false, // only fetch on demand
     });
 
   const utils = trpc.useUtils();
@@ -158,6 +234,15 @@ export default function AdminUsers() {
   const unblockUser = trpc.adminUsers.unblockUser.useMutation({
     onSuccess: (_, vars) => {
       toast.success(`User #${vars.userId} unblocked`);
+      utils.adminUsers.listUsers.invalidate();
+      utils.adminUsers.listEvents.invalidate();
+    },
+    onError: err => toast.error(err.message),
+  });
+
+  const reBlockUser = trpc.adminUsers.reBlockUser.useMutation({
+    onSuccess: (_, vars) => {
+      toast.success(`User #${vars.userId} re-blocked`);
       utils.adminUsers.listUsers.invalidate();
       utils.adminUsers.listEvents.invalidate();
     },
@@ -193,7 +278,7 @@ export default function AdminUsers() {
     );
   }
 
-  const filtered = (users ?? []).filter((u: UserRow) => {
+  const filtered = (usersData ?? []).filter((u: UserRow) => {
     const q = search.toLowerCase();
     return (
       !q ||
@@ -203,24 +288,37 @@ export default function AdminUsers() {
     );
   });
 
-  const blockedCount = (users ?? []).filter((u: UserRow) => u.blocked).length;
-  const totalCount = (users ?? []).length;
+  const blockedCount = (usersData ?? []).filter(
+    (u: UserRow) => u.blocked
+  ).length;
+  const totalCount = (usersData ?? []).length;
 
-  // Find the user whose block dialog is open
   const pendingUser = pendingBlockId
-    ? (users ?? []).find((u: UserRow) => u.id === pendingBlockId)
+    ? (usersData ?? []).find((u: UserRow) => u.id === pendingBlockId)
     : null;
+
+  const handleExportCsv = async () => {
+    const result = await fetchCsv();
+    const csv = result.data?.csv ?? "";
+    if (!csv) {
+      toast.error("No audit log data to export.");
+      return;
+    }
+    downloadCsv(csv, `audit-log-${new Date().toISOString().slice(0, 10)}.csv`);
+    toast.success("Audit log exported.");
+  };
 
   return (
     <div className="min-h-screen bg-zinc-950 text-zinc-100">
-      {/* Block reason dialog */}
+      {/* Block dialog */}
       {pendingUser && (
-        <BlockReasonDialog
+        <BlockDialog
           userName={pendingUser.name ?? `User #${pendingUser.id}`}
-          onConfirm={reason => {
+          onConfirm={(reason, expiryDays) => {
             blockUser.mutate({
               userId: pendingUser.id,
               reason: reason || undefined,
+              expiryDays: expiryDays > 0 ? expiryDays : undefined,
             });
           }}
           onCancel={() => setPendingBlockId(null)}
@@ -249,12 +347,6 @@ export default function AdminUsers() {
                 {blockedCount} blocked
               </span>
             )}
-            <button
-              onClick={() => refetch()}
-              className="text-zinc-500 hover:text-zinc-300 transition-colors"
-            >
-              Refresh
-            </button>
           </div>
         </div>
       </div>
@@ -265,9 +357,8 @@ export default function AdminUsers() {
           <Crown size={14} className="shrink-0 mt-0.5 text-amber-400" />
           <span>
             <strong className="text-amber-400">Owner-only panel.</strong> Block
-            a user to immediately revoke their access. They will see an "Access
-            Revoked" screen and cannot use any feature until unblocked. You
-            cannot block yourself. All actions are logged and a Manus inbox
+            a user to immediately revoke their access. Optionally set an
+            auto-unblock date. All actions are logged and a Manus inbox
             notification is sent.
           </span>
         </div>
@@ -287,7 +378,7 @@ export default function AdminUsers() {
           />
         </div>
 
-        {/* Table */}
+        {/* User Table */}
         {isLoading ? (
           <div className="text-center py-12 text-zinc-600 text-sm animate-pulse">
             Loading users…
@@ -330,115 +421,171 @@ export default function AdminUsers() {
                       blockUser.variables?.userId === u.id) ||
                     (unblockUser.isPending &&
                       unblockUser.variables?.userId === u.id);
+                  const logins: Date[] = loginHistory?.[u.id] ?? [];
+                  const isLoginExpanded = expandedLoginUserId === u.id;
 
                   return (
-                    <tr
-                      key={u.id}
-                      className={`transition-colors ${
-                        isBlocked ? "bg-red-500/5" : "hover:bg-zinc-900/50"
-                      }`}
-                    >
-                      {/* User info */}
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                              isBlocked
-                                ? "bg-red-500/20 text-red-400"
-                                : "bg-blue-500/20 text-blue-400"
-                            }`}
-                          >
-                            {(u.name ?? u.email ?? "?")[0].toUpperCase()}
-                          </div>
-                          <div>
-                            <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-zinc-200 text-sm">
-                                {u.name ?? "Unknown"}
-                              </span>
-                              {isCurrentUser && (
-                                <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-medium">
-                                  You
+                    <>
+                      <tr
+                        key={u.id}
+                        className={`transition-colors ${
+                          isBlocked ? "bg-red-500/5" : "hover:bg-zinc-900/50"
+                        }`}
+                      >
+                        {/* User info */}
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2.5">
+                            <div
+                              className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                                isBlocked
+                                  ? "bg-red-500/20 text-red-400"
+                                  : "bg-blue-500/20 text-blue-400"
+                              }`}
+                            >
+                              {(u.name ?? u.email ?? "?")[0].toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-1.5">
+                                <span className="font-medium text-zinc-200 text-sm">
+                                  {u.name ?? "Unknown"}
                                 </span>
+                                {isCurrentUser && (
+                                  <span className="text-[10px] bg-blue-500/20 text-blue-400 px-1.5 py-0.5 rounded font-medium">
+                                    You
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-zinc-500">
+                                {u.email ?? `ID #${u.id}`}
+                              </div>
+                              {isBlocked && u.blockReason && (
+                                <div className="text-[10px] text-red-400/70 mt-0.5 max-w-[200px] truncate">
+                                  Reason: {u.blockReason}
+                                </div>
+                              )}
+                              {isBlocked && u.blockedUntil && (
+                                <div className="text-[10px] text-amber-400/70 mt-0.5">
+                                  Auto-unblocks: {formatDate(u.blockedUntil)}
+                                </div>
+                              )}
+                              {/* Login history toggle */}
+                              {logins.length > 0 && (
+                                <button
+                                  onClick={() =>
+                                    setExpandedLoginUserId(
+                                      isLoginExpanded ? null : u.id
+                                    )
+                                  }
+                                  className="flex items-center gap-1 text-[10px] text-zinc-500 hover:text-zinc-300 mt-0.5 transition-colors"
+                                >
+                                  <Clock size={9} />
+                                  {logins.length} login
+                                  {logins.length !== 1 ? "s" : ""}
+                                  {isLoginExpanded ? (
+                                    <ChevronUp size={9} />
+                                  ) : (
+                                    <ChevronDown size={9} />
+                                  )}
+                                </button>
                               )}
                             </div>
-                            <div className="text-xs text-zinc-500">
-                              {u.email ?? `ID #${u.id}`}
-                            </div>
-                            {/* Block reason */}
-                            {isBlocked && u.blockReason && (
-                              <div className="text-[10px] text-red-400/70 mt-0.5 max-w-[200px] truncate">
-                                Reason: {u.blockReason}
-                              </div>
-                            )}
                           </div>
-                        </div>
-                      </td>
+                        </td>
 
-                      {/* Role */}
-                      <td className="px-4 py-3 hidden md:table-cell">
-                        <span
-                          className={`text-xs px-2 py-0.5 rounded font-medium ${
-                            u.role === "admin"
-                              ? "bg-amber-500/20 text-amber-400"
-                              : "bg-zinc-800 text-zinc-400"
-                          }`}
-                        >
-                          {u.role}
-                        </span>
-                      </td>
-
-                      {/* Joined */}
-                      <td className="px-4 py-3 text-xs text-zinc-500 hidden lg:table-cell">
-                        {formatDate(u.createdAt)}
-                      </td>
-
-                      {/* Last seen */}
-                      <td className="px-4 py-3 text-xs text-zinc-500 hidden lg:table-cell">
-                        {formatDate(u.lastSignedIn)}
-                      </td>
-
-                      {/* Status */}
-                      <td className="px-4 py-3">
-                        {isBlocked ? (
-                          <span className="flex items-center gap-1.5 text-xs text-red-400">
-                            <UserX size={12} />
-                            Blocked
-                          </span>
-                        ) : (
-                          <span className="flex items-center gap-1.5 text-xs text-emerald-400">
-                            <UserCheck size={12} />
-                            Active
-                          </span>
-                        )}
-                      </td>
-
-                      {/* Action */}
-                      <td className="px-4 py-3 text-right">
-                        {isCurrentUser ? (
-                          <span className="text-xs text-zinc-600 italic">
-                            —
-                          </span>
-                        ) : isBlocked ? (
-                          <button
-                            onClick={() => unblockUser.mutate({ userId: u.id })}
-                            disabled={isPending}
-                            className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                        {/* Role */}
+                        <td className="px-4 py-3 hidden md:table-cell">
+                          <span
+                            className={`text-xs px-2 py-0.5 rounded font-medium ${
+                              u.role === "admin"
+                                ? "bg-amber-500/20 text-amber-400"
+                                : "bg-zinc-800 text-zinc-400"
+                            }`}
                           >
-                            <ShieldCheck size={12} />
-                            {isPending ? "…" : "Unblock"}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={() => setPendingBlockId(u.id)}
-                            disabled={isPending}
-                            className="inline-flex items-center gap-1.5 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                          >
-                            <ShieldOff size={12} />
-                            {isPending ? "…" : "Block"}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
+                            {u.role}
+                          </span>
+                        </td>
+
+                        {/* Joined */}
+                        <td className="px-4 py-3 text-xs text-zinc-500 hidden lg:table-cell">
+                          {formatDate(u.createdAt)}
+                        </td>
+
+                        {/* Last seen */}
+                        <td className="px-4 py-3 text-xs text-zinc-500 hidden lg:table-cell">
+                          {formatDate(u.lastSignedIn)}
+                        </td>
+
+                        {/* Status */}
+                        <td className="px-4 py-3">
+                          {isBlocked ? (
+                            <span className="flex items-center gap-1.5 text-xs text-red-400">
+                              <UserX size={12} />
+                              Blocked
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1.5 text-xs text-emerald-400">
+                              <UserCheck size={12} />
+                              Active
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Action */}
+                        <td className="px-4 py-3 text-right">
+                          {isCurrentUser ? (
+                            <span className="text-xs text-zinc-600 italic">
+                              —
+                            </span>
+                          ) : isBlocked ? (
+                            <button
+                              onClick={() =>
+                                unblockUser.mutate({ userId: u.id })
+                              }
+                              disabled={isPending}
+                              className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              <ShieldCheck size={12} />
+                              {isPending ? "…" : "Unblock"}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setPendingBlockId(u.id)}
+                              disabled={isPending}
+                              className="inline-flex items-center gap-1.5 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                            >
+                              <ShieldOff size={12} />
+                              {isPending ? "…" : "Block"}
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+
+                      {/* Login history expansion row */}
+                      {isLoginExpanded && logins.length > 0 && (
+                        <tr key={`${u.id}-logins`} className="bg-zinc-900/60">
+                          <td colSpan={6} className="px-4 py-2">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <Clock
+                                size={11}
+                                className="text-zinc-500 shrink-0"
+                              />
+                              <span className="text-[10px] text-zinc-500 font-medium mr-1">
+                                Last {logins.length} login
+                                {logins.length !== 1 ? "s:" : ":"}
+                              </span>
+                              {logins.map((d, i) => (
+                                <span
+                                  key={i}
+                                  className="text-[10px] bg-zinc-800 text-zinc-400 px-2 py-0.5 rounded"
+                                >
+                                  {formatDateTime(d)}
+                                </span>
+                              ))}
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   );
                 })}
               </tbody>
@@ -448,11 +595,11 @@ export default function AdminUsers() {
 
         {/* Audit Log */}
         <div className="rounded-xl border border-zinc-800 overflow-hidden">
-          <button
-            onClick={() => setShowAuditLog(v => !v)}
-            className="w-full flex items-center justify-between px-4 py-3 bg-zinc-900 hover:bg-zinc-800/80 transition-colors text-sm"
-          >
-            <div className="flex items-center gap-2 text-zinc-300 font-medium">
+          <div className="flex items-center justify-between px-4 py-3 bg-zinc-900">
+            <button
+              onClick={() => setShowAuditLog(v => !v)}
+              className="flex items-center gap-2 text-sm text-zinc-300 font-medium hover:text-zinc-100 transition-colors"
+            >
               <ClipboardList size={15} className="text-violet-400" />
               Admin Audit Log
               {auditEvents && auditEvents.length > 0 && (
@@ -460,13 +607,22 @@ export default function AdminUsers() {
                   {auditEvents.length}
                 </span>
               )}
-            </div>
-            {showAuditLog ? (
-              <ChevronUp size={14} className="text-zinc-500" />
-            ) : (
-              <ChevronDown size={14} className="text-zinc-500" />
-            )}
-          </button>
+              {showAuditLog ? (
+                <ChevronUp size={14} className="text-zinc-500" />
+              ) : (
+                <ChevronDown size={14} className="text-zinc-500" />
+              )}
+            </button>
+
+            {/* Export CSV */}
+            <button
+              onClick={handleExportCsv}
+              className="flex items-center gap-1.5 text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-700 hover:border-zinc-500 px-2.5 py-1.5 rounded-lg transition-colors"
+            >
+              <Download size={12} />
+              Export CSV
+            </button>
+          </div>
 
           {showAuditLog && (
             <div className="divide-y divide-zinc-800/50">
@@ -477,12 +633,20 @@ export default function AdminUsers() {
               ) : (
                 (auditEvents as AuditRow[]).map(ev => {
                   const isBlock = ev.eventType === "block";
+                  const isUnblock = ev.eventType === "unblock";
                   const reason =
                     ev.metadata &&
                     typeof ev.metadata === "object" &&
                     "reason" in ev.metadata
                       ? String(ev.metadata.reason)
                       : null;
+                  const autoExpiry =
+                    ev.metadata &&
+                    typeof ev.metadata === "object" &&
+                    "blockedUntil" in ev.metadata
+                      ? String(ev.metadata.blockedUntil)
+                      : null;
+
                   return (
                     <div
                       key={ev.id}
@@ -522,9 +686,32 @@ export default function AdminUsers() {
                             Reason: {reason}
                           </div>
                         )}
+                        {autoExpiry && (
+                          <div className="text-[10px] text-amber-400/70 mt-0.5">
+                            Auto-unblock:{" "}
+                            {new Date(autoExpiry).toLocaleDateString()}
+                          </div>
+                        )}
                       </div>
-                      <div className="text-[10px] text-zinc-600 shrink-0 whitespace-nowrap">
-                        {formatDateTime(ev.createdAt)}
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        {/* Re-block shortcut on unblock events */}
+                        {isUnblock && (
+                          <button
+                            onClick={() =>
+                              reBlockUser.mutate({ userId: ev.targetId })
+                            }
+                            disabled={reBlockUser.isPending}
+                            title="Re-block this user"
+                            className="flex items-center gap-1 text-[10px] text-red-400/70 hover:text-red-400 border border-red-500/20 hover:border-red-500/40 px-2 py-1 rounded transition-colors disabled:opacity-50"
+                          >
+                            <RotateCcw size={9} />
+                            Re-block
+                          </button>
+                        )}
+                        <div className="text-[10px] text-zinc-600 whitespace-nowrap">
+                          {formatDateTime(ev.createdAt)}
+                        </div>
                       </div>
                     </div>
                   );
