@@ -1,0 +1,90 @@
+{
+  "query": "DESCRIBE feedback;",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LS6oXFmEKtYAwQA.root --database cRTBYDQNffnDPa87zbUz9b --execute DESCRIBE feedback;",
+  "rows": [
+    {
+      "Field": "id",
+      "Type": "int",
+      "Null": "NO",
+      "Key": "PRI",
+      "Default": "NULL",
+      "Extra": "auto_increment"
+    },
+    {
+      "Field": "userId",
+      "Type": "int",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "feedbackType",
+      "Type": "enum('general','sprint_plan')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "general",
+      "Extra": ""
+    },
+    {
+      "Field": "category",
+      "Type": "enum('bug','feature_request','content','ux','other')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "other",
+      "Extra": ""
+    },
+    {
+      "Field": "message",
+      "Type": "text",
+      "Null": "NO",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "page",
+      "Type": "varchar(64)",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "metadata",
+      "Type": "json",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    },
+    {
+      "Field": "createdAt",
+      "Type": "timestamp",
+      "Null": "NO",
+      "Key": "",
+      "Default": "CURRENT_TIMESTAMP",
+      "Extra": ""
+    },
+    {
+      "Field": "status",
+      "Type": "enum('new','in_progress','done','dismissed')",
+      "Null": "NO",
+      "Key": "",
+      "Default": "new",
+      "Extra": ""
+    },
+    {
+      "Field": "admin_note",
+      "Type": "text",
+      "Null": "YES",
+      "Key": "",
+      "Default": "NULL",
+      "Extra": ""
+    }
+  ],
+  "messages": [],
+  "stdout": "Field\tType\tNull\tKey\tDefault\tExtra\nid\tint\tNO\tPRI\tNULL\tauto_increment\nuserId\tint\tYES\t\tNULL\t\nfeedbackType\tenum('general','sprint_plan')\tNO\t\tgeneral\t\ncategory\tenum('bug','feature_request','content','ux','other')\tNO\t\tother\t\nmessage\ttext\tNO\t\tNULL\t\npage\tvarchar(64)\tYES\t\tNULL\t\nmetadata\tjson\tYES\t\tNULL\t\ncreatedAt\ttimestamp\tNO\t\tCURRENT_TIMESTAMP\t\nstatus\tenum('new','in_progress','done','dismissed')\tNO\t\tnew\t\nadmin_note\ttext\tYES\t\tNULL\t\n",
+  "stderr": "",
+  "execution_time_ms": 423
+}

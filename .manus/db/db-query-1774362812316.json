@@ -1,0 +1,42 @@
+{
+  "query": "\nSELECT TABLE_NAME, COLUMN_NAME \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_SCHEMA = DATABASE() \n  AND TABLE_NAME IN ('apex_picks_sets', 'users', 'leaderboard_entries', 'onboarding_progress', 'user_ratings', 'ctci_progress', 'feedback', 'user_scores', 'site_settings')\n  AND COLUMN_NAME = 'updatedAt'\nORDER BY TABLE_NAME;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LS6oXFmEKtYAwQA.root --database cRTBYDQNffnDPa87zbUz9b --execute \nSELECT TABLE_NAME, COLUMN_NAME \nFROM INFORMATION_SCHEMA.COLUMNS \nWHERE TABLE_SCHEMA = DATABASE() \n  AND TABLE_NAME IN ('apex_picks_sets', 'users', 'leaderboard_entries', 'onboarding_progress', 'user_ratings', 'ctci_progress', 'feedback', 'user_scores', 'site_settings')\n  AND COLUMN_NAME = 'updatedAt'\nORDER BY TABLE_NAME;\n",
+  "rows": [
+    {
+      "TABLE_NAME": "ctci_progress",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "feedback",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "leaderboard_entries",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "onboarding_progress",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "site_settings",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "user_ratings",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "user_scores",
+      "COLUMN_NAME": "updatedAt"
+    },
+    {
+      "TABLE_NAME": "users",
+      "COLUMN_NAME": "updatedAt"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tCOLUMN_NAME\nctci_progress\tupdatedAt\nfeedback\tupdatedAt\nleaderboard_entries\tupdatedAt\nonboarding_progress\tupdatedAt\nsite_settings\tupdatedAt\nuser_ratings\tupdatedAt\nuser_scores\tupdatedAt\nusers\tupdatedAt\n",
+  "stderr": "",
+  "execution_time_ms": 378
+}

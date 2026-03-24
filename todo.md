@@ -886,3 +886,12 @@
 - [x] UI: /admin/users — amber "Check Inactive" Run Now button in header
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone, deploy:github-pages, save checkpoint
+
+## Phase 25 — Fix feedback table query failure (Mar 24, 2026)
+
+- [x] Diagnose feedback table SQL error: missing updatedAt column in DB (schema had it, migration was never applied)
+- [x] ALTER TABLE feedback ADD COLUMN updatedAt TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+- [x] Create missing tables: apex_picks_sets, favorite_questions, progress_snapshots
+- [x] Verified OWNER_OPEN_ID matches user ID 1 openId (6ZvUo3o3...) — admin shield icon works on live server
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] save checkpoint (no rebuild needed — DB-only fix)

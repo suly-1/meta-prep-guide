@@ -1,0 +1,94 @@
+{
+  "query": "\nSELECT t.TABLE_NAME, \n  CASE WHEN c.COLUMN_NAME IS NOT NULL THEN 'HAS updatedAt' ELSE 'MISSING updatedAt' END as status\nFROM INFORMATION_SCHEMA.TABLES t\nLEFT JOIN INFORMATION_SCHEMA.COLUMNS c \n  ON c.TABLE_SCHEMA = t.TABLE_SCHEMA \n  AND c.TABLE_NAME = t.TABLE_NAME \n  AND c.COLUMN_NAME = 'updatedAt'\nWHERE t.TABLE_SCHEMA = DATABASE()\n  AND t.TABLE_TYPE = 'BASE TABLE'\nORDER BY t.TABLE_NAME;\n",
+  "command": "mysql --batch --raw --column-names --default-character-set=utf8mb4 --host gateway04.us-east-1.prod.aws.tidbcloud.com --port 4000 --user LS6oXFmEKtYAwQA.root --database cRTBYDQNffnDPa87zbUz9b --execute \nSELECT t.TABLE_NAME, \n  CASE WHEN c.COLUMN_NAME IS NOT NULL THEN 'HAS updatedAt' ELSE 'MISSING updatedAt' END as status\nFROM INFORMATION_SCHEMA.TABLES t\nLEFT JOIN INFORMATION_SCHEMA.COLUMNS c \n  ON c.TABLE_SCHEMA = t.TABLE_SCHEMA \n  AND c.TABLE_NAME = t.TABLE_NAME \n  AND c.COLUMN_NAME = 'updatedAt'\nWHERE t.TABLE_SCHEMA = DATABASE()\n  AND t.TABLE_TYPE = 'BASE TABLE'\nORDER BY t.TABLE_NAME;\n",
+  "rows": [
+    {
+      "TABLE_NAME": "__drizzle_migrations",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "analytics_events",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "analytics_page_views",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "analytics_sessions",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "collab_rooms",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "ctci_progress",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "favorite_questions",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "feedback",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "leaderboard_entries",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "login_events",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "mock_sessions",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "onboarding_progress",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "progress_snapshots",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "scorecards",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "session_events",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "site_settings",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "sprint_plans",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "user_events",
+      "status": "MISSING updatedAt"
+    },
+    {
+      "TABLE_NAME": "user_ratings",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "user_scores",
+      "status": "HAS updatedAt"
+    },
+    {
+      "TABLE_NAME": "users",
+      "status": "HAS updatedAt"
+    }
+  ],
+  "messages": [],
+  "stdout": "TABLE_NAME\tstatus\n__drizzle_migrations\tMISSING updatedAt\nanalytics_events\tMISSING updatedAt\nanalytics_page_views\tMISSING updatedAt\nanalytics_sessions\tMISSING updatedAt\ncollab_rooms\tMISSING updatedAt\nctci_progress\tHAS updatedAt\nfavorite_questions\tMISSING updatedAt\nfeedback\tHAS updatedAt\nleaderboard_entries\tHAS updatedAt\nlogin_events\tMISSING updatedAt\nmock_sessions\tMISSING updatedAt\nonboarding_progress\tHAS updatedAt\nprogress_snapshots\tMISSING updatedAt\nscorecards\tMISSING updatedAt\nsession_events\tMISSING updatedAt\nsite_settings\tHAS updatedAt\nsprint_plans\tMISSING updatedAt\nuser_events\tMISSING updatedAt\nuser_ratings\tHAS updatedAt\nuser_scores\tHAS updatedAt\nusers\tHAS updatedAt\n",
+  "stderr": "",
+  "execution_time_ms": 354
+}
