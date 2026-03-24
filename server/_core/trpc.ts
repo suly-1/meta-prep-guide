@@ -18,6 +18,14 @@ const requireUser = t.middleware(async opts => {
     throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
   }
 
+  // Block access for users flagged by the owner
+  if ((ctx.user as { blocked?: number }).blocked === 1) {
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "ACCESS_REVOKED",
+    });
+  }
+
   return next({
     ctx: {
       ...ctx,

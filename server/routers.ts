@@ -20,6 +20,7 @@ import { analyticsRouter } from "./routers/analytics";
 import { favoritesRouter } from "./routers/favorites";
 import { progressRouter } from "./routers/progress";
 import { siteAccessRouter } from "./routers/siteAccess";
+import { adminUsersRouter } from "./routers/adminUsers";
 
 export const appRouter = router({
   // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
@@ -33,6 +34,7 @@ export const appRouter = router({
       // Omit openId from the public response — it's an internal OAuth identifier
       // that should not be exposed to the frontend or logged in browser devtools.
       const { openId: _openId, loginMethod: _loginMethod, ...safeUser } = u;
+      // Include blocked flag so the frontend BlockedGate can redirect blocked users
       return safeUser;
     }),
     /** Returns whether the current user is the site owner (OWNER_OPEN_ID match). */
@@ -65,6 +67,7 @@ export const appRouter = router({
   favorites: favoritesRouter,
   progress: progressRouter,
   siteAccess: siteAccessRouter,
+  adminUsers: adminUsersRouter,
 });
 
 export type AppRouter = typeof appRouter;

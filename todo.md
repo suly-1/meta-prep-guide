@@ -798,11 +798,13 @@
 
 - [x] TypeScript check (0 errors), tests (30/30 passing), build:standalone, deploy:github-pages
 
-## Phase 17 — User Blocking (Admin Toggle)
+## Phase 17 — User Blocking + security.txt (Mar 24, 2026)
 
-- [ ] Add `blocked` boolean column to users table in drizzle/schema.ts
-- [ ] Add blockUser / unblockUser procedures (ownerProcedure)
-- [ ] Add blocked check to protectedProcedure middleware (throw FORBIDDEN if user.blocked)
-- [ ] Build "Blocked" screen component shown to blocked users on every page load
-- [ ] Add user management table to /admin/users with instant block/unblock toggle
-- [ ] TypeScript check, tests, build:standalone, deploy:github-pages, save checkpoint
+- [x] Add `blocked` boolean column to users table in drizzle/schema.ts
+- [x] Add blockUser / unblockUser procedures (ownerProcedure) in server/routers/adminUsers.ts
+- [x] BlockedScreen component shown to blocked users on every page load (BlockedGate in App.tsx)
+- [x] Build user management table at /admin/users with instant block/unblock toggle
+- [x] Add /.well-known/security.txt (RFC 9116 compliant, contact: sulda00@gmail.com)
+- [x] Add Users nav link in AdminFeedback header
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone, deploy:github-pages, save checkpoint

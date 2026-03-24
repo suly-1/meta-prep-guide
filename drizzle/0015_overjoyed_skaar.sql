@@ -1,0 +1,1 @@
+ALTER TABLE `users` ADD `blocked` int DEFAULT 0 NOT NULL;

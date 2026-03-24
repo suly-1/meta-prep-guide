@@ -30,6 +30,8 @@ export const users = mysqlTable("users", {
   updatedAt: timestamp("updatedAt").defaultNow().onUpdateNow().notNull(),
   lastSignedIn: timestamp("lastSignedIn").defaultNow().notNull(),
   disclaimerAcknowledgedAt: timestamp("disclaimerAcknowledgedAt"),
+  /** When set to true, the user is blocked from accessing the site */
+  blocked: int("blocked").default(0).notNull(),
 });
 
 export type User = typeof users.$inferSelect;

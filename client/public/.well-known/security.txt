@@ -1,0 +1,5 @@
+Contact: mailto:sulda00@gmail.com
+Expires: 2027-01-01T00:00:00.000Z
+Preferred-Languages: en
+Policy: https://www.metaguide.one/security-policy
+Canonical: https://www.metaguide.one/.well-known/security.txt

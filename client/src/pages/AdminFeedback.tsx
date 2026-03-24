@@ -24,6 +24,7 @@ import {
   Clock,
   TrendingUp,
   Mail,
+  Users,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -357,6 +358,12 @@ export default function AdminFeedback() {
               className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-secondary transition-all"
             >
               <BarChart3 size={11} /> Stats
+            </Link>
+            <Link
+              href="/admin/users"
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs text-muted-foreground hover:bg-secondary transition-all"
+            >
+              <Users size={11} /> Users
             </Link>
             <button
               onClick={() => refetch()}

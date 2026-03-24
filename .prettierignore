@@ -20,6 +20,12 @@ pnpm-lock.yaml
 *.sqlite
 *.sqlite3
 
+# Drizzle auto-generated migration metadata
+drizzle/meta/
+
+# Manus internal files
+.manus/
+
 # Logs
 *.log
 
