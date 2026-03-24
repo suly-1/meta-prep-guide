@@ -70,7 +70,8 @@ const requireUser = t.middleware(async opts => {
 
 export const protectedProcedure = t.procedure.use(requireUser);
 
-export const adminProcedure = t.procedure.use(
+// adminProcedure chains through requireUser so blocked admins are also rejected
+export const adminProcedure = t.procedure.use(requireUser).use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
@@ -91,15 +92,12 @@ export const adminProcedure = t.procedure.use(
  * ownerProcedure — only the account whose openId matches OWNER_OPEN_ID
  * can call this. Use for highly sensitive data (disclaimer audit log, etc.).
  */
-export const ownerProcedure = t.procedure.use(
+// ownerProcedure chains through requireUser so blocked users can't bypass via owner path
+export const ownerProcedure = t.procedure.use(requireUser).use(
   t.middleware(async opts => {
     const { ctx, next } = opts;
 
-    if (!ctx.user) {
-      throw new TRPCError({ code: "UNAUTHORIZED", message: UNAUTHED_ERR_MSG });
-    }
-
-    if (!ENV.ownerOpenId || ctx.user.openId !== ENV.ownerOpenId) {
+    if (!ENV.ownerOpenId || ctx.user!.openId !== ENV.ownerOpenId) {
       throw new TRPCError({ code: "FORBIDDEN", message: NOT_ADMIN_ERR_MSG });
     }
 

@@ -686,6 +686,9 @@ export const trpc = {
     updateNote: {
       useMutation: () => makeMutation(() => ({ success: true })),
     },
+    markAllNew: {
+      useMutation: () => makeMutation(() => ({ success: true, updated: 0 })),
+    },
   },
 
   // ── userScores (no-op in standalone) ─────────────────────────────────────

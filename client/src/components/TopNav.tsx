@@ -731,6 +731,14 @@ export default function TopNav({
     enabled: !!user,
   });
   const isOwner = ownerData?.isOwner ?? false;
+
+  // Feedback badge: show red dot on admin icon when there are recent items
+  const { data: feedbackStats } = trpc.feedback.adminStats.useQuery(undefined, {
+    enabled: isOwner,
+    refetchInterval: 5 * 60 * 1000, // re-check every 5 minutes
+    staleTime: 2 * 60 * 1000,
+  });
+  const newFeedbackCount = feedbackStats?.last7Days ?? 0;
   const {
     codingDue,
     behavioralDue,
@@ -894,10 +902,17 @@ export default function TopNav({
                     ? "#/admin/feedback"
                     : "/admin/feedback"
                 }
-                title="Admin Panel"
-                className="w-8 h-8 rounded-md flex items-center justify-center text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 transition-all"
+                title={
+                  newFeedbackCount > 0
+                    ? `Admin Panel · ${newFeedbackCount} new in last 7 days`
+                    : "Admin Panel"
+                }
+                className="relative w-8 h-8 rounded-md flex items-center justify-center text-violet-400 hover:text-violet-300 hover:bg-violet-500/10 transition-all"
               >
                 <ShieldCheck size={15} />
+                {newFeedbackCount > 0 && (
+                  <span className="absolute top-0.5 right-0.5 w-2 h-2 rounded-full bg-red-500 ring-1 ring-background" />
+                )}
               </a>
             )}
             {/* Dark mode toggle */}

@@ -117,7 +117,7 @@ export const adminUsersRouter = router({
       if (!target)
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
 
-      if (target.openId === ctx.user.openId)
+      if (target.openId === ctx.user!.openId)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You cannot block yourself",
@@ -138,8 +138,8 @@ export const adminUsersRouter = router({
         .where(eq(users.id, input.userId));
 
       await writeAuditLog(db, {
-        actorId: ctx.user.id,
-        actorName: ctx.user.name,
+        actorId: ctx.user!.id,
+        actorName: ctx.user!.name,
         targetId: target.id,
         targetName: target.name,
         eventType: "block",
@@ -154,7 +154,7 @@ export const adminUsersRouter = router({
         content: [
           `**Action:** Block`,
           `**Target:** ${target.name ?? "unknown"} (ID: ${target.id})`,
-          `**By:** ${ctx.user.name ?? "owner"}`,
+          `**By:** ${ctx.user!.name ?? "owner"}`,
           `**Reason:** ${input.reason ?? "(none provided)"}`,
           `**Auto-unblock:** ${blockedUntil ? blockedUntil.toISOString() : "never"}`,
           `**Time:** ${new Date().toISOString()}`,
@@ -190,8 +190,8 @@ export const adminUsersRouter = router({
         .where(eq(users.id, input.userId));
 
       await writeAuditLog(db, {
-        actorId: ctx.user.id,
-        actorName: ctx.user.name,
+        actorId: ctx.user!.id,
+        actorName: ctx.user!.name,
         targetId: target.id,
         targetName: target.name,
         eventType: "unblock",
@@ -202,7 +202,7 @@ export const adminUsersRouter = router({
         content: [
           `**Action:** Unblock`,
           `**Target:** ${target.name ?? "unknown"} (ID: ${target.id})`,
-          `**By:** ${ctx.user.name ?? "owner"}`,
+          `**By:** ${ctx.user!.name ?? "owner"}`,
           `**Time:** ${new Date().toISOString()}`,
         ].join("\n"),
       }).catch(() => {});
@@ -238,7 +238,7 @@ export const adminUsersRouter = router({
       if (!target)
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
 
-      if (target.openId === ctx.user.openId)
+      if (target.openId === ctx.user!.openId)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You cannot block yourself",
@@ -254,8 +254,8 @@ export const adminUsersRouter = router({
         .where(eq(users.id, input.userId));
 
       await writeAuditLog(db, {
-        actorId: ctx.user.id,
-        actorName: ctx.user.name,
+        actorId: ctx.user!.id,
+        actorName: ctx.user!.name,
         targetId: target.id,
         targetName: target.name,
         eventType: "block",
@@ -270,7 +270,7 @@ export const adminUsersRouter = router({
         content: [
           `**Action:** Re-block (from audit log shortcut)`,
           `**Target:** ${target.name ?? "unknown"} (ID: ${target.id})`,
-          `**By:** ${ctx.user.name ?? "owner"}`,
+          `**By:** ${ctx.user!.name ?? "owner"}`,
           `**Time:** ${new Date().toISOString()}`,
         ].join("\n"),
       }).catch(() => {});

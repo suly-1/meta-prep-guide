@@ -906,3 +906,8 @@
 - [x] Produce complete Feedback Dashboard replication document
 - [x] Fix missing React key prop warning in AdminUsers (Fragment key)
 - [x] Fix admin panel missing on metaguide.blog: isOwner stub returns true, mock admin user in useAuth.standalone, add admin routes to App.standalone, route() helper for hash routing
+- [x] Server-side block enforcement: check blocked flag in protectedProcedure middleware (also fixed adminProcedure + ownerProcedure to chain through requireUser)
+- [x] Bulk "Mark all new as in-progress" mutation + UI button on Feedback Dashboard
+- [x] Feedback count badge on TopNav admin shield icon (red dot when last7Days > 0)
+- [x] Feedback count badge (red dot) on TopNav admin shield icon via adminStats query
+- [x] Server-side block enforcement: adminProcedure and ownerProcedure now chain through requireUser so blocked admins/owners are rejected

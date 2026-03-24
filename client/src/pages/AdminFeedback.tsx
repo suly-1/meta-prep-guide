@@ -205,6 +205,18 @@ export default function AdminFeedback() {
     onError: () => toast.error("Failed to send digest."),
   });
 
+  const markAllNew = trpc.feedback.markAllNew.useMutation({
+    onSuccess: data => {
+      refetch();
+      toast.success(
+        data.updated > 0
+          ? `Marked ${data.updated} item${data.updated === 1 ? "" : "s"} as In Progress.`
+          : "No new items to mark."
+      );
+    },
+    onError: () => toast.error("Failed to mark items."),
+  });
+
   const { data, isLoading, refetch, error } =
     trpc.feedback.adminGetAll.useQuery(
       {
@@ -414,6 +426,18 @@ export default function AdminFeedback() {
               <Mail size={11} />{" "}
               {triggerDigest.isPending ? "Sending…" : "Send Digest"}
             </button>
+            {/* Bulk triage: mark all new items as in-progress */}
+            {(stats?.last7Days ?? 0) > 0 && (
+              <button
+                onClick={() => markAllNew.mutate()}
+                disabled={markAllNew.isPending}
+                className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-violet-500/30 bg-violet-500/10 text-xs text-violet-400 hover:bg-violet-500/20 transition-all disabled:opacity-50 font-medium"
+                title="Batch-update all 'New' items to 'In Progress'"
+              >
+                <TrendingUp size={11} />{" "}
+                {markAllNew.isPending ? "Marking…" : "Mark All New"}
+              </button>
+            )}
           </div>
         </div>
       </div>

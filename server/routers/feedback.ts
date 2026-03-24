@@ -308,6 +308,20 @@ export const feedbackRouter = router({
       return { success: true };
     }),
 
+  /** Admin: Bulk-update all 'new' feedback items to 'in_progress' */
+  markAllNew: adminProcedure.mutation(async () => {
+    const db = await getDb();
+    if (!db) throw new TRPCError({ code: "INTERNAL_SERVER_ERROR" });
+    const result = await db
+      .update(feedbackTable)
+      .set({ status: "in_progress" })
+      .where(eq(feedbackTable.status, "new"));
+    return {
+      success: true,
+      updated: (result as { affectedRows?: number }).affectedRows ?? 0,
+    };
+  }),
+
   /** Admin: Update the triage status of a feedback item */
   updateStatus: adminProcedure
     .input(

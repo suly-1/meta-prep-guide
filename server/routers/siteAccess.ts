@@ -155,7 +155,7 @@ export const siteAccessRouter = router({
       title: "Cohort Reset applied",
       content: [
         `**Action:** Cohort Reset`,
-        `**By:** ${ctx.user.name ?? "owner"}`,
+        `**By:** ${ctx.user!.name ?? "owner"}`,
         `**New clock start:** ${today}`,
         `**Effect:** All disclaimer acknowledgments cleared. 60-day window restarted.`,
         `**Time:** ${new Date().toISOString()}`,
