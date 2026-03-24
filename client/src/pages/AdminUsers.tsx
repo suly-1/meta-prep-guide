@@ -246,6 +246,19 @@ export default function AdminUsers() {
     onError: err => toast.error(err.message),
   });
 
+  const checkInactive = trpc.adminUsers.checkInactiveUsers.useMutation({
+    onSuccess: result => {
+      if (result.notified) {
+        toast.success(
+          `Inactivity check complete — ${result.count} inactive user${result.count === 1 ? "" : "s"} reported to your Manus inbox.`
+        );
+      } else {
+        toast.success("All users are active — no inactivity alerts sent.");
+      }
+    },
+    onError: err => toast.error(`Check failed: ${err.message}`),
+  });
+
   const reBlockUser = trpc.adminUsers.reBlockUser.useMutation({
     onSuccess: (_, vars) => {
       toast.success(`User #${vars.userId} re-blocked`);
@@ -353,6 +366,15 @@ export default function AdminUsers() {
                 {blockedCount} blocked
               </span>
             )}
+            <button
+              onClick={() => checkInactive.mutate()}
+              disabled={checkInactive.isPending}
+              className="inline-flex items-center gap-1.5 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-lg transition-colors disabled:opacity-50"
+              title="Check for users inactive 14+ days and send Manus notification"
+            >
+              <Clock size={12} />
+              {checkInactive.isPending ? "Checking..." : "Check Inactive"}
+            </button>
           </div>
         </div>
       </div>

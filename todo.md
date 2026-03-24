@@ -877,3 +877,12 @@
 - [x] UI: /admin/access — add "View acknowledgment report →" link under Disclaimer Gate card
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone (app.D-C5OvW5.js), deploy:github-pages, save checkpoint
+
+## Phase 24 — Definitive Standalone Mock Fix + Cron Job + Run Now Button (Mar 24, 2026)
+
+- [x] Complete audit of ALL trpc.\* calls across entire client codebase (100+ procedures)
+- [x] Fix standalone mock: rename getAuditLog → listEvents, add checkInactiveUsers stub
+- [x] Server: inactivityAlert.ts cron job (daily 08:00 UTC) + registered in server/\_core/index.ts
+- [x] UI: /admin/users — amber "Check Inactive" Run Now button in header
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone, deploy:github-pages, save checkpoint

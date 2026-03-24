@@ -1,3 +1,4 @@
+// v24 — full procedure coverage: listEvents, checkInactiveUsers, siteAccess stubs
 /**
  * Standalone tRPC mock — used in the self-contained HTML export.
  * All server calls are replaced with localStorage-only implementations
@@ -684,8 +685,11 @@ export const trpc = {
     exportAuditLogCsv: {
       useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ csv: "" }),
     },
-    getAuditLog: {
+    listEvents: {
       useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]),
+    },
+    checkInactiveUsers: {
+      useMutation: () => makeMutation(() => ({ notified: false, count: 0 })),
     },
   },
 

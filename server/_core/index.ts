@@ -12,6 +12,7 @@ import { serveStatic, setupVite } from "./vite";
 import { startWeeklyDigestCron } from "../weeklyDigest";
 import { startWeeklyAnalyticsCron } from "../weeklyAnalytics";
 import { startDailyAlertCron } from "../dailyAlert";
+import { startInactivityAlertCron } from "../inactivityAlert";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -118,6 +119,7 @@ async function startServer() {
   startWeeklyDigestCron();
   startWeeklyAnalyticsCron();
   startDailyAlertCron();
+  startInactivityAlertCron();
 }
 
 startServer().catch(console.error);
