@@ -7,7 +7,7 @@
  * - Expandable audit log with Re-block shortcut on unblock events
  * - Export Audit Log as CSV download
  */
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -488,9 +488,8 @@ export default function AdminUsers() {
                   const isLoginExpanded = expandedLoginUserId === u.id;
 
                   return (
-                    <>
+                    <React.Fragment key={u.id}>
                       <tr
-                        key={u.id}
                         className={`transition-colors ${
                           isBlocked ? "bg-red-500/5" : "hover:bg-zinc-900/50"
                         }`}
@@ -648,7 +647,7 @@ export default function AdminUsers() {
                           </td>
                         </tr>
                       )}
-                    </>
+                    </React.Fragment>
                   );
                 })}
               </tbody>
