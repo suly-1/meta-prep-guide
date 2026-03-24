@@ -860,3 +860,10 @@
 - [x] DisclaimerGate hook: respects disclaimerEnabled server flag (skips gate when disabled)
 - [x] TypeScript: 0 errors | Tests: 30/30 passing
 - [x] build:standalone, deploy:github-pages, save checkpoint
+
+## Phase 22 — Standalone Mock Hardening + Disclaimer Toggle UX (Mar 24, 2026)
+
+- [x] trpc.standalone.ts: add adminUsers namespace (listUsers, blockUser, unblockUser, getUserStats, getUserLoginHistory, exportAuditLogCsv, reBlockUser, getAuditLog no-ops)
+- [x] AdminAccess: add useUtils invalidation for siteAccess.getDisclaimerEnabled in setDisclaimerEnabled mutation onSuccess
+- [x] TypeScript: 0 errors | Tests: 30/30 passing
+- [x] build:standalone (app.D7F2H-dN.js), deploy:github-pages, save checkpoint

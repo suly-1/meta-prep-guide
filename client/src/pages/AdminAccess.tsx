@@ -47,10 +47,14 @@ import {
 // Self-contained sub-component so it can have its own query/mutation state
 // without polluting the main AdminAccess form state.
 function DisclaimerToggleCard() {
-  const { data, isLoading, refetch } =
-    trpc.siteAccess.getDisclaimerEnabled.useQuery(undefined, {
+  const utils = trpc.useUtils();
+
+  const { data, isLoading } = trpc.siteAccess.getDisclaimerEnabled.useQuery(
+    undefined,
+    {
       staleTime: 0,
-    });
+    }
+  );
 
   const setEnabled = trpc.siteAccess.setDisclaimerEnabled.useMutation({
     onSuccess: result => {
@@ -59,7 +63,9 @@ function DisclaimerToggleCard() {
           ? "Disclaimer gate enabled — all users must acknowledge it."
           : "Disclaimer gate disabled — users skip it until you re-enable."
       );
-      refetch();
+      // Invalidate so DisclaimerGate hook across the app re-fetches immediately
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (utils as any)?.siteAccess?.getDisclaimerEnabled?.invalidate?.();
     },
     onError: err => toast.error(`Failed: ${err.message}`),
   });

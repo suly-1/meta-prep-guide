@@ -635,6 +635,37 @@ export const trpc = {
     },
   },
 
+  // ── adminUsers ─────────────────────────────────────────────────────────────────────────────
+  // All admin procedures are owner-only and not available in standalone mode.
+  // These stubs prevent crashes when navigating to /admin/users on the static build.
+  adminUsers: {
+    listUsers: {
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]),
+    },
+    getUserStats: {
+      useQuery: (_?: unknown, _opts?: unknown) =>
+        makeQuery({ total: 0, weeklyActive: 0, blocked: 0 }),
+    },
+    getUserLoginHistory: {
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]),
+    },
+    blockUser: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    unblockUser: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    reBlockUser: {
+      useMutation: () => makeMutation(() => ({ success: true })),
+    },
+    exportAuditLogCsv: {
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ csv: "" }),
+    },
+    getAuditLog: {
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery([]),
+    },
+  },
+
   // ── system ─────────────────────────────────────────────────────────────────────────────────────
   system: {
     notifyOwner: {
