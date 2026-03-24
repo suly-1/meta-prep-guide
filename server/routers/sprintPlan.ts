@@ -165,7 +165,7 @@ Return a JSON object with this exact structure:
       return plan;
     }),
 
-  /** Get a shared sprint plan by share token (public) */
+  /** Get a shared sprint plan by share token (public) — expires after 30 days */
   getByShareToken: publicProcedure
     .input(z.object({ shareToken: z.string() }))
     .query(async ({ input }) => {
@@ -177,6 +177,18 @@ Return a JSON object with this exact structure:
         .where(eq(sprintPlans.shareToken, input.shareToken))
         .limit(1);
       if (!plan) return null;
+      // Shared links expire after 30 days
+      const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+      const createdAt =
+        plan.createdAt instanceof Date
+          ? plan.createdAt
+          : new Date(plan.createdAt);
+      if (Date.now() - createdAt.getTime() > THIRTY_DAYS_MS) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "This shared plan link has expired (30 days).",
+        });
+      }
       return {
         planId: plan.planId,
         targetLevel: plan.targetLevel,

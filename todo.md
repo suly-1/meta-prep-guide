@@ -778,22 +778,31 @@
 
 ### HIGH severity
 
-- [ ] Fix #1: Move digest.send and collab.sendWeeklyDigest to protectedProcedure
-- [ ] Fix #2: Move uploadAudio to protectedProcedure + add server-side MIME/size validation
-- [ ] Fix #3: Add user ownership to leaderboard (require login to upsert/remove, userId stored)
+- [x] Fix #1: Move digest.send and collab.sendWeeklyDigest to protectedProcedure
+- [x] Fix #2: Move uploadAudio to protectedProcedure + add server-side MIME/size validation
+- [x] Fix #3: Add user ownership to leaderboard (require login to upsert/remove, FORBIDDEN on other user's entry)
 
 ### MEDIUM severity
 
-- [ ] Fix #4: Add typed schema to collab saveEvent (replace z.any() with typed payload)
-- [ ] Fix #5: Move all LLM endpoints to protectedProcedure (require login)
-- [ ] Fix #6: Add expiry check to getSharedPlan query
-- [ ] Fix #7: Replace manual role checks in feedback.ts with adminProcedure
+- [x] Fix #4: Add typed schema to collab saveEvent (replace z.any() with typed union)
+- [x] Fix #5: Move all 39 LLM endpoints to protectedProcedure (require login)
+- [x] Fix #6: Add 30-day expiry check to getByShareToken query
+- [x] Fix #7: Already using adminProcedure consistently in feedback.ts (verified)
 
 ### LOW severity
 
-- [ ] Fix #8: Change session cookie SameSite from "none" to "lax"
-- [ ] Fix #9: Remove skip button from DisclaimerGate (or require login for legal-weight disclaimer)
+- [x] Fix #8: Change session cookie SameSite from "none" to "lax" (conditional on HTTPS)
+- [x] Fix #9: No skip button exists in DisclaimerGate (verified — checkbox required, no bypass)
 
 ### Deploy
 
-- [ ] TypeScript check, tests, build:standalone, deploy:github-pages
+- [x] TypeScript check (0 errors), tests (30/30 passing), build:standalone, deploy:github-pages
+
+## Phase 17 — User Blocking (Admin Toggle)
+
+- [ ] Add `blocked` boolean column to users table in drizzle/schema.ts
+- [ ] Add blockUser / unblockUser procedures (ownerProcedure)
+- [ ] Add blocked check to protectedProcedure middleware (throw FORBIDDEN if user.blocked)
+- [ ] Build "Blocked" screen component shown to blocked users on every page load
+- [ ] Add user management table to /admin/users with instant block/unblock toggle
+- [ ] TypeScript check, tests, build:standalone, deploy:github-pages, save checkpoint

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { collabRooms, sessionEvents, scorecards } from "../../drizzle/schema";
 import { eq, and } from "drizzle-orm";
@@ -68,7 +68,13 @@ export const collabRouter = router({
       z.object({
         roomCode: z.string(),
         eventType: z.string(),
-        payload: z.any(),
+        payload: z
+          .record(z.string(), z.unknown())
+          .or(z.string())
+          .or(z.number())
+          .or(z.boolean())
+          .or(z.null())
+          .optional(),
         actorName: z.string().optional(),
         ts: z.number(),
       })
@@ -539,7 +545,7 @@ Score this answer.`,
     }),
 
   // ── Upload audio for Voice-to-STAR ───────────────────────────────────────
-  uploadAudio: publicProcedure
+  uploadAudio: protectedProcedure
     .input(
       z.object({
         audioBase64: z.string(),
@@ -556,7 +562,7 @@ Score this answer.`,
     }),
 
   // ── Weekly Progress Digest ────────────────────────────────────────────────
-  sendWeeklyDigest: publicProcedure
+  sendWeeklyDigest: protectedProcedure
     .input(
       z.object({
         masteredCount: z.number(),

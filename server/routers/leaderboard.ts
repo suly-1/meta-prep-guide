@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { publicProcedure, router } from "../_core/trpc";
+import { TRPCError } from "@trpc/server";
+import { publicProcedure, protectedProcedure, router } from "../_core/trpc";
 import { getDb } from "../db";
 import { leaderboardEntries } from "../../drizzle/schema";
 import { desc, eq } from "drizzle-orm";
@@ -21,8 +22,8 @@ export const leaderboardRouter = router({
     return rows;
   }),
 
-  // Upsert a leaderboard entry by handle
-  upsert: publicProcedure
+  // Upsert a leaderboard entry by handle — requires login to prevent manipulation
+  upsert: protectedProcedure
     .input(
       z.object({
         anonHandle: z.string().min(2).max(32),
@@ -33,11 +34,12 @@ export const leaderboardRouter = router({
         badges: z.array(z.string()).default([]),
       })
     )
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database unavailable");
+      const userId = ctx.user.id;
 
-      // Check if handle already exists
+      // Check if this user already has an entry
       const existing = await db
         .select()
         .from(leaderboardEntries)
@@ -45,6 +47,17 @@ export const leaderboardRouter = router({
         .limit(1);
 
       if (existing.length > 0) {
+        // Only allow updating your own entry
+        const entry = existing[0];
+        if (
+          (entry as { userId?: number }).userId &&
+          (entry as { userId?: number }).userId !== userId
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot modify another user's leaderboard entry",
+          });
+        }
         await db
           .update(leaderboardEntries)
           .set({
@@ -69,12 +82,29 @@ export const leaderboardRouter = router({
       return { success: true, handle: input.anonHandle };
     }),
 
-  // Remove a handle from the leaderboard
-  remove: publicProcedure
+  // Remove a handle from the leaderboard — requires login, owner-only
+  remove: protectedProcedure
     .input(z.object({ anonHandle: z.string() }))
-    .mutation(async ({ input }) => {
+    .mutation(async ({ input, ctx }) => {
       const db = await getDb();
       if (!db) throw new Error("Database unavailable");
+      const existing = await db
+        .select()
+        .from(leaderboardEntries)
+        .where(eq(leaderboardEntries.anonHandle, input.anonHandle))
+        .limit(1);
+      if (existing.length > 0) {
+        const entry = existing[0];
+        if (
+          (entry as { userId?: number }).userId &&
+          (entry as { userId?: number }).userId !== ctx.user.id
+        ) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Cannot delete another user's leaderboard entry",
+          });
+        }
+      }
       await db
         .delete(leaderboardEntries)
         .where(eq(leaderboardEntries.anonHandle, input.anonHandle));

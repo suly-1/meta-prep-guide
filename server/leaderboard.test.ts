@@ -1,4 +1,4 @@
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -10,6 +10,25 @@ vi.mock("./db", () => ({
 function createCtx(): TrpcContext {
   return {
     user: null,
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
+function createAuthCtx(): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId: "test-open-id",
+      name: "Test User",
+      email: "test@example.com",
+      role: "user",
+      loginMethod: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+      disclaimerAcknowledgedAt: null,
+    },
     req: { protocol: "https", headers: {} } as TrpcContext["req"],
     res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
   };
@@ -34,8 +53,8 @@ describe("leaderboard.checkHandle", () => {
 });
 
 describe("leaderboard.upsert", () => {
-  it("throws when DB is unavailable", async () => {
-    const caller = appRouter.createCaller(createCtx());
+  it("throws when DB is unavailable (authenticated)", async () => {
+    const caller = appRouter.createCaller(createAuthCtx());
     await expect(
       caller.leaderboard.upsert({
         anonHandle: "test_user",
@@ -48,8 +67,22 @@ describe("leaderboard.upsert", () => {
     ).rejects.toThrow("Database unavailable");
   });
 
-  it("rejects handles shorter than 2 characters", async () => {
+  it("rejects unauthenticated callers", async () => {
     const caller = appRouter.createCaller(createCtx());
+    await expect(
+      caller.leaderboard.upsert({
+        anonHandle: "test_user",
+        streakDays: 0,
+        patternsMastered: 0,
+        mockSessions: 0,
+        overallPct: 0,
+        badges: [],
+      })
+    ).rejects.toThrow("Please login");
+  });
+
+  it("rejects handles shorter than 2 characters (authenticated)", async () => {
+    const caller = appRouter.createCaller(createAuthCtx());
     await expect(
       caller.leaderboard.upsert({
         anonHandle: "x",
@@ -64,10 +97,17 @@ describe("leaderboard.upsert", () => {
 });
 
 describe("leaderboard.remove", () => {
-  it("throws when DB is unavailable", async () => {
-    const caller = appRouter.createCaller(createCtx());
+  it("throws when DB is unavailable (authenticated)", async () => {
+    const caller = appRouter.createCaller(createAuthCtx());
     await expect(
       caller.leaderboard.remove({ anonHandle: "test_user" })
     ).rejects.toThrow("Database unavailable");
+  });
+
+  it("rejects unauthenticated callers", async () => {
+    const caller = appRouter.createCaller(createCtx());
+    await expect(
+      caller.leaderboard.remove({ anonHandle: "test_user" })
+    ).rejects.toThrow("Please login");
   });
 });

@@ -38,9 +38,28 @@ function createCtx(): TrpcContext {
   };
 }
 
+function createAuthCtx(): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId: "test-open-id",
+      name: "Test User",
+      email: "test@example.com",
+      role: "user" as const,
+      loginMethod: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+      disclaimerAcknowledgedAt: null,
+    },
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
 describe("ai.xfnMockScorecard", () => {
   it("returns a scorecard for L6 mode", async () => {
-    const caller = appRouter.createCaller(createCtx());
+    const caller = appRouter.createCaller(createAuthCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
         {
@@ -77,7 +96,7 @@ describe("ai.xfnMockScorecard", () => {
   });
 
   it("returns a scorecard for L7 mode", async () => {
-    const caller = appRouter.createCaller(createCtx());
+    const caller = appRouter.createCaller(createAuthCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
         {
@@ -103,7 +122,7 @@ describe("ai.xfnMockScorecard", () => {
   });
 
   it("defaults to L7 mode when icMode is not specified", async () => {
-    const caller = appRouter.createCaller(createCtx());
+    const caller = appRouter.createCaller(createAuthCtx());
     const result = await caller.ai.xfnMockScorecard({
       rounds: [
         {
@@ -118,9 +137,19 @@ describe("ai.xfnMockScorecard", () => {
   });
 
   it("rejects empty rounds array", async () => {
-    const caller = appRouter.createCaller(createCtx());
+    const caller = appRouter.createCaller(createAuthCtx());
     await expect(
       caller.ai.xfnMockScorecard({ rounds: [], icMode: "L6" })
     ).rejects.toThrow();
+  });
+
+  it("rejects unauthenticated callers", async () => {
+    const caller = appRouter.createCaller(createCtx());
+    await expect(
+      caller.ai.xfnMockScorecard({
+        rounds: [{ question: "Q", answer: "A" }],
+        icMode: "L6",
+      })
+    ).rejects.toThrow("Please login");
   });
 });

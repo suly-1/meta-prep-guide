@@ -42,6 +42,25 @@ function createCtx(): TrpcContext {
   };
 }
 
+function createAuthCtx(): TrpcContext {
+  return {
+    user: {
+      id: 1,
+      openId: "test-open-id",
+      name: "Test User",
+      email: "test@example.com",
+      role: "user" as const,
+      loginMethod: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      lastSignedIn: new Date(),
+      disclaimerAcknowledgedAt: null,
+    },
+    req: { protocol: "https", headers: {} } as TrpcContext["req"],
+    res: { clearCookie: vi.fn() } as unknown as TrpcContext["res"],
+  };
+}
+
 describe("collab.createRoom", () => {
   it("creates a room with valid roomCode", async () => {
     const caller = appRouter.createCaller(createCtx());
@@ -79,7 +98,7 @@ describe("collab.aiFollowUp", () => {
 
 describe("collab.sendWeeklyDigest", () => {
   it("sends a weekly digest notification", async () => {
-    const caller = appRouter.createCaller(createCtx());
+    const caller = appRouter.createCaller(createAuthCtx());
     const result = await caller.collab.sendWeeklyDigest({
       masteredCount: 12,
       totalPatterns: 20,

@@ -1,12 +1,12 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { publicProcedure, router } from "../_core/trpc";
+import { protectedProcedure, router } from "../_core/trpc";
 import { invokeLLM } from "../_core/llm";
 import { transcribeAudio } from "../_core/voiceTranscription";
 
 export const aiRouter = router({
   // Tech Retro AI Coach: given project details, return 3 follow-up interview questions
-  techRetroCoach: publicProcedure
+  techRetroCoach: protectedProcedure
     .input(
       z.object({
         name: z.string().max(200),
@@ -80,7 +80,7 @@ Keep each question under 50 words. Be direct and challenging — not generic.`,
     }),
 
   // System Design Mock Scorecard: evaluate candidate's answers across all 5 framework phases
-  sysDesignMockScorecard: publicProcedure
+  sysDesignMockScorecard: protectedProcedure
     .input(
       z.object({
         questionTitle: z.string().max(200),
@@ -216,7 +216,7 @@ Be rigorous but fair — L6 answers should show solid fundamentals and scalabili
     }),
 
   // Coding Mock Scorecard: evaluate candidate's approach, pseudocode, complexity, and edge cases
-  codingMockScorecard: publicProcedure
+  codingMockScorecard: protectedProcedure
     .input(
       z.object({
         patternName: z.string().max(200),
@@ -369,7 +369,7 @@ Return a structured JSON scorecard. The level field should reflect what IC level
     }),
 
   // XFN Behavioral Mock Scorecard: evaluate 3 XFN answers for collaboration, alignment, conflict resolution
-  xfnMockScorecard: publicProcedure
+  xfnMockScorecard: protectedProcedure
     .input(
       z.object({
         rounds: z
@@ -507,7 +507,7 @@ Return a structured JSON scorecard. The level field should reflect what IC level
     }),
 
   // Full Mock Day Scorecard: aggregate scores from all 3 rounds into a combined IC-level verdict
-  fullMockDayScorecard: publicProcedure
+  fullMockDayScorecard: protectedProcedure
     .input(
       z.object({
         codingScore: z.number(),
@@ -655,7 +655,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Explain a coding pattern at L6 or L7 level
-  explainPattern: publicProcedure
+  explainPattern: protectedProcedure
     .input(
       z.object({
         patternId: z.string().max(60),
@@ -691,7 +691,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Guided Design Walkthrough — AI feedback on full walkthrough transcript
-  guidedWalkthroughFeedback: publicProcedure
+  guidedWalkthroughFeedback: protectedProcedure
     .input(
       z.object({
         problem: z.string().max(200),
@@ -723,7 +723,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Trade-off Decision Simulator — score a candidate's trade-off justification
-  scoreTradeoff: publicProcedure
+  scoreTradeoff: protectedProcedure
     .input(
       z.object({
         scenarioTitle: z.string().max(200),
@@ -779,7 +779,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Architecture Anti-Pattern Detector
-  detectAntiPatterns: publicProcedure
+  detectAntiPatterns: protectedProcedure
     .input(z.object({ design: z.string().max(4000) }))
     .mutation(async ({ input }) => {
       const response = await invokeLLM({
@@ -842,7 +842,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Peer Design Review — generate adversarial questions
-  peerDesignReview: publicProcedure
+  peerDesignReview: protectedProcedure
     .input(
       z.object({
         problem: z.string().max(200),
@@ -908,7 +908,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Score Peer Review Answers
-  scorePeerReviewAnswers: publicProcedure
+  scorePeerReviewAnswers: protectedProcedure
     .input(
       z.object({
         problem: z.string().max(200),
@@ -940,7 +940,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Explain Like a PM
-  explainLikeAPM: publicProcedure
+  explainLikeAPM: protectedProcedure
     .input(z.object({ design: z.string().max(4000) }))
     .mutation(async ({ input }) => {
       const response = await invokeLLM({
@@ -969,7 +969,7 @@ Be direct and honest — this is what a real debrief would look like.`,
   // ── Code Practice AI ─────────────────────────────────────────────────────
 
   // 1. AI Solution Reviewer — score code against L6/L7 rubric
-  reviewSolution: publicProcedure
+  reviewSolution: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1056,7 +1056,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // 2. 3-Level Hint System — progressive hints without giving away the answer
-  getProgressiveHint: publicProcedure
+  getProgressiveHint: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1096,7 +1096,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // 3. Follow-Up Question Generator — 2-3 interviewer follow-ups after solution
-  generateFollowUps: publicProcedure
+  generateFollowUps: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1158,7 +1158,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // 4. Complexity Analyzer — identify actual vs optimal time/space complexity
-  analyzeComplexity: publicProcedure
+  analyzeComplexity: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1229,7 +1229,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // 5. Pattern Recognition Trainer — score candidate's pattern guess
-  scorePatternGuess: publicProcedure
+  scorePatternGuess: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1283,7 +1283,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // 6. L7 Optimization Challenge — challenge candidate to improve their solution
-  ic7OptimizationChallenge: publicProcedure
+  ic7OptimizationChallenge: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -1340,7 +1340,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Voice Answer: transcribe audio and score STAR answer ─────────────────
-  transcribeAndScoreVoice: publicProcedure
+  transcribeAndScoreVoice: protectedProcedure
     .input(
       z.object({
         audioUrl: z.string(),
@@ -1435,7 +1435,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // Interviewer Perspective Simulator — responds as a Meta interviewer reviewing a design summary
-  interviewerPerspective: publicProcedure
+  interviewerPerspective: protectedProcedure
     .input(z.object({ designSummary: z.string().min(30).max(2000) }))
     .output(z.object({ content: z.string() }))
     .mutation(async ({ input }) => {
@@ -1508,7 +1508,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #1: AI Interviewer Interrupt Mode ─────────────────────────────
-  interruptModeStart: publicProcedure
+  interruptModeStart: protectedProcedure
     .input(
       z.object({
         topic: z.string(),
@@ -1555,7 +1555,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
     }),
 
-  interruptModeScore: publicProcedure
+  interruptModeScore: protectedProcedure
     .input(
       z.object({
         topic: z.string(),
@@ -1600,7 +1600,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #2: Back-of-Envelope Calculator ───────────────────────────────
-  scoreBoECalculation: publicProcedure
+  scoreBoECalculation: protectedProcedure
     .input(
       z.object({
         problem: z.string(),
@@ -1653,7 +1653,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #3: Tear Down My Design ──────────────────────────────────────
-  tearDownDesign: publicProcedure
+  tearDownDesign: protectedProcedure
     .input(
       z.object({
         problem: z.string(),
@@ -1719,7 +1719,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #4: Think Out Loud Coach ─────────────────────────────────────
-  scoreThinkOutLoud: publicProcedure
+  scoreThinkOutLoud: protectedProcedure
     .input(z.object({ problem: z.string(), transcript: z.string() }))
     .mutation(async ({ input }) => {
       const response = await invokeLLM({
@@ -1775,7 +1775,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #5: Pattern Speed Drill ──────────────────────────────────────
-  scorePatternDrill: publicProcedure
+  scorePatternDrill: protectedProcedure
     .input(
       z.object({
         problem: z.string(),
@@ -1829,7 +1829,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #6: Weak Pattern Remediation Plan ────────────────────────────
-  generateRemediationPlan: publicProcedure
+  generateRemediationPlan: protectedProcedure
     .input(
       z.object({
         weakPatterns: z.array(
@@ -1888,7 +1888,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #8: Persona Stress Test ──────────────────────────────────────
-  personaStressTestStart: publicProcedure
+  personaStressTestStart: protectedProcedure
     .input(
       z.object({
         question: z.string(),
@@ -1930,7 +1930,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
     }),
 
-  personaStressTestRespond: publicProcedure
+  personaStressTestRespond: protectedProcedure
     .input(
       z.object({
         question: z.string(),
@@ -1974,7 +1974,7 @@ Be direct and honest — this is what a real debrief would look like.`,
       return { content: typeof raw === "string" ? raw : JSON.stringify(raw) };
     }),
 
-  personaStressTestScore: publicProcedure
+  personaStressTestScore: protectedProcedure
     .input(
       z.object({
         question: z.string(),
@@ -2011,7 +2011,7 @@ Be direct and honest — this is what a real debrief would look like.`,
     }),
 
   // ── Feature #9: Impact Quantification Coach ───────────────────────────────
-  quantifyImpact: publicProcedure
+  quantifyImpact: protectedProcedure
     .input(z.object({ story: z.string() }))
     .mutation(async ({ input }) => {
       const response = await invokeLLM({
@@ -2067,7 +2067,7 @@ Be direct and honest — this is what a real debrief would look like.`,
   // ── NEW: Seniority Level Calibrator ─────────────────────────────────────
   // Evaluates a STAR story against the target level rubric and returns a
   // "Level Signal" badge (L4-L7) with a specific rewrite suggestion.
-  calibrateSeniorityLevel: publicProcedure
+  calibrateSeniorityLevel: protectedProcedure
     .input(
       z.object({
         story: z.string().max(3000),
@@ -2137,7 +2137,7 @@ Return JSON with: detectedLevel (L4/L5/L6/L7), targetLevel match analysis, scope
 
   // ── NEW: Complexity Proof Trainer ─────────────────────────────────────────
   // Challenges the candidate to prove their complexity claim, not just state it.
-  challengeComplexity: publicProcedure
+  challengeComplexity: protectedProcedure
     .input(
       z.object({
         problemTitle: z.string().max(200),
@@ -2205,7 +2205,7 @@ Return JSON with: complexityCorrect (boolean), proofQuality ("strong"|"adequate"
 
   // ── NEW: Post-Interview Debrief Analyzer ──────────────────────────────────
   // Takes a structured debrief and returns a prioritized fix list.
-  analyzeDebrief: publicProcedure
+  analyzeDebrief: protectedProcedure
     .input(
       z.object({
         roundType: z.enum([
@@ -2287,7 +2287,7 @@ Be direct and honest. Do not sugarcoat. The candidate needs accurate signal to i
 
   // ── NEW: 10-Day Final Sprint Generator ────────────────────────────────────
   // Reads all performance data and generates a personalized day-by-day plan.
-  generateTenDaySprint: publicProcedure
+  generateTenDaySprint: protectedProcedure
     .input(
       z.object({
         daysUntilInterview: z.number().min(1).max(30),
@@ -2368,7 +2368,7 @@ Return JSON: { days: [ { day: 1, title: string, morningBlock: string, afternoonB
     }),
 
   // ── NEW: "Why This Company" Story Builder ─────────────────────────────────
-  buildWhyCompanyStory: publicProcedure
+  buildWhyCompanyStory: protectedProcedure
     .input(
       z.object({
         targetCompany: z.string().max(100).default("Meta"),
@@ -2425,7 +2425,7 @@ Return JSON: { story: string (the 90-second narrative), keyThemes: string[] (3 t
     }),
 
   // ── NEW: Interview Question Prediction Engine ─────────────────────────────
-  predictInterviewQuestions: publicProcedure
+  predictInterviewQuestions: protectedProcedure
     .input(
       z.object({
         targetTeam: z.string().max(200),
@@ -2503,7 +2503,7 @@ Return JSON: { systemDesign: string[], behavioralFocusAreas: [{area: string, que
     }),
 
   // ── Feature #10: Interview Readiness Report ───────────────────────────────
-  generateReadinessReport: publicProcedure
+  generateReadinessReport: protectedProcedure
     .input(
       z.object({
         patterns: z.array(
