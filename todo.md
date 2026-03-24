@@ -669,7 +669,7 @@
 - [ ] Admin editor at /admin/apex-picks (CRUD for picks sets, activate toggle, week preview)
 - [ ] Homepage ApexPicks component fetches from DB, falls back to hardcoded defaults
 - [ ] Tests for getActivePicks rotation logic
-- [ ] pnpm build:standalone + deploy:github-pages
+- [x] pnpm build:standalone + deploy:github-pages
 
 ## Phase 10 — 25 High-Impact Features (Mar 24, 2026)
 
@@ -733,4 +733,19 @@
 - [x] Remove all guarantee language, replace with recommendation language
 - [x] GuidedLearningPath component (4-phase wizard: Calibrate → Fix Gaps → Simulate → Final Sprint)
 - [x] Wire GuidedLearningPath to top of OverviewTab above all other sections
+- [x] pnpm build:standalone + deploy:github-pages
+
+## Phase 12 — Favorites, Dark/Light Toggle, Progress Tracker (Mar 24, 2026)
+
+- [ ] DB: favorite_questions table (userId, questionId, questionType, questionText, createdAt)
+- [ ] tRPC: favorites.add, favorites.remove, favorites.list, favorites.toggle procedures
+- [ ] FavoriteButton component (heart icon, optimistic toggle, works on coding + behavioral + design questions)
+- [ ] FavoriteQuestions page at /favorites (grouped by type, quick-practice mode)
+- [ ] Wire FavoriteButton into CodingTab, BehavioralTab, SystemDesignTab question cards
+- [ ] Dark/Light mode toggle button in TopNav (sun/moon icon, uses existing ThemeProvider)
+- [ ] Persist theme preference to localStorage
+- [ ] InterviewProgressTracker page/component (performance charts over time)
+- [ ] Track: pattern mastery trend, behavioral readiness trend, mock session scores, streak history
+- [ ] Charts: line chart (readiness over time), bar chart (sessions per week), radar chart (category coverage)
+- [ ] Wire InterviewProgressTracker into OverviewTab and add nav entry
 - [ ] pnpm build:standalone + deploy:github-pages

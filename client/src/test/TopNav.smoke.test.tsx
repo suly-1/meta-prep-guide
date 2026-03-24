@@ -55,18 +55,21 @@ vi.mock("@/lib/data", () => ({
 // TopicRoulette, GauntletButton, and StudySoundtrack are internal sub-components
 // rendered by TopNav, so they are exercised implicitly.
 import TopNav from "@/components/TopNav";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 const noop = () => {};
 
 function renderTopNav(activeTab = "overview") {
   return render(
-    <TopNav
-      activeTab={activeTab}
-      onTabChange={noop}
-      darkMode={false}
-      onToggleDark={noop}
-    />
+    <ThemeProvider defaultTheme="dark" switchable>
+      <TopNav
+        activeTab={activeTab}
+        onTabChange={noop}
+        darkMode={false}
+        onToggleDark={noop}
+      />
+    </ThemeProvider>
   );
 }
 

@@ -28,6 +28,7 @@ import {
 } from "@/hooks/useLocalStorage";
 import { PATTERNS, BEHAVIORAL_QUESTIONS } from "@/lib/data";
 import { toast } from "sonner";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface TopNavProps {
   activeTab: string;
@@ -715,9 +716,12 @@ function StudySoundtrack() {
 export default function TopNav({
   activeTab,
   onTabChange,
-  darkMode,
-  onToggleDark,
+  darkMode: _darkModeProp,
+  onToggleDark: _onToggleDarkProp,
 }: TopNavProps) {
+  const { theme, toggleTheme } = useTheme();
+  const darkMode = theme === "dark";
+  const onToggleDark = toggleTheme ?? (() => {});
   const streak = useStreak();
   const {
     codingDue,

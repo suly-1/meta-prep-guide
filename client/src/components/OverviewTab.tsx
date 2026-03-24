@@ -79,6 +79,8 @@ import { WhyCompanyStoryBuilder } from "@/components/WhyCompanyStoryBuilder";
 import { InterviewQuestionPredictor } from "@/components/InterviewQuestionPredictor";
 import { ComplexityProofTrainer } from "@/components/ComplexityProofTrainer";
 import { GuidedLearningPath } from "@/components/GuidedLearningPath";
+import { InterviewProgressTracker } from "@/components/InterviewProgressTracker";
+import { FavoriteQuestions } from "@/components/FavoriteQuestions";
 
 // ── Disclaimer Status Badge ──────────────────────────────────────────────────
 function DisclaimerStatusBadge() {
@@ -2932,6 +2934,9 @@ export default function OverviewTab({ onTabChange }: OverviewTabProps = {}) {
         ]}
       />
       <InterviewReadinessReport />
+      {/* ═══ PROGRESS TRACKER & FAVORITES ══════════════════════════════════ */}
+      <InterviewProgressTracker />
+      <FavoriteQuestions />
       {/* ═══ OFFER MAXIMIZER TOOLS ═══════════════════════════════════════════ */}
       <div className="space-y-3">
         <div className="text-sm font-semibold text-foreground border-b border-border pb-2 flex items-center gap-2">

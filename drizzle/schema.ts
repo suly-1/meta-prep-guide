@@ -256,6 +256,43 @@ export const apexPicksSets = mysqlTable("apex_picks_sets", {
 });
 export type ApexPicksSet = typeof apexPicksSets.$inferSelect;
 
+// ── Favorite Questions ──────────────────────────────────────────────────────
+// Users can bookmark any coding pattern, behavioral question, or system design
+// topic for later focused practice.
+export const favoriteQuestions = mysqlTable("favorite_questions", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  questionId: varchar("questionId", { length: 128 }).notNull(), // e.g. "two-pointers" or "bq-conflict-1"
+  questionType: mysqlEnum("questionType", [
+    "coding",
+    "behavioral",
+    "design",
+    "ctci",
+  ])
+    .notNull()
+    .default("coding"),
+  questionText: text("questionText").notNull(), // display label
+  notes: text("notes"), // optional personal note
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type FavoriteQuestion = typeof favoriteQuestions.$inferSelect;
+
+// ── Progress Snapshots (daily readiness snapshots for trend charts) ───────────
+// Taken automatically when user saves scores or manually via the tracker.
+export const progressSnapshots = mysqlTable("progress_snapshots", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull(),
+  snapshotDate: varchar("snapshotDate", { length: 16 }).notNull(), // YYYY-MM-DD
+  codingPct: int("codingPct").notNull().default(0), // 0-100
+  behavioralPct: int("behavioralPct").notNull().default(0),
+  overallPct: int("overallPct").notNull().default(0),
+  streakDays: int("streakDays").notNull().default(0),
+  mockSessionCount: int("mockSessionCount").notNull().default(0),
+  patternsMastered: int("patternsMastered").notNull().default(0),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+export type ProgressSnapshot = typeof progressSnapshots.$inferSelect;
+
 export interface ApexPick {
   id: string; // unique slug, e.g. "full-mock-day"
   title: string;
