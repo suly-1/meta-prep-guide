@@ -88,6 +88,11 @@ async function startServer() {
   // Apply stricter rate limit to AI procedures
   app.use("/api/trpc/ai.", aiRateLimit);
 
+  // Health check endpoint (used by Render and other hosting platforms)
+  app.get("/api/health", (_req, res) => {
+    res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API
