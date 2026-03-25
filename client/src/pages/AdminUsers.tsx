@@ -3,11 +3,15 @@
  *
  * Features:
  * - User table with block/unblock toggle + optional reason + auto-expiry
+ * - BlockDialog with preset duration buttons (1h, 24h, 3d, 7d, 30d, permanent)
+ * - ExpiryCountdown badge in status column with live tick
+ * - ExtendDialog to modify blockedUntil on already-blocked users
  * - Login activity (last 5 logins per user, expandable)
  * - Expandable audit log with Re-block shortcut on unblock events
+ * - block_extended audit log events rendered with prev/new expiry
  * - Export Audit Log as CSV download
  */
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { trpc } from "@/lib/trpc";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { useLocation } from "wouter";
@@ -26,6 +30,8 @@ import {
   Download,
   Clock,
   RotateCcw,
+  CalendarClock,
+  Infinity,
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -53,6 +59,43 @@ type AuditRow = {
   metadata: Record<string, unknown> | null;
   createdAt: Date;
 };
+
+// ── Duration presets ────────────────────────────────────────────────────────
+
+type DurationPreset = {
+  label: string;
+  days: number; // 0 = permanent
+  hours?: number; // for sub-day presets
+};
+
+const DURATION_PRESETS: DurationPreset[] = [
+  { label: "1 hour", days: 0, hours: 1 },
+  { label: "24 hours", days: 1 },
+  { label: "3 days", days: 3 },
+  { label: "7 days", days: 7 },
+  { label: "30 days", days: 30 },
+  { label: "Permanent", days: 0 },
+];
+
+/** Convert a preset to fractional days (0 = permanent) */
+function presetToDays(p: DurationPreset): number {
+  if (p.label === "Permanent") return 0;
+  if (p.hours) return p.hours / 24;
+  return p.days;
+}
+
+/** Convert fractional days to a human-readable expiry date string */
+function expiryLabel(fractionalDays: number): string {
+  if (fractionalDays === 0) return "";
+  const ms = fractionalDays * 86_400_000;
+  const d = new Date(Date.now() + ms);
+  return d.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 
@@ -85,6 +128,139 @@ function downloadCsv(csv: string, filename: string) {
   URL.revokeObjectURL(url);
 }
 
+/** Live countdown string for a blockedUntil timestamp */
+function useCountdown(blockedUntil: Date | null): string {
+  const [label, setLabel] = useState("");
+
+  useEffect(() => {
+    if (!blockedUntil) {
+      setLabel("");
+      return;
+    }
+
+    function tick() {
+      const ms = new Date(blockedUntil!).getTime() - Date.now();
+      if (ms <= 0) {
+        setLabel("Expiring…");
+        return;
+      }
+      const totalSecs = Math.floor(ms / 1000);
+      const days = Math.floor(totalSecs / 86400);
+      const hours = Math.floor((totalSecs % 86400) / 3600);
+      const mins = Math.floor((totalSecs % 3600) / 60);
+      const secs = totalSecs % 60;
+
+      if (days > 0) {
+        setLabel(`${days}d ${hours}h remaining`);
+      } else if (hours > 0) {
+        setLabel(`${hours}h ${mins}m remaining`);
+      } else if (mins > 0) {
+        setLabel(`${mins}m ${secs}s remaining`);
+      } else {
+        setLabel(`${secs}s remaining`);
+      }
+    }
+
+    tick();
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [blockedUntil]);
+
+  return label;
+}
+
+// ── ExpiryCountdown badge ──────────────────────────────────────────────────
+
+function ExpiryCountdown({ blockedUntil }: { blockedUntil: Date | null }) {
+  const countdown = useCountdown(blockedUntil);
+
+  if (!blockedUntil) {
+    return (
+      <span className="flex items-center gap-1 text-[10px] text-red-400/60 mt-0.5">
+        <Infinity size={9} />
+        Permanent
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-1 text-[10px] text-amber-400/80 mt-0.5">
+      <Clock size={9} />
+      {countdown}
+    </span>
+  );
+}
+
+// ── DurationPicker ─────────────────────────────────────────────────────────
+
+function DurationPicker({
+  value,
+  onChange,
+}: {
+  value: number; // fractional days; 0 = permanent
+  onChange: (days: number) => void;
+}) {
+  const [customDays, setCustomDays] = useState("");
+  const isCustom = !DURATION_PRESETS.some(p => presetToDays(p) === value);
+
+  return (
+    <div className="space-y-2">
+      <label className="text-xs text-zinc-400 block">Duration</label>
+      {/* Preset buttons */}
+      <div className="flex flex-wrap gap-1.5">
+        {DURATION_PRESETS.map(p => {
+          const pDays = presetToDays(p);
+          const isActive = !isCustom && pDays === value;
+          return (
+            <button
+              key={p.label}
+              type="button"
+              onClick={() => {
+                onChange(pDays);
+                setCustomDays("");
+              }}
+              className={`text-xs px-2.5 py-1 rounded-lg border transition-colors ${
+                isActive
+                  ? "bg-red-500/20 border-red-500/40 text-red-300 font-medium"
+                  : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500 hover:text-zinc-200"
+              }`}
+            >
+              {p.label}
+            </button>
+          );
+        })}
+      </div>
+      {/* Custom input */}
+      <div className="flex items-center gap-2">
+        <input
+          type="number"
+          min={0}
+          max={365}
+          placeholder="Custom days…"
+          value={customDays}
+          onChange={e => {
+            const v = e.target.value;
+            setCustomDays(v);
+            const n = parseFloat(v);
+            if (!isNaN(n) && n >= 0) onChange(n);
+          }}
+          className="w-32 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-1.5 text-xs text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-red-500/50"
+        />
+        <span className="text-xs text-zinc-500">days (0 = permanent)</span>
+      </div>
+      {/* Preview */}
+      {value > 0 && (
+        <p className="text-[10px] text-amber-400/70">
+          Auto-unblocks: {expiryLabel(value)}
+        </p>
+      )}
+      {value === 0 && (
+        <p className="text-[10px] text-zinc-600">No auto-unblock scheduled.</p>
+      )}
+    </div>
+  );
+}
+
 // ── Block Dialog ───────────────────────────────────────────────────────────
 
 function BlockDialog({
@@ -109,8 +285,8 @@ function BlockDialog({
           </h2>
         </div>
         <p className="text-xs text-zinc-400">
-          This user will immediately lose access. Optionally set an auto-unblock
-          date so you don't have to remember to lift it manually.
+          This user will immediately lose access. Set a duration for a temporary
+          block that auto-expires, or leave as Permanent.
         </p>
 
         <div className="space-y-3">
@@ -129,29 +305,7 @@ function BlockDialog({
             />
           </div>
 
-          <div>
-            <label className="text-xs text-zinc-400 mb-1 block">
-              Auto-unblock after (days) — 0 = permanent
-            </label>
-            <input
-              type="number"
-              min={0}
-              max={365}
-              value={expiryDays}
-              onChange={e =>
-                setExpiryDays(Math.max(0, parseInt(e.target.value) || 0))
-              }
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 focus:outline-none focus:border-red-500/50"
-            />
-            {expiryDays > 0 && (
-              <p className="text-[10px] text-zinc-500 mt-1">
-                Auto-unblocks on{" "}
-                {new Date(
-                  Date.now() + expiryDays * 86_400_000
-                ).toLocaleDateString()}
-              </p>
-            )}
-          </div>
+          <DurationPicker value={expiryDays} onChange={setExpiryDays} />
         </div>
 
         <div className="flex gap-2 justify-end">
@@ -173,6 +327,94 @@ function BlockDialog({
   );
 }
 
+// ── Extend Dialog ──────────────────────────────────────────────────────────
+
+function ExtendDialog({
+  user,
+  onConfirm,
+  onCancel,
+}: {
+  user: UserRow;
+  onConfirm: (expiryDays: number, reason?: string) => void;
+  onCancel: () => void;
+}) {
+  const [expiryDays, setExpiryDays] = useState(7);
+  const [reason, setReason] = useState("");
+
+  const currentExpiry = user.blockedUntil
+    ? new Date(user.blockedUntil).toLocaleString("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "Permanent";
+
+  return (
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-zinc-900 border border-zinc-700 rounded-xl w-full max-w-md p-5 space-y-4">
+        <div className="flex items-center gap-2">
+          <CalendarClock size={16} className="text-amber-400" />
+          <h2 className="text-sm font-semibold text-zinc-100">
+            Modify block for {user.name ?? `User #${user.id}`}
+          </h2>
+        </div>
+
+        <div className="bg-zinc-800/50 rounded-lg px-3 py-2 text-xs text-zinc-400 space-y-0.5">
+          <div>
+            Current expiry:{" "}
+            <span className="text-amber-400 font-medium">{currentExpiry}</span>
+          </div>
+          {user.blockReason && (
+            <div>
+              Current reason:{" "}
+              <span className="text-zinc-300">{user.blockReason}</span>
+            </div>
+          )}
+        </div>
+
+        <p className="text-xs text-zinc-400">
+          Set a new expiry from now. This will update the auto-unblock time
+          without unblocking the user. Use 0 days to make the block permanent.
+        </p>
+
+        <div className="space-y-3">
+          <DurationPicker value={expiryDays} onChange={setExpiryDays} />
+
+          <div>
+            <label className="text-xs text-zinc-400 mb-1 block">
+              Update reason (optional)
+            </label>
+            <input
+              type="text"
+              placeholder="Leave blank to keep current reason"
+              maxLength={500}
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2 text-sm text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-amber-500/50"
+            />
+          </div>
+        </div>
+
+        <div className="flex gap-2 justify-end">
+          <button
+            onClick={onCancel}
+            className="px-3 py-1.5 text-xs text-zinc-400 hover:text-zinc-200 border border-zinc-700 rounded-lg transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(expiryDays, reason.trim() || undefined)}
+            className="px-3 py-1.5 text-xs bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 border border-amber-500/30 rounded-lg transition-colors font-medium"
+          >
+            Update Expiry
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main Component ─────────────────────────────────────────────────────────
 
 export default function AdminUsers() {
@@ -180,6 +422,7 @@ export default function AdminUsers() {
   const [, navigate] = useLocation();
   const [search, setSearch] = useState("");
   const [pendingBlockId, setPendingBlockId] = useState<number | null>(null);
+  const [pendingExtendId, setPendingExtendId] = useState<number | null>(null);
   const [showAuditLog, setShowAuditLog] = useState(false);
   const [expandedLoginUserId, setExpandedLoginUserId] = useState<number | null>(
     null
@@ -193,6 +436,8 @@ export default function AdminUsers() {
     undefined,
     {
       enabled: isOwnerQuery.data?.isOwner === true,
+      // Refresh every 30 s so expired blocks show up without a manual reload
+      refetchInterval: 30_000,
     }
   );
 
@@ -219,7 +464,7 @@ export default function AdminUsers() {
   // Cohort health summary stats
   const { data: statsData } = trpc.adminUsers.getUserStats.useQuery(undefined, {
     enabled: isOwnerQuery.data?.isOwner === true,
-    refetchInterval: 30_000, // refresh every 30 s
+    refetchInterval: 30_000,
   });
 
   const utils = trpc.useUtils();
@@ -244,6 +489,22 @@ export default function AdminUsers() {
       utils.adminUsers.listEvents.invalidate();
     },
     onError: err => toast.error(err.message),
+  });
+
+  const extendBlock = trpc.adminUsers.extendBlock.useMutation({
+    onSuccess: (result, vars) => {
+      const expiry = result.newBlockedUntil
+        ? new Date(result.newBlockedUntil).toLocaleDateString()
+        : "permanent";
+      toast.success(`Block updated — expires ${expiry}`);
+      utils.adminUsers.listUsers.invalidate();
+      utils.adminUsers.listEvents.invalidate();
+      setPendingExtendId(null);
+    },
+    onError: err => {
+      toast.error(err.message);
+      setPendingExtendId(null);
+    },
   });
 
   const checkInactive = trpc.adminUsers.checkInactiveUsers.useMutation({
@@ -310,10 +571,17 @@ export default function AdminUsers() {
   const blockedCount = (usersData ?? []).filter(
     (u: UserRow) => u.blocked
   ).length;
+  const temporaryBlockCount = (usersData ?? []).filter(
+    (u: UserRow) => u.blocked && u.blockedUntil
+  ).length;
   const totalCount = (usersData ?? []).length;
 
   const pendingUser = pendingBlockId
     ? (usersData ?? []).find((u: UserRow) => u.id === pendingBlockId)
+    : null;
+
+  const pendingExtendUser = pendingExtendId
+    ? (usersData ?? []).find((u: UserRow) => u.id === pendingExtendId)
     : null;
 
   const handleExportCsv = async () => {
@@ -344,6 +612,21 @@ export default function AdminUsers() {
         />
       )}
 
+      {/* Extend dialog */}
+      {pendingExtendUser && (
+        <ExtendDialog
+          user={pendingExtendUser}
+          onConfirm={(expiryDays, reason) => {
+            extendBlock.mutate({
+              userId: pendingExtendUser.id,
+              expiryDays,
+              reason,
+            });
+          }}
+          onCancel={() => setPendingExtendId(null)}
+        />
+      )}
+
       {/* Header */}
       <div className="border-b border-zinc-800 bg-zinc-900/50 sticky top-0 z-10">
         <div className="max-w-5xl mx-auto px-4 py-3 flex items-center gap-3">
@@ -364,6 +647,11 @@ export default function AdminUsers() {
             {blockedCount > 0 && (
               <span className="text-red-400 font-medium">
                 {blockedCount} blocked
+                {temporaryBlockCount > 0 && (
+                  <span className="text-amber-400/70 ml-1">
+                    ({temporaryBlockCount} temporary)
+                  </span>
+                )}
               </span>
             )}
             <button
@@ -411,7 +699,11 @@ export default function AdminUsers() {
             <span className="text-2xl font-bold text-red-400">
               {statsData?.blocked ?? blockedCount}
             </span>
-            <span className="text-[10px] text-zinc-600">access revoked</span>
+            <span className="text-[10px] text-zinc-600">
+              {temporaryBlockCount > 0
+                ? `${temporaryBlockCount} temporary`
+                : "access revoked"}
+            </span>
           </div>
         </div>
 
@@ -420,9 +712,10 @@ export default function AdminUsers() {
           <Crown size={14} className="shrink-0 mt-0.5 text-amber-400" />
           <span>
             <strong className="text-amber-400">Owner-only panel.</strong> Block
-            a user to immediately revoke their access. Optionally set an
-            auto-unblock date. All actions are logged and a Manus inbox
-            notification is sent.
+            a user to immediately revoke their access. Choose a duration preset
+            for a temporary block that auto-expires, or set Permanent. Use the{" "}
+            <strong className="text-amber-300">Extend</strong> button to adjust
+            the expiry of an already-blocked user without unblocking them.
           </span>
         </div>
 
@@ -479,11 +772,14 @@ export default function AdminUsers() {
                 {filtered.map((u: UserRow) => {
                   const isCurrentUser = u.id === user?.id;
                   const isBlocked = u.blocked === 1;
+                  const isTemporary = isBlocked && !!u.blockedUntil;
                   const isPending =
                     (blockUser.isPending &&
                       blockUser.variables?.userId === u.id) ||
                     (unblockUser.isPending &&
-                      unblockUser.variables?.userId === u.id);
+                      unblockUser.variables?.userId === u.id) ||
+                    (extendBlock.isPending &&
+                      extendBlock.variables?.userId === u.id);
                   const logins: Date[] = loginHistory?.[u.id] ?? [];
                   const isLoginExpanded = expandedLoginUserId === u.id;
 
@@ -516,18 +812,18 @@ export default function AdminUsers() {
                                     You
                                   </span>
                                 )}
+                                {isTemporary && (
+                                  <span className="text-[10px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded font-medium">
+                                    Temp
+                                  </span>
+                                )}
                               </div>
                               <div className="text-xs text-zinc-500">
                                 {u.email ?? `ID #${u.id}`}
                               </div>
                               {isBlocked && u.blockReason && (
                                 <div className="text-[10px] text-red-400/70 mt-0.5 max-w-[200px] truncate">
-                                  Reason: {u.blockReason}
-                                </div>
-                              )}
-                              {isBlocked && u.blockedUntil && (
-                                <div className="text-[10px] text-amber-400/70 mt-0.5">
-                                  Auto-unblocks: {formatDate(u.blockedUntil)}
+                                  {u.blockReason}
                                 </div>
                               )}
                               {/* Login history toggle */}
@@ -580,10 +876,13 @@ export default function AdminUsers() {
                         {/* Status */}
                         <td className="px-4 py-3">
                           {isBlocked ? (
-                            <span className="flex items-center gap-1.5 text-xs text-red-400">
-                              <UserX size={12} />
-                              Blocked
-                            </span>
+                            <div className="space-y-0.5">
+                              <span className="flex items-center gap-1.5 text-xs text-red-400">
+                                <UserX size={12} />
+                                Blocked
+                              </span>
+                              <ExpiryCountdown blockedUntil={u.blockedUntil} />
+                            </div>
                           ) : (
                             <span className="flex items-center gap-1.5 text-xs text-emerald-400">
                               <UserCheck size={12} />
@@ -599,16 +898,29 @@ export default function AdminUsers() {
                               —
                             </span>
                           ) : isBlocked ? (
-                            <button
-                              onClick={() =>
-                                unblockUser.mutate({ userId: u.id })
-                              }
-                              disabled={isPending}
-                              className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                            >
-                              <ShieldCheck size={12} />
-                              {isPending ? "…" : "Unblock"}
-                            </button>
+                            <div className="flex items-center gap-1.5 justify-end">
+                              {/* Extend button — modify expiry without unblocking */}
+                              <button
+                                onClick={() => setPendingExtendId(u.id)}
+                                disabled={isPending}
+                                title="Modify block expiry"
+                                className="inline-flex items-center gap-1 text-xs bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 border border-amber-500/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                <CalendarClock size={11} />
+                                Extend
+                              </button>
+                              {/* Unblock */}
+                              <button
+                                onClick={() =>
+                                  unblockUser.mutate({ userId: u.id })
+                                }
+                                disabled={isPending}
+                                className="inline-flex items-center gap-1.5 text-xs bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/20 px-2.5 py-1.5 rounded-lg transition-colors disabled:opacity-50"
+                              >
+                                <ShieldCheck size={11} />
+                                {isPending ? "…" : "Unblock"}
+                              </button>
+                            </div>
                           ) : (
                             <button
                               onClick={() => setPendingBlockId(u.id)}
@@ -696,18 +1008,63 @@ export default function AdminUsers() {
                 (auditEvents as AuditRow[]).map(ev => {
                   const isBlock = ev.eventType === "block";
                   const isUnblock = ev.eventType === "unblock";
+                  const isExtended = ev.eventType === "block_extended";
+
                   const reason =
                     ev.metadata &&
                     typeof ev.metadata === "object" &&
                     "reason" in ev.metadata
                       ? String(ev.metadata.reason)
                       : null;
+
                   const autoExpiry =
                     ev.metadata &&
                     typeof ev.metadata === "object" &&
-                    "blockedUntil" in ev.metadata
+                    "blockedUntil" in ev.metadata &&
+                    ev.metadata.blockedUntil
                       ? String(ev.metadata.blockedUntil)
                       : null;
+
+                  const prevExpiry =
+                    ev.metadata &&
+                    typeof ev.metadata === "object" &&
+                    "prevExpiry" in ev.metadata
+                      ? String(ev.metadata.prevExpiry)
+                      : null;
+
+                  const newExpiry =
+                    ev.metadata &&
+                    typeof ev.metadata === "object" &&
+                    "newExpiry" in ev.metadata
+                      ? String(ev.metadata.newExpiry)
+                      : null;
+
+                  // Icon and color per event type
+                  const iconBg = isBlock
+                    ? "bg-red-500/20 text-red-400"
+                    : isExtended
+                      ? "bg-amber-500/20 text-amber-400"
+                      : "bg-emerald-500/20 text-emerald-400";
+
+                  const eventIcon = isBlock ? (
+                    <UserX size={11} />
+                  ) : isExtended ? (
+                    <CalendarClock size={11} />
+                  ) : (
+                    <UserCheck size={11} />
+                  );
+
+                  const verbColor = isBlock
+                    ? "text-red-400"
+                    : isExtended
+                      ? "text-amber-400"
+                      : "text-emerald-400";
+
+                  const verb = isBlock
+                    ? "blocked"
+                    : isExtended
+                      ? "modified block for"
+                      : "unblocked";
 
                   return (
                     <div
@@ -715,43 +1072,75 @@ export default function AdminUsers() {
                       className="px-4 py-3 flex items-start gap-3 hover:bg-zinc-900/40 transition-colors"
                     >
                       <div
-                        className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
-                          isBlock
-                            ? "bg-red-500/20 text-red-400"
-                            : "bg-emerald-500/20 text-emerald-400"
-                        }`}
+                        className={`mt-0.5 w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${iconBg}`}
                       >
-                        {isBlock ? (
-                          <UserX size={11} />
-                        ) : (
-                          <UserCheck size={11} />
-                        )}
+                        {eventIcon}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="text-xs text-zinc-300">
                           <span className="font-medium text-zinc-100">
                             {ev.actorName ?? `Actor #${ev.actorId}`}
                           </span>{" "}
-                          <span
-                            className={
-                              isBlock ? "text-red-400" : "text-emerald-400"
-                            }
-                          >
-                            {isBlock ? "blocked" : "unblocked"}
-                          </span>{" "}
+                          <span className={verbColor}>{verb}</span>{" "}
                           <span className="font-medium text-zinc-100">
                             {ev.targetName ?? `User #${ev.targetId}`}
                           </span>
                         </div>
-                        {reason && (
+                        {reason && !isExtended && (
                           <div className="text-[10px] text-zinc-500 mt-0.5">
                             Reason: {reason}
                           </div>
                         )}
-                        {autoExpiry && (
+                        {isBlock && autoExpiry && (
                           <div className="text-[10px] text-amber-400/70 mt-0.5">
                             Auto-unblock:{" "}
-                            {new Date(autoExpiry).toLocaleDateString()}
+                            {new Date(autoExpiry).toLocaleString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </div>
+                        )}
+                        {isExtended && prevExpiry && newExpiry && (
+                          <div className="text-[10px] text-amber-400/70 mt-0.5 space-y-0.5">
+                            <div>
+                              Previous:{" "}
+                              <span className="text-zinc-400">
+                                {prevExpiry === "permanent"
+                                  ? "Permanent"
+                                  : new Date(prevExpiry).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
+                              </span>
+                            </div>
+                            <div>
+                              New:{" "}
+                              <span className="text-amber-300 font-medium">
+                                {newExpiry === "permanent"
+                                  ? "Permanent"
+                                  : new Date(newExpiry).toLocaleString(
+                                      "en-US",
+                                      {
+                                        month: "short",
+                                        day: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                      }
+                                    )}
+                              </span>
+                            </div>
+                            {reason && (
+                              <div className="text-zinc-500">
+                                Reason: {reason}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>

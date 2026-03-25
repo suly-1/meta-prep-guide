@@ -13,6 +13,7 @@ import { startWeeklyDigestCron } from "../weeklyDigest";
 import { startWeeklyAnalyticsCron } from "../weeklyAnalytics";
 import { startDailyAlertCron } from "../dailyAlert";
 import { startInactivityAlertCron } from "../inactivityAlert";
+import { startBlockExpiryCron } from "../blockExpiryJob";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -120,6 +121,7 @@ async function startServer() {
   startWeeklyAnalyticsCron();
   startDailyAlertCron();
   startInactivityAlertCron();
+  startBlockExpiryCron();
 }
 
 startServer().catch(console.error);

@@ -832,6 +832,10 @@ export const trpc = {
     reBlockUser: {
       useMutation: () => makeMutation(() => ({ success: true })),
     },
+    extendBlock: {
+      useMutation: () =>
+        makeMutation(() => ({ success: true, newBlockedUntil: null })),
+    },
     exportAuditLogCsv: {
       useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ csv: "" }),
     },
@@ -858,6 +862,10 @@ export const trpc = {
     onboarding: { get: { invalidate: () => {} } },
     leaderboard: { getTop: { invalidate: () => {} } },
     siteAccess: { getDisclaimerEnabled: { invalidate: () => {} } },
+    adminUsers: {
+      listUsers: { invalidate: () => {} },
+      listEvents: { invalidate: () => {} },
+    },
   }),
 
   // ── Provider (passthrough) ────────────────────────────────────────────────────────────────

@@ -4,7 +4,8 @@
  * listUsers          (ownerProcedure) → user list with blocked status, reason, blockedUntil
  * blockUser          (ownerProcedure) → block user, optional reason + auto-expiry, audit log, notify
  * unblockUser        (ownerProcedure) → unblock user, audit log, notify
- * reBlockUser        (ownerProcedure) → re-apply block from audit log row
+ * reBlockUser        (ownerProcedure) → re-apply block from audit log row (supports expiryDays)
+ * extendBlock         (ownerProcedure) → modify blockedUntil on an already-blocked user
  * listEvents         (ownerProcedure) → audit log (last 200 events)
  * exportAuditLogCsv  (ownerProcedure) → full audit log as CSV string
  * getUserLoginHistory(ownerProcedure) → last 5 login timestamps per user
@@ -219,6 +220,8 @@ export const adminUsersRouter = router({
       z.object({
         userId: z.number().int().positive(),
         reason: z.string().max(500).optional(),
+        /** Optional: auto-unblock after this many days (0 = permanent) */
+        expiryDays: z.number().int().min(0).max(365).optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -228,31 +231,30 @@ export const adminUsersRouter = router({
           code: "INTERNAL_SERVER_ERROR",
           message: "DB unavailable",
         });
-
       const [target] = await db
         .select({ id: users.id, openId: users.openId, name: users.name })
         .from(users)
         .where(eq(users.id, input.userId))
         .limit(1);
-
       if (!target)
         throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
-
       if (target.openId === ctx.user!.openId)
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You cannot block yourself",
         });
-
+      const blockedUntil =
+        input.expiryDays && input.expiryDays > 0
+          ? new Date(Date.now() + input.expiryDays * 86_400_000)
+          : null;
       await db
         .update(users)
         .set({
           blocked: 1,
           blockReason: input.reason ?? "Re-blocked from audit log",
-          blockedUntil: null,
+          blockedUntil,
         })
         .where(eq(users.id, input.userId));
-
       await writeAuditLog(db, {
         actorId: ctx.user!.id,
         actorName: ctx.user!.name,
@@ -262,20 +264,106 @@ export const adminUsersRouter = router({
         metadata: {
           reason: input.reason ?? "Re-blocked from audit log",
           source: "reblock_shortcut",
+          ...(blockedUntil ? { blockedUntil: blockedUntil.toISOString() } : {}),
         },
       });
-
       await notifyOwner({
         title: `User re-blocked: ${target.name ?? target.id}`,
         content: [
           `**Action:** Re-block (from audit log shortcut)`,
           `**Target:** ${target.name ?? "unknown"} (ID: ${target.id})`,
           `**By:** ${ctx.user!.name ?? "owner"}`,
+          `**Auto-unblock:** ${blockedUntil ? blockedUntil.toISOString() : "never"}`,
           `**Time:** ${new Date().toISOString()}`,
         ].join("\n"),
       }).catch(() => {});
-
       return { success: true };
+    }),
+
+  /**
+   * Extend (or shorten) the block duration for an already-blocked user.
+   * Can also convert a permanent block to a temporary one and vice-versa.
+   * Does NOT change the blockReason unless a new reason is provided.
+   */
+  extendBlock: ownerProcedure
+    .input(
+      z.object({
+        userId: z.number().int().positive(),
+        /** New expiry in days from NOW. Pass 0 to make the block permanent. */
+        expiryDays: z.number().int().min(0).max(365),
+        reason: z.string().max(500).optional(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const db = await getDb();
+      if (!db)
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "DB unavailable",
+        });
+      const [target] = await db
+        .select({
+          id: users.id,
+          openId: users.openId,
+          name: users.name,
+          blocked: users.blocked,
+          blockReason: users.blockReason,
+          blockedUntil: users.blockedUntil,
+        })
+        .from(users)
+        .where(eq(users.id, input.userId))
+        .limit(1);
+      if (!target)
+        throw new TRPCError({ code: "NOT_FOUND", message: "User not found" });
+      if (target.openId === ctx.user!.openId)
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You cannot modify your own block",
+        });
+      if (target.blocked !== 1)
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "User is not currently blocked",
+        });
+      const newBlockedUntil =
+        input.expiryDays > 0
+          ? new Date(Date.now() + input.expiryDays * 86_400_000)
+          : null;
+      const newReason = input.reason ?? target.blockReason ?? null;
+      await db
+        .update(users)
+        .set({ blockedUntil: newBlockedUntil, blockReason: newReason })
+        .where(eq(users.id, input.userId));
+      const prevExpiry = target.blockedUntil
+        ? target.blockedUntil.toISOString()
+        : "permanent";
+      const newExpiry = newBlockedUntil
+        ? newBlockedUntil.toISOString()
+        : "permanent";
+      await writeAuditLog(db, {
+        actorId: ctx.user!.id,
+        actorName: ctx.user!.name,
+        targetId: target.id,
+        targetName: target.name,
+        eventType: "block_extended",
+        metadata: {
+          prevExpiry,
+          newExpiry,
+          ...(input.reason ? { reason: input.reason } : {}),
+        },
+      });
+      await notifyOwner({
+        title: `Block modified: ${target.name ?? target.id}`,
+        content: [
+          `**Action:** Block duration modified`,
+          `**Target:** ${target.name ?? "unknown"} (ID: ${target.id})`,
+          `**By:** ${ctx.user!.name ?? "owner"}`,
+          `**Previous expiry:** ${prevExpiry}`,
+          `**New expiry:** ${newExpiry}`,
+          `**Time:** ${new Date().toISOString()}`,
+        ].join("\n"),
+      }).catch(() => {});
+      return { success: true, newBlockedUntil };
     }),
 
   /** Audit log — last 200 block/unblock events (owner only) */

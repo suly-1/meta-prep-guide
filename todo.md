@@ -950,3 +950,16 @@
 - [x] Strategy 8 (P8): Dependency locking — .npmrc with save-exact=true + audit-level=moderate; added audit:check and audit:fix npm scripts
 - [x] Strategy 9 (P9): RUNBOOK.md rollback playbook — 3 scenarios: bad deploy (Manus UI rollback), DB migration error (exact SQL fixes + nuclear restore), LLM outage (withLLMFallback auto-handles + feature flag disable)
 - [x] Strategy 10 (P10): Staging environment guidance — docs/staging-environment.md with step-by-step Manus project setup, workflow, schema migration process, and pre-deploy checklist
+
+## Temporary Block Enhancements
+
+- [x] Server: add extendBlock procedure (adjust blockedUntil on an already-blocked user)
+- [x] Server: add expiryDays param to reBlockUser so re-blocks can also be temporary
+- [x] Server: add cron job that auto-expires blocks every 5 minutes (fire-and-forget)
+- [x] Admin UI: upgrade BlockDialog with preset duration buttons (1h, 24h, 3d, 7d, 30d, permanent)
+- [x] Admin UI: add live ExpiryCountdown badge in user table status column
+- [x] Admin UI: add "Extend" action button on blocked users to modify expiry without unblocking
+- [x] Admin UI: update audit log entries to show expiry info clearly
+- [x] Admin UI: update reBlockUser call to pass expiryDays from audit log row
+- [x] Standalone mock: add extendBlock stub
+- [x] Tests: add extendBlock procedure smoke test (65 total tests passing)

@@ -256,6 +256,34 @@ describe("adminUsers procedures", () => {
     const caller = appRouter.createCaller(adminCtx());
     await assertSafeCall(() => caller.adminUsers.listUsers());
   });
+
+  it("blockUser rejects gracefully when DB null", async () => {
+    const caller = appRouter.createCaller(adminCtx());
+    await assertSafeCall(() =>
+      caller.adminUsers.blockUser({
+        userId: 9999,
+        reason: "test",
+        expiryDays: 1,
+      })
+    );
+  });
+
+  it("unblockUser rejects gracefully when DB null", async () => {
+    const caller = appRouter.createCaller(adminCtx());
+    await assertSafeCall(() => caller.adminUsers.unblockUser({ userId: 9999 }));
+  });
+
+  it("extendBlock rejects gracefully when DB null", async () => {
+    const caller = appRouter.createCaller(adminCtx());
+    await assertSafeCall(() =>
+      caller.adminUsers.extendBlock({ userId: 9999, expiryDays: 7 })
+    );
+  });
+
+  it("reBlockUser rejects gracefully when DB null", async () => {
+    const caller = appRouter.createCaller(adminCtx());
+    await assertSafeCall(() => caller.adminUsers.reBlockUser({ userId: 9999 }));
+  });
 });
 
 describe("siteAccess owner procedures", () => {
