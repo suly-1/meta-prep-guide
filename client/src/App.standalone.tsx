@@ -4,10 +4,10 @@
  */
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
 import { Route, Router, Switch } from "wouter";
 import { useHashLocation } from "wouter/use-hash-location";
 import ErrorBoundary from "./components/ErrorBoundary";
+import StandaloneAdminGate from "./components/StandaloneAdminGate";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 
@@ -15,8 +15,9 @@ function AppRouter() {
   return (
     <Switch>
       <Route path="/" component={Home} />
-      {/* Admin routes are NOT available in standalone mode — owner-only on metaguide.one */}
-      {/* All /admin/* paths fall through to Home */}
+      {/* Admin routes: PIN gate that redirects to metaguide.one on correct PIN */}
+      <Route path="/admin" component={StandaloneAdminGate} />
+      <Route path="/admin/:rest*" component={StandaloneAdminGate} />
       {/* Fallback */}
       <Route component={Home} />
     </Switch>

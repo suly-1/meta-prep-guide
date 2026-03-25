@@ -6,14 +6,32 @@
  */
 import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
+import { createHash } from "node:crypto";
 import path from "node:path";
 import { defineConfig } from "vite";
+
+/**
+ * Compute SHA-256 hash of ADMIN_PIN at build time.
+ * The raw PIN is never embedded — only the hash is baked into the bundle.
+ */
+function computeAdminPinHash(): string {
+  const pin = process.env.ADMIN_PIN;
+  if (!pin) {
+    console.warn(
+      "[standalone] ADMIN_PIN not set — admin gate will pass through without PIN check."
+    );
+    return "";
+  }
+  return createHash("sha256").update(pin).digest("hex");
+}
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   define: {
     // Flag used by components to detect standalone/static mode
     "import.meta.env.VITE_STANDALONE": JSON.stringify("true"),
+    // SHA-256 hash of ADMIN_PIN — safe to embed (one-way hash, raw PIN never exposed)
+    __ADMIN_PIN_HASH__: JSON.stringify(computeAdminPinHash()),
   },
   resolve: {
     alias: {
