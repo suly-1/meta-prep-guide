@@ -5,10 +5,9 @@
  * Builds the Vite client app using the STANDALONE config (localStorage-only,
  * no backend required) and pushes the dist/standalone folder to the gh-pages branch.
  *
- * Why standalone? GitHub Pages is a static host — there is no Express/tRPC server.
- * The standalone build swaps the real tRPC client for a localStorage mock so
- * all features (disclaimer gate, ratings, progress, deploy badge) work without
- * any backend.
+ * Deploys to TWO GitHub Pages sites:
+ *   1. suly-1/meta-prep-guide       → www.metaguide.blog  (remote: github)
+ *   2. suly-1/meta-interview-guide  → metaengguide.pro    (remote: metaengguide)
  *
  * Usage:  pnpm deploy:github-pages
  */
@@ -37,21 +36,31 @@ if (existsSync(standaloneHtml)) {
   console.log("📄 Renamed index.standalone.html → index.html");
 }
 
-// ── Step 3: Write CNAME file so GitHub Pages keeps the custom domain ─────────
-console.log("📝 Writing CNAME file…");
-writeFileSync(resolve(DIST, "CNAME"), "www.metaguide.blog\n");
+// ── Helper: deploy with a specific CNAME to a specific remote ────────────────
+function deployTo(remote, cname, displayUrl) {
+  console.log(`📝 Writing CNAME file: ${cname}…`);
+  writeFileSync(resolve(DIST, "CNAME"), `${cname}\n`);
+  console.log(`🚀 Deploying to gh-pages branch (${remote})…`);
+  execSync(
+    `node node_modules/gh-pages/bin/gh-pages.js --dist dist/standalone --branch gh-pages --remote ${remote} --message "Deploy to GitHub Pages [skip ci]"`,
+    { cwd: ROOT, stdio: "inherit" }
+  );
+  console.log(`✅ Deployed! Visit: ${displayUrl}`);
+}
 
-// ── Step 4: Deploy dist/standalone to gh-pages branch ────────────────────────
-console.log("🚀 Deploying to gh-pages branch…");
-execSync(
-  `node node_modules/gh-pages/bin/gh-pages.js --dist dist/standalone --branch gh-pages --remote github --message "Deploy to GitHub Pages [skip ci]"`,
-  {
-    cwd: ROOT,
-    stdio: "inherit",
-  }
-);
+// ── Step 3: Deploy to suly-1/meta-prep-guide → www.metaguide.blog ────────────
+deployTo("github", "www.metaguide.blog", "https://www.metaguide.blog/");
 
-console.log("✅ Deployed! Visit: https://www.metaguide.blog/");
+// ── Step 4: Deploy to suly-1/meta-interview-guide → metaengguide.pro ─────────
+try {
+  execSync("git remote get-url metaengguide", { cwd: ROOT, stdio: "pipe" });
+} catch {
+  execSync(
+    "git remote add metaengguide https://github.com/suly-1/meta-interview-guide.git",
+    { cwd: ROOT, stdio: "inherit" }
+  );
+}
+deployTo("metaengguide", "metaengguide.pro", "https://metaengguide.pro/");
 
 // ── Step 5: Post-deploy smoke test ───────────────────────────────────────────
 // Wait 10 seconds for GitHub Pages CDN to propagate, then run smoke tests.
@@ -69,8 +78,12 @@ if (process.env.SKIP_SMOKE_TEST !== "1") {
       stdio: "inherit",
     });
   } catch {
-    console.error("⚠️  Smoke test failed — site is deployed but may have issues.");
-    console.error("   Run manually: npx tsx scripts/smoke-test.ts https://www.metaguide.blog");
+    console.error(
+      "⚠️  Smoke test failed — site is deployed but may have issues."
+    );
+    console.error(
+      "   Run manually: npx tsx scripts/smoke-test.ts https://www.metaguide.blog"
+    );
     process.exit(1);
   }
 } else {
