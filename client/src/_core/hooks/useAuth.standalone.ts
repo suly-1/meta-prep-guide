@@ -1,16 +1,22 @@
 /**
  * Standalone useAuth mock — used in the self-contained HTML export.
- * Returns a mock admin user so admin pages (feedback, users, access, etc.)
- * render correctly. No real auth is performed; all data is from localStorage.
+ *
+ * Returns a regular (non-admin) guest user. Admin pages check isOwner via
+ * trpc.auth.isOwner, which also returns false in standalone mode, so
+ * the admin panel is completely inaccessible to all visitors on the
+ * static build at metaguide.blog.
+ *
+ * Only the live Manus-hosted app (metaguide.one) performs real OAuth
+ * and grants admin access to the owner.
  */
 
 export function useAuth() {
   return {
     user: {
-      id: 1,
-      name: "Admin",
+      id: 0,
+      name: "Guest",
       email: "",
-      role: "admin" as const,
+      role: "user" as const,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       lastSignedIn: new Date().toISOString(),
@@ -21,7 +27,7 @@ export function useAuth() {
     },
     loading: false,
     error: null,
-    isAuthenticated: true,
+    isAuthenticated: false,
     logout: () => {},
   };
 }

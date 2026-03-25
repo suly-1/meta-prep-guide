@@ -87,7 +87,7 @@ export const trpc = {
       useMutation: () => makeMutation(() => {}),
     },
     isOwner: {
-      useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ isOwner: true }),
+      useQuery: (_?: unknown, _opts?: unknown) => makeQuery({ isOwner: false }),
     },
   },
 

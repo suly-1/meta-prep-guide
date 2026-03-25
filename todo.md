@@ -963,3 +963,13 @@
 - [x] Admin UI: update reBlockUser call to pass expiryDays from audit log row
 - [x] Standalone mock: add extendBlock stub
 - [x] Tests: add extendBlock procedure smoke test (65 total tests passing)
+
+## CRITICAL — Admin Access Lockdown (Owner-Only)
+
+- [x] Server: verify ownerProcedure checks OWNER_OPEN_ID, not just role='admin'
+- [x] Server: verify adminProcedure does NOT allow regular users
+- [x] Frontend: hide admin shield icon from everyone except the owner (check isOwner, not isAuthenticated)
+- [x] Frontend: /admin/\* routes redirect non-owners to home (each page checks isOwner)
+- [x] Standalone: isOwner stub returns false (trpc.standalone.ts)
+- [x] Standalone: removed all admin routes from App.standalone.tsx
+- [x] Deploy and verify admin panel is inaccessible to non-owners — deployed to www.metaguide.blog
