@@ -1,0 +1,19 @@
+{
+  "name": "Meta Interview Prep Guide",
+  "short_name": "Meta Prep",
+  "description": "IC6/IC7 interview preparation: coding patterns, system design, behavioral stories.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f1117",
+  "theme_color": "#1a1d27",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "64x64",
+      "type": "image/x-icon"
+    }
+  ],
+  "categories": ["education", "productivity"],
+  "lang": "en"
+}
