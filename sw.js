@@ -1,67 +1,37 @@
-// Meta Prep Guide — Service Worker (Offline-first cache strategy)
-const CACHE_NAME = "meta-prep-v2";
+/**
+ * sw.js — Service Worker Kill-Switch
+ *
+ * Unregisters any previously installed Workbox service worker and clears all
+ * caches. The old SW may be serving stale cached files with outdated chunk
+ * hashes, causing a blank white page.
+ *
+ * Uses postMessage to ask the page to reload (guarded by sessionStorage) so
+ * the reload only happens once per session, preventing infinite reload loops.
+ */
 
-// App shell files to pre-cache on install
-const PRECACHE_URLS = ["/", "/manifest.json", "/favicon.ico"];
-
-// ── Install: pre-cache shell ────────────────────────────────────────────────
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(PRECACHE_URLS))
-  );
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-// ── Activate: remove old caches ─────────────────────────────────────────────
-self.addEventListener("activate", event => {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then(keys =>
-        Promise.all(
-          keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
-        )
-      )
-  );
-  self.clients.claim();
-});
+    (async () => {
+      // Clear ALL caches
+      const cacheNames = await caches.keys();
+      await Promise.all(cacheNames.map((name) => caches.delete(name)));
 
-// ── Fetch: network-first for API, cache-first for assets ────────────────────
-self.addEventListener("fetch", event => {
-  const url = new URL(event.request.url);
+      // Claim all clients immediately
+      await clients.claim();
 
-  // Never intercept API calls — always go to network
-  if (url.pathname.startsWith("/api/")) return;
+      // Unregister this SW so it never intercepts future requests
+      await self.registration.unregister();
 
-  // For navigation requests (HTML pages): network-first, fall back to cache
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const clone = response.clone();
-          caches
-            .open(CACHE_NAME)
-            .then(cache => cache.put(event.request, clone));
-          return response;
-        })
-        .catch(() => caches.match("/"))
-    );
-    return;
-  }
-
-  // For static assets (JS, CSS, fonts, images): stale-while-revalidate
-  event.respondWith(
-    caches.match(event.request).then(cached => {
-      const networkFetch = fetch(event.request).then(response => {
-        if (response.ok) {
-          const clone = response.clone();
-          caches
-            .open(CACHE_NAME)
-            .then(cache => cache.put(event.request, clone));
-        }
-        return response;
-      });
-      return cached || networkFetch;
-    })
+      // Ask each window client to reload — the page guards against loops
+      // via sessionStorage so it only reloads once per session
+      const allClients = await clients.matchAll({ type: 'window' });
+      for (const client of allClients) {
+        client.postMessage({ type: 'SW_KILL_SWITCH_ACTIVATED' });
+      }
+    })()
   );
 });
