@@ -11,7 +11,8 @@
     "check": "tsc --noEmit",
     "format": "prettier --write .",
     "deploy:github-pages": "node scripts/deploy-github-pages.mjs",
-    "deploy:staging": "STAGING_ONLY=1 node scripts/deploy-github-pages.mjs"
+    "deploy:staging": "STAGING_ONLY=1 node scripts/deploy-github-pages.mjs",
+    "build:standalone:static": "vite build --config vite.standalone.config.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
