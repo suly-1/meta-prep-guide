@@ -1,7 +1,7 @@
 {
-  "name": "Meta L4/L5/L6/L7 Interview Prep Guide",
+  "name": "Meta Interview Prep Guide",
   "short_name": "Meta Prep",
-  "description": "L6/L7 interview preparation: coding patterns, system design, behavioral stories.",
+  "description": "IC6/IC7 interview preparation: coding patterns, system design, behavioral stories.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0f1117",
