@@ -1,1 +1,0 @@
-ALTER TABLE `feedback` ADD `status` enum('new','in_progress','done','dismissed') DEFAULT 'new' NOT NULL;

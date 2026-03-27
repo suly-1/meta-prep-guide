@@ -1,5 +1,5 @@
 // Meta Prep Guide — Service Worker (Offline-first cache strategy)
-const CACHE_NAME = "meta-prep-v1";
+const CACHE_NAME = "meta-prep-v2";
 
 // App shell files to pre-cache on install
 const PRECACHE_URLS = ["/", "/manifest.json", "/favicon.ico"];
